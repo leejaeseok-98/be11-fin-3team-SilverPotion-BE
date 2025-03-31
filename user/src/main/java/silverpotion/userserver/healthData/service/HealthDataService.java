@@ -3,6 +3,7 @@ package silverpotion.userserver.healthData.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.domain.HeartRateData;
 import silverpotion.userserver.healthData.dtos.HealthAvgDataDto;
@@ -50,8 +51,13 @@ public class HealthDataService {
         if(todayHealthData.isPresent()){ // 이미 오늘 날짜에 생성된 헬스데이터가 있다면 기존의 것을 지우고 최근 엔티티 객체를 새로 저장
             healthDataRepository.delete(todayHealthData.get());
             healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today));
+            //유저의 헬스데이터 리스트에서 오늘 날짜의 데이터를 찾아 제거
+        user.getMyHealthData().removeIf(data -> data.getCreatedDate().equals(today));
+        user.getMyHealthData().add(newData);
         } else{ // 오늘날짜에 생성된 헬스데이터가 없다면 바로 저장
-            healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today));
+          HealthData data = healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today));
+          user.getMyHealthData().add(data);
+
         }
     }
 
@@ -107,8 +113,31 @@ public class HealthDataService {
         return HealthAvgDataDto.builder().step(avgStep).heartbeat(avgHeartBeat).distance(avgDistancd)
                 .calory(avgCalory).activeCalory(avgActiveCalory)
                 .build();
-
-
     }
+
+//    6.나의 피보호자 헬스데이터 조회(피보호자 목록 탭 조회할 때 백엔드로부터 피보호자 id를 받게되므로 프론트는 그 id를 가지고 피보호자 데이터 조회하도록 설계)
+     public HealthDataListDto mydependentData(String loginId, Long id){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 회원입니다"));
+        User dependentUser = userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 회원입니다"));
+
+        List<CareRelation> relationAsProtector = user.getAsProtectors();
+         HealthData targetData = new HealthData();
+        for(CareRelation c: relationAsProtector){
+           if(c.getDependent().getId().equals(id)){
+               List<HealthData> dependentDataList = dependentUser.getMyHealthData();
+               LocalDate today = LocalDate.now();
+               for(HealthData h : dependentDataList){
+                   if(h.getCreatedDate().equals(today)){
+                       targetData = h;
+                   }
+               }
+
+           } else{
+               throw new IllegalArgumentException("피보호자로 등록되지 않은 회원입니다");
+           }
+        }
+         return targetData.toListDtoFromEntity();
+
+     }
 
 }

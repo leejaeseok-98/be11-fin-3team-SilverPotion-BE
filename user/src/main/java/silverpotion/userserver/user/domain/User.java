@@ -3,6 +3,7 @@ package silverpotion.userserver.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import silverpotion.userserver.careRelation.domain.CareRelation;
+import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.user.dto.UserCreateDto;
 import silverpotion.userserver.user.dto.UserLinkedUserDto;
 import silverpotion.userserver.user.dto.UserMyPageDto;
@@ -71,6 +72,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     @OneToMany(mappedBy = "protector")
     @Builder.Default
     private List<CareRelation> asProtectors = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<HealthData> myHealthData = new ArrayList<>();
     //로그인 타입
     @Enumerated(EnumType.STRING)
     private SocialType socialType;

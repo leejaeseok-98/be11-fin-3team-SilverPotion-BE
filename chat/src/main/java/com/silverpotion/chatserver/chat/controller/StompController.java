@@ -1,10 +1,10 @@
 package com.silverpotion.chatserver.chat.controller;
 
-import com.example.chatserver.chat.service.RedisPubSubService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
 import com.silverpotion.chatserver.chat.service.ChatService;
+import com.silverpotion.chatserver.chat.service.RedisPubSubService;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;

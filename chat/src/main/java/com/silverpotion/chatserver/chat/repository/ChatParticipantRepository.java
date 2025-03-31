@@ -13,9 +13,17 @@ import java.util.Optional;
 @Repository
 public interface ChatParticipantRepository extends JpaRepository<ChatParticipant, Long> {
     List<ChatParticipant> findByChatRoom(ChatRoom chatRoom);
-    Optional<ChatParticipant> findByChatRoomAndUser(ChatRoom chatRoom, Long userId);
-    List<ChatParticipant> findAllByUser(Long userId);
+    Optional<ChatParticipant> findByChatRoomAndUserId(ChatRoom chatRoom, Long userId);
+    List<ChatParticipant> findAllByUserId(Long userId);
 
-    @Query("SELECT cp1.chatRoom FROM ChatParticipant cp1 JOIN ChatParticipant cp2 ON cp1.chatRoom.id = cp2.chatRoom.id WHERE cp1.member.id = :myId AND cp2.member.id = :otherMemberId AND cp1.chatRoom.isGroupChat = 'N'")
-    Optional<ChatRoom> findExistingPrivateRoom(@Param("myId") Long myId, @Param("otherMemberId") Long otherMemberId);
+    @Query("""
+    SELECT cp1.chatRoom
+    FROM ChatParticipant cp1
+    JOIN ChatParticipant cp2 ON cp1.chatRoom.id = cp2.chatRoom.id
+    WHERE cp1.userId = :myId
+      AND cp2.userId = :otherUserId
+      AND cp1.chatRoom.isGroupChat = 'N'
+""")
+    Optional<ChatRoom> findExistingPrivateRoom(@Param("myId") Long myId, @Param("otherUserId") Long otherUserId);
+
 }

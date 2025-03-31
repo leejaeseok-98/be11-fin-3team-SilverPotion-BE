@@ -1,6 +1,6 @@
-package com.example.chatserver.common.configs;
+package com.silverpotion.chatserver.common.configs;
 
-import com.example.chatserver.chat.service.RedisPubSubService;
+import com.silverpotion.chatserver.chat.service.RedisPubSubService;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;

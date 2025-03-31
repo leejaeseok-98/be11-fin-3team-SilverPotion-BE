@@ -1,8 +1,8 @@
-package com.example.chatserver.chat.service;
+package com.silverpotion.chatserver.chat.service;
 
-import com.example.chatserver.chat.dto.ChatMessageDto;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;

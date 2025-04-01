@@ -13,8 +13,6 @@ import org.springframework.stereotype.Component;
 @Component
 public class StompHandler implements ChannelInterceptor {
 
-    @Value("${jwt.secretKey}")
-    private String secretKey;
     private final ChatService chatService;
 
     public StompHandler(ChatService chatService) {
@@ -32,6 +30,7 @@ public class StompHandler implements ChannelInterceptor {
         if (StompCommand.SUBSCRIBE == accessor.getCommand()) {
             String userId = accessor.getFirstNativeHeader("X-User-id");
             String roomId = accessor.getDestination().split("/")[2];
+
             if (!chatService.isRoomPaticipant(userId, Long.parseLong(roomId))) {
                 throw new AuthenticationServiceException("해당 room에 권한이 없습니다.");
             }
@@ -39,6 +38,4 @@ public class StompHandler implements ChannelInterceptor {
 
         return message;
     }
-
-
 }

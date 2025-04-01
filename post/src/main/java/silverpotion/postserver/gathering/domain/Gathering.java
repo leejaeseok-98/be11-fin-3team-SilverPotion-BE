@@ -9,6 +9,7 @@ import silverpotion.postserver.common.domain.BaseTimeEntity;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.domain.GatheringDetail;
+import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.post.domain.Post;
 
 import java.util.ArrayList;
@@ -24,19 +25,33 @@ public class Gathering extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     //모임 카테고리
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
-    private GatheringCategory category;
+    private GatheringCategory gatheringCategory;
+
+    //모임장id
+    private Long leaderId;
+
     //모임명
     @Column(nullable = false)
     private String gatheringName;
+
     //활동지역(이 부분 더 공부필요 api를 가져오거나 공공데이터포탈에서 전국 지역데 이터 다운받아서 수동으로 db에 넣거나)
     private String region;
+
     //모임소개
+    @Column(nullable = false)
     private String introduce;
+
     //모임 프로필 사진
     private String imageUrl;
+
+    //정원
+    @Column(nullable = false)
+    private Long maxPeople;
+
     @Builder.Default
     @Enumerated(EnumType.STRING )
     private DelYN delYN=DelYN.N;
@@ -48,4 +63,22 @@ public class Gathering extends BaseTimeEntity {
     @OneToMany(mappedBy = "gathering" )
     @Builder.Default
     private List<GatheringDetail> gatheringDetails = new ArrayList<>();
+
+    @OneToMany(mappedBy = "gathering" )
+    @Builder.Default
+    private List<Meeting> meetings = new ArrayList<>();
+
+    @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<GatheringPeople> gatheringPeople = new ArrayList<>();
+
+    public void addLeaderToGatheringPeople(Long userId) {
+        GatheringPeople leader = GatheringPeople.builder()
+                .gathering(this)
+                .userId(userId)
+                .greetingMessage("모임장")
+                .status(Status.ACTIVATE)
+                .build();
+        this.gatheringPeople.add(leader);
+    }
 }

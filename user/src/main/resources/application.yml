@@ -16,7 +16,6 @@ spring:
       ddl-auto: update
     show_sql: true
   application:
-    #   user-sevice?? ???? eureka? ??
     name: user-service
 
 
@@ -25,6 +24,10 @@ eureka:
   client:
     serviceUrl:
       defaultZone: http://localhost:8761/eureka/
+  instance:
+    prefer-ip-address: true
+    ip-address: 127.0.0.1
+
 server:
   port: 0
   #port?? 0?? ??? ??? ????? ???  port??
@@ -37,4 +40,7 @@ jwt:
   secretKeyRt: a3l1bmdsZWFkZXItbGVlbWFrbmFlLWNob2lzaGFycGJveS1raW1pc21lLXdlYXJldGhldGVhbWFuZGdvdGhyb3VnaGV2ZXJ5c3RhZ2VreXVuZ2xlYWRlci1sZWVtYWtuYWUtY2hvaXNoYXJwYm95LWtpbWlzbWUtd2VhcmV0aGV0ZWFtYW5kZ290aHJvdWdoZXZlcnlzdGFnZQ==
 #  200일
   expirationRt: 288000
+
+openai:
+  api-key: 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
 

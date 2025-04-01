@@ -129,4 +129,19 @@ public class UserService {
         return protectors.stream().map(c->c.getProtector().toLinkUserDtoFromEntity()).toList();
 
     }
+
+    //    7.loginId로 userId조회하기
+    public Long getUserIdByLoginId(String loginId){
+        User user = userRepository.findByLoginId(loginId).orElseThrow(()->new EntityNotFoundException("없는 유저입니다."));
+        return user.getId();
+    }
+
+    //    8.loginId로 userId와 nickname 조회하기
+    public UserProfileInfoDto getUserProfileInfo(String loginId) {
+        User user = userRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
+        Long userId = user.getId();
+        String nickname = user.getNickName();
+        String profileImage = user.getName();//꼭 프로필이미지로 수정해야함!!!!!
+        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
+    }
 }

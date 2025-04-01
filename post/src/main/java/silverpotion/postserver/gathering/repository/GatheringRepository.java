@@ -9,6 +9,7 @@ import silverpotion.postserver.gathering.domain.Gathering;
 import java.util.Optional;
 
 @Repository
-public interface gatheringRepository extends JpaRepository<Gathering,Long> {
+public interface GatheringRepository extends JpaRepository<Gathering,Long> {
     Optional<Gathering> findByIdAndDelYN(Long id, DelYN delYN);
+
 }

@@ -3,6 +3,7 @@ package com.silverpotion.chatserver.chat.controller;
 
 import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
 import com.silverpotion.chatserver.chat.dto.ChatRoomListResDto;
+import com.silverpotion.chatserver.chat.dto.MyChatListResDto;
 import com.silverpotion.chatserver.chat.service.ChatService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -57,7 +58,7 @@ public class ChatController {
 //    내채팅방목록조회 : roomId, roomName, 그룹채팅여부, 메시지읽음개수
     @GetMapping("/my/rooms")
     public ResponseEntity<?> getMyChatRooms(){
-        List<com.example.chatserver.chat.dto.MyChatListResDto> myChatListResDtos = chatService.getMyChatRooms();
+        List<MyChatListResDto> myChatListResDtos = chatService.getMyChatRooms();
         return new ResponseEntity<>(myChatListResDtos, HttpStatus.OK);
     }
 

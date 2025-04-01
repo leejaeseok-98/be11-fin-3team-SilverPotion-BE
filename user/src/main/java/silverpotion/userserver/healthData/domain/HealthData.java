@@ -34,9 +34,7 @@ public class HealthData extends BaseTimeEntity {
     private User user;
     //  생성날짜
     private LocalDate createdDate;
-
-
-//    일주일 평균 계산 메서드
+    //  일주일 평균 계산 메서드
 
 
 

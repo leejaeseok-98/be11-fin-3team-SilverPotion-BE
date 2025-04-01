@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import silverpotion.userserver.careRelation.domain.CareRelation;
+import silverpotion.userserver.careRelation.domain.LinkStatus;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.domain.HeartRateData;
 import silverpotion.userserver.healthData.dtos.HealthAvgDataDto;
@@ -17,6 +18,7 @@ import silverpotion.userserver.user.repository.UserRepository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -119,25 +121,33 @@ public class HealthDataService {
      public HealthDataListDto mydependentData(String loginId, Long id){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 회원입니다"));
         User dependentUser = userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 회원입니다"));
-
-        List<CareRelation> relationAsProtector = user.getAsProtectors();
-         HealthData targetData = new HealthData();
+        //careRelation 객체가 생성되면 상태 기본값이 pending이긴해도 user와 양방향 매핑으로 인해 자동으로 칼럼 리스트에 add되기 때문에 pending인거 제외하고 connect인거만 가져오는 것
+        List<CareRelation> relationAsProtector = user.getAsProtectors().stream().filter(c->c.getLinkStatus() == LinkStatus.CONNECTED).toList();
+         List<HealthData> dependentDataList = new ArrayList<>();
+        boolean isThereDependent = false; //요청으로 들어온 피보호자가 진짜 피보호자인지 구분하는 불린
         for(CareRelation c: relationAsProtector){
-           if(c.getDependent().getId().equals(id)){
-               List<HealthData> dependentDataList = dependentUser.getMyHealthData();
-               LocalDate today = LocalDate.now();
-               for(HealthData h : dependentDataList){
-                   if(h.getCreatedDate().equals(today)){
-                       targetData = h;
-                   }
-               }
-
-           } else{
-               throw new IllegalArgumentException("피보호자로 등록되지 않은 회원입니다");
+           if(c.getDependent().getId().equals(id)){ //보호자 유저 의 dependent중 요청으로 들어온 아이디값과 같다면,
+                dependentDataList= c.getDependent().getMyHealthData();
+                isThereDependent = true;
            }
         }
-         return targetData.toListDtoFromEntity();
-
+        if(!isThereDependent){throw new IllegalArgumentException("해당 유저는 피보호자로 등록되지 않은 유저입니다");
+        }
+        LocalDate today = LocalDate.now();
+        HealthData targetData = new HealthData();
+        boolean isThereTodayData = false; // 피보호자의 오늘 데이터가 있는지 없는지 두는 불린
+        for(HealthData h :dependentDataList){
+            if(h.getCreatedDate().equals(today)){
+                targetData = h; //피보호자의 오늘 데이터
+                isThereTodayData = true;
+            } else{
+                isThereTodayData = false;
+            }
+        }
+         if(isThereTodayData){
+             return  targetData.toListDtoFromEntity();
+         } else{
+             throw new IllegalArgumentException("피보호자의 금일 기록이 없습니다");
+         }
      }
-
 }

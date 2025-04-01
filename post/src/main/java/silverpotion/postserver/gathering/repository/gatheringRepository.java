@@ -11,4 +11,5 @@ import java.util.Optional;
 @Repository
 public interface gatheringRepository extends JpaRepository<Gathering,Long> {
     Optional<Gathering> findByIdAndDelYN(Long id, DelYN delYN);
+
 }

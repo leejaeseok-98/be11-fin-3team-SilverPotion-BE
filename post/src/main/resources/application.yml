@@ -13,6 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
+#      ddl-auto: create
       ddl-auto: update
     show_sql: true
   application:
@@ -30,4 +31,14 @@ eureka:
 server:
   port: 0
   #port?? 0?? ??? ??? ????? ???  port??
+  # aws s3 계정 설정
+cloud:
+  aws:
+    credentials:
+      access-key: AKIAWCZC5QR3NLEWSPNX
+      secret-key: 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
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: silverpotion
 

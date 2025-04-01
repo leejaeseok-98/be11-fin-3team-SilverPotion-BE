@@ -14,9 +14,8 @@ import silverpotion.postserver.comment.dtos.CommentListResDto;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
 import silverpotion.postserver.gathering.domain.Gathering;
-import silverpotion.postserver.gathering.domain.GatheringPeople;
 import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
-import silverpotion.postserver.gathering.repository.gatheringRepository;
+import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.PostFile;
@@ -41,7 +40,7 @@ public class PostService {
     private final PostFileRepository postFileRepository;
     private final S3Client s3Client;
     private final UserClient userClient;
-    private final gatheringRepository gatheringRepository;
+    private final GatheringRepository gatheringRepository;
     private final PostLikeRepository postLikeRepository;
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
@@ -53,7 +52,7 @@ public class PostService {
     @Value("${cloud.aws.region.static}")
     private String region;
 
-    public PostService(PostRepository postRepository, silverpotion.postserver.gathering.repository.gatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository) {
+    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository) {
         this.postRepository = postRepository;
         this.gatheringRepository = gatheringRepository;
         this.postFileRepository = postFileRepository;

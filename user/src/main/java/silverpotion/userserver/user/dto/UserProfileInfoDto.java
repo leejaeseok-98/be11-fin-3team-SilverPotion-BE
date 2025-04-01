@@ -1,4 +1,4 @@
-package silverpotion.postserver.post.dtos;
+package silverpotion.userserver.user.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,14 +9,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class PostCreateUserDto {
+public class UserProfileInfoDto {
     private Long userId;
     private String nickname;
+    private String profileImage;
 
-    public static PostCreateUserDto postCreateUserDto(Long userId, String nickname){
-        return PostCreateUserDto.builder()
+    public static UserProfileInfoDto userProfileInfoDto(Long userId, String nickname,String profileImage){
+        return UserProfileInfoDto.builder()
                 .userId(userId)
                 .nickname(nickname)
+                .profileImage(profileImage)
                 .build();
     }
 }

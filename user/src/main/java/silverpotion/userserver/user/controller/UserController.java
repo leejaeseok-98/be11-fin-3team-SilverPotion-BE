@@ -83,4 +83,17 @@ public class UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",protectors),HttpStatus.OK);
     }
 
+    //    7.userId 조회(UserClient)
+    @GetMapping("/userId")
+    public Long getUserIdByLoginId(@RequestParam String loginId){
+        return userService.getUserIdByLoginId(loginId);
+    }
+
+    //    8.userId와 nickname 조회(UserClient)
+    @GetMapping("/postUserInfo")
+    public UserProfileInfoDto getUserProfileInfo(@RequestParam String loginId){
+        return userService.getUserProfileInfo(loginId);
+    }
+
+
 }

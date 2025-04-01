@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import silverpotion.postserver.comment.dtos.CommentListResDto;
 import silverpotion.postserver.post.domain.Post;
 
 import java.time.LocalDateTime;
@@ -13,30 +14,30 @@ import java.util.List;
 @NoArgsConstructor
 @Data
 @Builder
-public class PostListResDto {
+public class PostDetailResDto {
     private Long userId;
-    private String nickname;
+    private String nickName;
     private String profileImage;
     private Long postId;
     private List<String> imageList;
-    private String title;
     private String content;
-    private Long likeCount;
-    private Long commentCount;
+    private Long postLikeCount;
+    private List<CommentListResDto> commentList;
     private LocalDateTime createdTime;
-    private String isLike;
     private String isUpdate;
+    private List<String> hashTag;
+    private String isLike;
 
-    public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,String profileImage){
-        return PostListResDto.builder()
+    public static PostDetailResDto fromEntity(Post post,String profileImage,Long postLikeCount, List<CommentListResDto> commentList, String isLike) {
+        return PostDetailResDto.builder()
                 .userId(post.getWriterId())
-                .nickname(post.getNickName())
+                .nickName(post.getNickName())
                 .profileImage(profileImage)
                 .postId(post.getId())
                 .imageList(post.getFileUrls())
                 .content(post.getContent())
-                .likeCount(likeCount)
-                .commentCount(commentCount)
+                .postLikeCount(postLikeCount)
+                .commentList(commentList)
                 .createdTime(post.getCreatedTime())
                 .isUpdate(determineUpdateStatus(post))
                 .isLike(isLike)
@@ -47,5 +48,4 @@ public class PostListResDto {
     private static String determineUpdateStatus(Post post) {
         return (post.getUpdatedTime() != null && !post.getUpdatedTime().equals(post.getCreatedTime())) ? "Y" : "N";
     }
-
 }

@@ -5,12 +5,14 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import silverpotion.postserver.comment.domain.Comment;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gathering.domain.Gathering;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @AllArgsConstructor
@@ -55,6 +57,7 @@ public class Post extends BaseTimeEntity {
     private Gathering gathering;
 
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     private PostStatus postStatus = PostStatus.draft;
 
     public void update(String title, String content){
@@ -72,6 +75,10 @@ public class Post extends BaseTimeEntity {
         this.writerId = userId;
     }
 
-
+    public List<String> getFileUrls() {
+        return postFile.stream()
+                .map(PostFile::getFileUrl)
+                .collect(Collectors.toList());
+    }
 
 }

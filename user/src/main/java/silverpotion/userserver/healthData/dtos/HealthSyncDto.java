@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.domain.HeartRateData;
 import silverpotion.userserver.user.domain.User;
@@ -30,10 +31,12 @@ public class HealthSyncDto {
 
 
     public HealthData toEntityFromSync(int averageHeartbeat, User user, LocalDate createdDate){
+      //Double형타입을 int로 변환할때 만약 null값이면 NullpointerException발생
         return HealthData.builder()
                 .step(this.stepData.get(0)).heartbeat(averageHeartbeat)
-                .calory(this.caloriesBurnedData).activeCalory(this.activeCaloriesBurned)
-                .distance(this.distanceWalked).user(user).createdDate(createdDate)
+                .calory(this.caloriesBurnedData.intValue()).activeCalory(this.activeCaloriesBurned.intValue())
+                .distance(this.distanceWalked.intValue()).user(user).createdDate(createdDate)
+                .dataType(DataType.DAY) //일일 HealthDataType.
                 .build();
     }
 

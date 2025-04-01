@@ -21,6 +21,4 @@ public class HealthAvgDataDto {
     //  오늘 걸은 거리
     private int distance;
 
-
-
 }

@@ -4,10 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import silverpotion.userserver.common.dto.CommonDto;
-import silverpotion.userserver.healthData.dtos.HealthAvgDataDto;
-import silverpotion.userserver.healthData.dtos.HealthDataListDto;
-import silverpotion.userserver.healthData.dtos.HealthDataSpecificDateDto;
-import silverpotion.userserver.healthData.dtos.HealthSyncDto;
+import silverpotion.userserver.healthData.dtos.*;
 import silverpotion.userserver.healthData.service.HealthDataService;
 
 @RestController
@@ -56,15 +53,40 @@ public class HealthDataController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "monthly AvgHealthData is uploaded well", monthlyAvg), HttpStatus.OK);
     }
 
-    //      6.내 피보호자 헬스데이터 조회
+    //    6.내 피보호자 현재 헬스데이터 조회
     @GetMapping("/yourHealthData/{id}")
     public ResponseEntity<?> mydependentData(@RequestHeader("X-User-Id") String loginId, @PathVariable Long id) {
         HealthDataListDto depentData = healthDataService.mydependentData(loginId, id);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "Health Data Of my Dependent is uploaded successfully", depentData), HttpStatus.OK);
     }
 
+    //   7. 특정 주 평균헬스데이터 조회
+    @GetMapping("/selectWeek")
+    public ResponseEntity<?> mySpecificWeekHealthData(@RequestHeader("X-User-Id")String loginId, @RequestBody SelectDateReqDto dto){
+        HealthDataListDto mySpecificHealthData = healthDataService.mySpecificWeekHealthData(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"weekly AvgHealthData you selcect is uploaded successfully",mySpecificHealthData),HttpStatus.OK);
+    }
 
+    //  8. 특정 월 평균 헬스데이터 조회
+    @GetMapping("/selectMonth")
+    public ResponseEntity<?> mySpecificMonthHealthData(@RequestHeader("X-User-Id")String loginId, @RequestBody SelectDateReqDto dto){
+        HealthDataListDto mySpecificMonthHealthData = healthDataService.mySpecificMonthHealthData(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"monthly AvgHealthData you selcect is uploaded successfully",mySpecificMonthHealthData),HttpStatus.OK);
+    }
 
+    // 9. 내 피보호자 특정 주 평균헬스데이터 조회
+    @GetMapping("/dependent/week")
+    public ResponseEntity<?> myDependentWeekHealthData(@RequestHeader("X-User-Id")String loginId, @RequestBody SelectDateAndDepReqDto dto){
+        HealthDataListDto dependentWeekHealthData = healthDataService.myDependentWeekHealthData(loginId,dto);
+        return new ResponseEntity<>((new CommonDto(HttpStatus.OK.value(), "My dependent's weekly AvgHealthData you select is uploaded successfully",dependentWeekHealthData)),HttpStatus.OK);
+    }
+
+    //10. 내 피보호자 특정 월 평균 헬스데이터 조회
+    @GetMapping("/dependent/month")
+    public ResponseEntity<?> myDependentMonthHealthData(@RequestHeader("X-User-Id")String loginId, @RequestBody SelectDateAndDepReqDto dto){
+        HealthDataListDto dependentMonthHealthData = healthDataService.myDependentMonthHealthData(loginId,dto);
+        return new ResponseEntity<>((new CommonDto(HttpStatus.OK.value(), "My dependent's weekly AvgHealthData you select is uploaded successfully",dependentMonthHealthData)),HttpStatus.OK);
+    }
 
 
 

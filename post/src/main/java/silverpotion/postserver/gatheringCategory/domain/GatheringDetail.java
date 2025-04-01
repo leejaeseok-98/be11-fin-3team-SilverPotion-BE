@@ -20,7 +20,12 @@ public class GatheringDetail {
     @JoinColumn(name = "gathering_id")
     private Gathering gathering;
 
-    @OneToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "gathering_category_detail_id")
     private GatheringCategoryDetail gatheringCategoryDetail;
+
+    public GatheringDetail(Gathering gathering, GatheringCategoryDetail gatheringCategoryDetail) {
+        this.gathering = gathering;
+        this.gatheringCategoryDetail = gatheringCategoryDetail;
+    }
 }

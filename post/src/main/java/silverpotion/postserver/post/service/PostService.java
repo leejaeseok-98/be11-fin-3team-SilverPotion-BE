@@ -19,6 +19,7 @@ import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.PostFile;
+import silverpotion.postserver.post.domain.PostLike;
 import silverpotion.postserver.post.domain.PostStatus;
 import silverpotion.postserver.post.dtos.*;
 import silverpotion.postserver.post.repository.PostFileRepository;
@@ -30,6 +31,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.*;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 
@@ -100,7 +102,7 @@ public class PostService {
 
             case vote:
                 VotePostUpdateDto voteDto = (VotePostUpdateDto) dto;
-                saveVotePost(post, userId, (VotePostUpdateDto) voteDto);
+                saveVotePost(post, userId, voteDto);
                 return voteDto;
             default:
                 throw new UnsupportedOperationException("지원하지 않는 게시물 유형");
@@ -111,6 +113,7 @@ public class PostService {
     // 3. 공통 저장 로직 (자유글/공지글 공통)
     private void saveCommonPost(Post post, Long userId, FreePostUpdateDto dto) {
         post.update(dto.getTitle(), dto.getContent());
+        post.changeStatus(PostStatus.fin);
         post.assignWriter(userId); // 작성자를 한번만 지정할 수 있도록 제약
         postRepository.save(post);
 
@@ -123,6 +126,7 @@ public class PostService {
     // 4. 투표 게시물 저장
     private void saveVotePost(Post post, Long userId, VotePostUpdateDto dto) {
         post.update(dto.getTitle(), dto.getDescription()); // 예시
+        post.changeStatus(PostStatus.fin);
         post.assignWriter(userId); // 작성자를 한번만 지정할 수 있도록 제약
         postRepository.save(post);
         // 투표 항목 저장 등 로직 추가 필요
@@ -152,7 +156,7 @@ public class PostService {
     public void delete(Long postId,String loginId){
         Long userId = userClient.getUserIdByLoginId(loginId);
         Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-        if (!userId.equals(post.getId())){return;}
+        if (!userId.equals(post.getWriterId())){return;}
         postRepository.delete(post);
     }
 
@@ -218,4 +222,5 @@ public class PostService {
         // DTO 변환 후 반환
         return PostDetailResDto.fromEntity(post,profileImage,postLikeCount, commentList, isLike);
     }
+
 }

@@ -1,5 +1,15 @@
 #?? ??
 spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB # 개별파일 최대 크기
+      max-request-size: 100MB  # 전체 요청 최대 크기
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
   redis:
     host: localhost
     port: 6379

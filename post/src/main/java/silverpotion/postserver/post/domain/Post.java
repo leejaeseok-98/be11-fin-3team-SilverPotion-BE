@@ -27,7 +27,6 @@ public class Post extends BaseTimeEntity {
 
     private Long writerId; //회원서버에서 요청
 
-    private String nickName; //회원서버에서 요청
     //게시판
     @Enumerated(EnumType.STRING)
     private PostCategory postCategory;
@@ -61,10 +60,8 @@ public class Post extends BaseTimeEntity {
     private PostStatus postStatus = PostStatus.draft;
 
     public void update(String title, String content){
-        Post.builder()
-                .title(title)
-                .content(content)
-                .build();
+        this.title = title;
+        this.content = content;
     }
 
     //  작성자를 한번만 지정할 수 있도록 제약
@@ -79,6 +76,10 @@ public class Post extends BaseTimeEntity {
         return postFile.stream()
                 .map(PostFile::getFileUrl)
                 .collect(Collectors.toList());
+    }
+
+    public void changeStatus(PostStatus status) {
+        this.postStatus = status;
     }
 
 }

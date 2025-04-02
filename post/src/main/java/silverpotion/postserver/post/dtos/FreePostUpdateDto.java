@@ -1,5 +1,6 @@
 package silverpotion.postserver.post.dtos;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,6 +15,7 @@ import java.util.List;
 @Data
 @Builder
 public class FreePostUpdateDto implements PostUpdateDto{
+    @JsonIgnore
     private List<MultipartFile> postImg;
     private String title;
     private String content;
@@ -31,7 +33,7 @@ public class FreePostUpdateDto implements PostUpdateDto{
     }
     @Override
     public String getContent(){
-        return title;
+        return content;
     }
 
 

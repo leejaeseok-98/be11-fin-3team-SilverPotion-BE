@@ -16,7 +16,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("silverpotion/user")
-public class UserController {
+public class    UserController {
    private final UserService userService;
 
 
@@ -94,6 +94,8 @@ public class UserController {
     public UserProfileInfoDto getUserProfileInfo(@RequestParam String loginId){
         return userService.getUserProfileInfo(loginId);
     }
+
+   // 9. 유저 프로필 이미지 등록 및 수정
 
 
 }

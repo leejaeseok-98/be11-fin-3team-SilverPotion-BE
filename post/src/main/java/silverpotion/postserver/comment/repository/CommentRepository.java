@@ -25,7 +25,5 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
     @Query("SELECT c.post FROM Comment c WHERE c.id = :parentId")
     Post findPostByParentId(@Param("parentId") Long parentId);
 
-//  특정 게시물의 최상위 댓글 시간 순으로 조회
-    List<Comment> findByPostIdAndParentIsNullOrderByCreatedTimeAsc(Long postId);
 
 }

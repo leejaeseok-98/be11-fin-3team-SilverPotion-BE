@@ -154,9 +154,18 @@ public class UserService {
         User user = userRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         Long userId = user.getId();
         String nickname = user.getNickName();
-        String profileImage = user.getName();//꼭 프로필이미지로 수정해야함!!!!!
+        String profileImage = user.getProfileImage();//꼭 프로필이미지로 수정해야함!!!!!
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
     }
+    //    8.userId로 userId와 nickname 조회하기
+    public UserProfileInfoDto getUserProfileInfo(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
+        String nickname = user.getNickName();
+        String profileImage = user.getProfileImage();//꼭 프로필이미지로 수정해야함!!!!!
+        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
+    }
+
+
     //  9. 유저 목록 조회
     public Page<UserListDto> findAll(Pageable pageable){
         Page<User> userList = userRepository.findAll(pageable);

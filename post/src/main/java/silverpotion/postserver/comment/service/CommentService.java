@@ -1,10 +1,10 @@
 package silverpotion.postserver.comment.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import org.apache.catalina.User;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
@@ -14,7 +14,6 @@ import silverpotion.postserver.comment.domain.CommentLike;
 import silverpotion.postserver.comment.dtos.*;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
-import silverpotion.postserver.common.config.RabbitMQConfig;
 import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.dtos.UserListDto;
@@ -40,7 +39,7 @@ public class CommentService {
     @Qualifier("commentLikeRedisTemplate")
     private final RedisTemplate<String, Object> commentLikeRedisTemplate;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserClient userClient, CommentLikeRepository commentLikeRepository, @Qualifier("commentLikeRedisTemplate")RabbitTemplate rabbitTemplate, RedisTemplate<String, Object> commentLikeRedisTemplate) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserClient userClient, CommentLikeRepository commentLikeRepository, RabbitTemplate rabbitTemplate, @Qualifier("commentLikeRedisTemplate") RedisTemplate<String, Object> commentLikeRedisTemplate) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userClient = userClient;
@@ -104,27 +103,7 @@ public class CommentService {
         return post.getId();
 
     }
-    public List<CommentResponseDto> getCommentsWithReplies(Long postId) {
-        List<Comment> comments = commentRepository.findByPostIdAndParentIsNullOrderByCreatedTimeAsc(postId);
 
-        return comments.stream()
-                .map(this::mapToDtoWithReplies)
-                .collect(Collectors.toList());
-    }
-
-    private CommentResponseDto mapToDtoWithReplies(Comment comment) {
-        CommentResponseDto dto = new CommentResponseDto();
-        dto.setCommentId(comment.getId());
-        dto.setUserId(comment.getUserId());
-        dto.setContent(comment.getContent());
-
-        List<CommentResponseDto> replies = comment.getChild().stream()
-                .map(this::mapToDtoWithReplies)
-                .collect(Collectors.toList());
-
-        dto.setReplies(replies);
-        return dto;
-    }
 
     public CommentLikeResDto commentLikeToggle(Long commentId,String loginId){
         String redisKey = "comment:like" + commentId;
@@ -164,7 +143,5 @@ public class CommentService {
         return new CommentLikeResDto(likeCount, isLike);
     }
 
-    public Page<UserListDto> getCommentLikeUserList(String loginId, Long commentId, Pageable pageable){
 
-    }
 }

@@ -2,6 +2,7 @@ package silverpotion.postserver.comment.controller;
 
 import jakarta.ws.rs.Path;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,7 +13,6 @@ import silverpotion.postserver.comment.service.CommentService;
 import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.post.dtos.UserListDto;
 
-import java.awt.print.Pageable;
 import java.util.List;
 
 @RestController
@@ -36,12 +36,6 @@ public class CommentController {
     public ResponseEntity<?> commentUpdate(@RequestHeader("X-User-Id") String loginId, @RequestBody CommentUpdateDto commentUpdateDto){
         Long postId = commentService.commentUpdate(loginId,commentUpdateDto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "댓글 수정 완료",postId),HttpStatus.OK);
-    }
-//  댓글 조회
-    @GetMapping("/list")
-    public ResponseEntity<?> commentList(@RequestParam Long postId){
-        List<CommentResponseDto> commentList = commentService.getCommentsWithReplies(postId);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"댓글 조회 완료",commentList),HttpStatus.OK);
     }
 
 //  댓글 삭제
@@ -67,9 +61,10 @@ public class CommentController {
 
 //    댓글 좋아요 유저리스트 조회
     @GetMapping("/like/list/{commentId}")
-    public ResponseEntity<?> getLikeList(@RequestHeader("X-User-Id") String loginId, @PathVariable Long commentId,
+    public ResponseEntity<?> getLikeList(@PathVariable Long commentId,
                                          @PageableDefault(size = 10)Pageable pageable){
-        Page<UserListDto> commentLikeUserList = commentLikeService.getCommentLikeUserList(loginId,commentId,pageable);
+        Page<UserListDto> commentLikeUserList = commentLikeService.getCommentLikeUserList(commentId,pageable);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"댓글 좋아요 유저리스트 완료",commentLikeUserList),HttpStatus.OK);
     }
 
 

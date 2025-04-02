@@ -94,13 +94,19 @@ public class    UserController {
         return userService.getUserIdByLoginId(loginId);
     }
 
-    //    8.userId와 nickname 조회(UserClient)
+    //    8.loginId와 nickname 조회(UserClient)
     @GetMapping("/postUserInfo")
     public UserProfileInfoDto getUserProfileInfo(@RequestParam String loginId){
         return userService.getUserProfileInfo(loginId);
     }
 
-    //  9. user list 전체 조회
+    //    9.userId와 nickname 조회(UserClient)
+    @GetMapping("/writer/postUserInfo")
+    public UserProfileInfoDto getUserProfileInfo(@RequestParam Long userId){
+        return userService.getUserProfileInfo(userId);
+    }
+
+    //  10. user list 전체 조회
     //    @PreAuthorize("hasRole('ADMIN')")  테스트로 인해 주석 해놓음 나중에 주석 풀면됌.
     @GetMapping("/list")
     public ResponseEntity<?> findAllUser(@PageableDefault(size = 20) Pageable pageable) {
@@ -108,14 +114,14 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "userList is uploaded successfully", list), HttpStatus.OK);
     }
 
-    // 10. 프로필 이미지 등록 및 수정
+    // 11. 프로필 이미지 등록 및 수정
     @PostMapping("/profileImg")
     public ResponseEntity<?> postProfileImage(@RequestHeader("X-User-Id")String loginId,UserProfileImgDto dto){
          String s3Url = userService.postProfileImage(loginId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",s3Url),HttpStatus.OK);
     }
 
-   // 11. 상대프로필 조회
+   // 12. 상대프로필 조회
     @GetMapping("yourProfile/{id}" )
     public ResponseEntity<?> yourProfile(@PathVariable Long id){
                   UserProfileInfoDto dto = userService.yourProfile(id);

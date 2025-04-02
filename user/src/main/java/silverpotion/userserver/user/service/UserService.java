@@ -7,6 +7,8 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
@@ -62,7 +64,7 @@ public class UserService {
 
 //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
-       User user = userRepository.findByLoginIdAndDelYN(dto.getUserId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
+       User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
        }
@@ -143,5 +145,10 @@ public class UserService {
         String nickname = user.getNickName();
         String profileImage = user.getName();//꼭 프로필이미지로 수정해야함!!!!!
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
+    }
+    //  9. 유저 목록 조회
+    public Page<UserListDto> findAll(Pageable pageable){
+        Page<User> userList = userRepository.findAll(pageable);
+        return userList.map(u->u.ListDtoFromEntity());
     }
 }

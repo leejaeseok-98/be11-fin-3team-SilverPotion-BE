@@ -134,7 +134,7 @@ public class PostService {
 
     //  5. S3에 이미지저장
     public String uploadImage(MultipartFile file) {
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = "post/"+ UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
             s3Client.putObject(

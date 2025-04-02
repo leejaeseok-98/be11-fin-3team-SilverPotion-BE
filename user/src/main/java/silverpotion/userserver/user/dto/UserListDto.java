@@ -14,4 +14,5 @@ public class UserListDto {
     private Long id;
     private String name;
     private String nickName;
+    private String profileImgUrl;
 }

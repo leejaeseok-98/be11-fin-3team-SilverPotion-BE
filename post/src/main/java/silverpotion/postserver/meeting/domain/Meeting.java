@@ -26,7 +26,7 @@ public class Meeting {
     private Gathering gathering;    //모임id
 
     @Column(nullable = false)
-    private String gatheringName;   //모임명
+    private String name;   //모임명
 
     @Column(nullable = false)
     private LocalDate meetingDate;  // 날짜 ex) 2025-03-26

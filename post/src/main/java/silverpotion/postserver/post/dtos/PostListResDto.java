@@ -30,7 +30,6 @@ public class PostListResDto {
     public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,String profileImage){
         return PostListResDto.builder()
                 .userId(post.getWriterId())
-                .nickname(post.getNickName())
                 .profileImage(profileImage)
                 .postId(post.getId())
                 .imageList(post.getFileUrls())

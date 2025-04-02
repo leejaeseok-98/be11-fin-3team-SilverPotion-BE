@@ -31,7 +31,6 @@ public class PostDetailResDto {
     public static PostDetailResDto fromEntity(Post post,String profileImage,Long postLikeCount, List<CommentListResDto> commentList, String isLike) {
         return PostDetailResDto.builder()
                 .userId(post.getWriterId())
-                .nickName(post.getNickName())
                 .profileImage(profileImage)
                 .postId(post.getId())
                 .imageList(post.getFileUrls())

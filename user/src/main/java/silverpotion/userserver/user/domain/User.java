@@ -57,6 +57,8 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     private String detailAddress;
     //캐시
     private Integer cash;
+    //프로필 이미지
+    private String profileImage;
     //회원탈퇴여부
     @Enumerated(EnumType.STRING)
     @Builder.Default
@@ -139,6 +141,22 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
                 .id(this.id)
                 .name(this.name)
                 .nickName(this.nickName)
+                .profileImgUrl(this.profileImage)
                 .build();
+    }
+
+    public UserProfileInfoDto profileInfoDtoFromEntity(){
+        return UserProfileInfoDto.builder().userId(this.id).streetAddress(this.streetAddress)
+                .nickname(this.nickName).profileImage(this.profileImage).build();
+    }
+
+//   이미지 등록 메서드
+    public void changeMyProfileImag(String imgUrl){
+        this.profileImage = imgUrl;
+    }
+
+//    회원탈퇴 메서드
+    public void withdraw(){
+        this.delYN = DelYN.Y;
     }
 }

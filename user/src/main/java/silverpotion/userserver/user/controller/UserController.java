@@ -8,8 +8,9 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+//import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.user.dto.*;
@@ -20,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("silverpotion/user")
-public class UserController {
+public class    UserController {
    private final UserService userService;
 
 
@@ -107,5 +108,30 @@ public class UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "userList is uploaded successfully", list), HttpStatus.OK);
     }
 
+    // 10. 프로필 이미지 등록 및 수정
+    @PostMapping("/profileImg")
+    public ResponseEntity<?> postProfileImage(@RequestHeader("X-User-Id")String loginId,UserProfileImgDto dto){
+         String s3Url = userService.postProfileImage(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",s3Url),HttpStatus.OK);
+    }
+
+   // 11. 상대프로필 조회
+    @GetMapping("yourProfile/{id}" )
+    public ResponseEntity<?> yourProfile(@PathVariable Long id){
+                  UserProfileInfoDto dto = userService.yourProfile(id);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"user's profile is uploaded successfully",dto),HttpStatus.OK);
+    }
+
+
+
+
+
+
+    // 회원탈퇴
+    @GetMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestHeader("X-User-Id")String loginId){
+       String nickName = userService.withdraw(loginId);
+       return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
+    }
 
 }

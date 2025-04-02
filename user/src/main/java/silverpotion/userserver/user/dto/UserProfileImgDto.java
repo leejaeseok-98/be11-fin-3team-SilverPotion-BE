@@ -1,18 +1,15 @@
 package silverpotion.userserver.user.dto;
 
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
 @Builder
-public class UserListDto {
-    private Long id;
-    private String name;
-    private String nickName;
-    private String profileImgUrl;
+public class UserProfileImgDto {
+    private MultipartFile image;
 }

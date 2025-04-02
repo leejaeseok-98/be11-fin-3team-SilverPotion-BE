@@ -52,12 +52,13 @@ public class CareRelationService {
         Map<Long,String> map = new HashMap<>();// 키값에 관계요청id 밸류값에 관계를 수락했는지 거절했는지
 
         CareRelation careRelation = careRelationRepository.findByIdAndLinkStatus(dto.getCareRelationId(),LinkStatus.PENDING).orElseThrow(()->new EntityNotFoundException("관계요청이 없습니다"));
+        //loginUser = 피보호자로 요청박은 사람 senderUser= 보호자로서 요청 제안한 사람
         User loginUser = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         User senderUser = userRepository.findByLoginIdAndDelYN(dto.getSenderId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         if(dto.getYesOrNo().equals("yes")){
             careRelation.changeMyStatus(dto.getYesOrNo()); //status가 accepted로 바뀜
-            loginUser.getAsDependents().add(careRelation);
-            senderUser.getAsProtectors().add(careRelation);
+//            loginUser.getAsDependents().add(careRelation);
+//            senderUser.getAsProtectors().add(careRelation); //이 두개 코드가 사실상 의미가 없다. careRelation이 생성될때 양방향 매핑으로 인해 자동으로 먼저 리스트에 추가되기때문
             map.put(careRelation.getId(),"accept");
         } else{
             careRelation.changeMyStatus(dto.getYesOrNo()); //status가 rejected로 바뀜

@@ -18,7 +18,15 @@ spring:
   application:
     name: user-service
 
-
+cloud:
+  aws:
+    credentials:
+      access-key: AKIAWCZC5QR3NLEWSPNX
+      secret-key: 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
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: silverpotion
 
 eureka:
   client:

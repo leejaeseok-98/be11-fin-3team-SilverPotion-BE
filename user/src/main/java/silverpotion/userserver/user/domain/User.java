@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.healthData.domain.HealthData;
-import silverpotion.userserver.user.dto.UserCreateDto;
-import silverpotion.userserver.user.dto.UserLinkedUserDto;
-import silverpotion.userserver.user.dto.UserMyPageDto;
-import silverpotion.userserver.user.dto.UserUpdateDto;
+import silverpotion.userserver.user.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,6 +57,8 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     private String detailAddress;
     //캐시
     private Integer cash;
+    //프로필 이미지
+    private String profileImage;
     //회원탈퇴여부
     @Enumerated(EnumType.STRING)
     @Builder.Default
@@ -137,7 +136,27 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return protectorNames;
     }
 
+    public UserListDto ListDtoFromEntity(){
+        return UserListDto.builder()
+                .id(this.id)
+                .name(this.name)
+                .nickName(this.nickName)
+                .profileImgUrl(this.profileImage)
+                .build();
+    }
 
+    public UserProfileInfoDto profileInfoDtoFromEntity(){
+        return UserProfileInfoDto.builder().userId(this.id).streetAddress(this.streetAddress)
+                .nickname(this.nickName).profileImage(this.profileImage).build();
+    }
 
+//   이미지 등록 메서드
+    public void changeMyProfileImag(String imgUrl){
+        this.profileImage = imgUrl;
+    }
 
+//    회원탈퇴 메서드
+    public void withdraw(){
+        this.delYN = DelYN.Y;
+    }
 }

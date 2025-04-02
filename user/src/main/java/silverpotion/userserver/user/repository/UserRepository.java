@@ -1,5 +1,7 @@
 package silverpotion.userserver.user.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import silverpotion.userserver.user.domain.DelYN;
@@ -20,4 +22,6 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByPhoneNumberAndDelYN(String phoneNumber, DelYN delYN);
 
     Optional<User> findByLoginId(String loginId);
+
+    Page<User> findAll(Pageable pageable);
 }

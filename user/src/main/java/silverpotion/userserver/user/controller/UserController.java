@@ -2,10 +2,15 @@ package silverpotion.userserver.user.controller;
 
 
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+//import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.user.dto.*;
@@ -16,7 +21,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("silverpotion/user")
-public class UserController {
+public class    UserController {
    private final UserService userService;
 
 
@@ -95,5 +100,38 @@ public class UserController {
         return userService.getUserProfileInfo(loginId);
     }
 
+    //  9. user list 전체 조회
+    //    @PreAuthorize("hasRole('ADMIN')")  테스트로 인해 주석 해놓음 나중에 주석 풀면됌.
+    @GetMapping("/list")
+    public ResponseEntity<?> findAllUser(@PageableDefault(size = 20) Pageable pageable) {
+        Page<UserListDto> list = userService.findAll(pageable);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "userList is uploaded successfully", list), HttpStatus.OK);
+    }
+
+    // 10. 프로필 이미지 등록 및 수정
+    @PostMapping("/profileImg")
+    public ResponseEntity<?> postProfileImage(@RequestHeader("X-User-Id")String loginId,UserProfileImgDto dto){
+         String s3Url = userService.postProfileImage(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",s3Url),HttpStatus.OK);
+    }
+
+   // 11. 상대프로필 조회
+    @GetMapping("yourProfile/{id}" )
+    public ResponseEntity<?> yourProfile(@PathVariable Long id){
+                  UserProfileInfoDto dto = userService.yourProfile(id);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"user's profile is uploaded successfully",dto),HttpStatus.OK);
+    }
+
+
+
+
+
+
+    // 회원탈퇴
+    @GetMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestHeader("X-User-Id")String loginId){
+       String nickName = userService.withdraw(loginId);
+       return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
+    }
 
 }

@@ -15,4 +15,7 @@ public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople
             "JOIN GatheringPeople gp2 ON gp1.gathering.id = gp2.gathering.id " +
             "WHERE gp1.userId = :userId")
     List<Long> findMemberIdsInSameGatherings(@Param("userId") Long userId);
+    List<GatheringPeople> findByUserId(Long userId);
+    @Query("SELECT COUNT(gp) FROM GatheringPeople gp WHERE gp.gathering.id = :gatheringId AND gp.status = 'ACTIVATE'")
+    Long countByGatheringIdAndStatusActivate(@Param("gatheringId") Long gatheringId);
 }

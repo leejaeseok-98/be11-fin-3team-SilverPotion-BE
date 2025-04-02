@@ -64,6 +64,7 @@ public class UserService {
 
 //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
+
        User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");

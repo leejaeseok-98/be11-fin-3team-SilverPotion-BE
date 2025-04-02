@@ -2,14 +2,19 @@ package silverpotion.postserver.gatheringCategory.domain;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
+@Builder
 public class GatheringCategoryDetail {
 
     @Id
@@ -21,4 +26,8 @@ public class GatheringCategoryDetail {
     private GatheringCategory gatheringCategory;
 
     private String name;
+
+    @OneToMany(mappedBy = "gatheringCategoryDetail" )
+    @Builder.Default
+    private List<GatheringDetail> gatheringDetails = new ArrayList<>();
 }

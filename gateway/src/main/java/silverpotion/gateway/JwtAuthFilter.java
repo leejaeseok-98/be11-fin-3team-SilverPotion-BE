@@ -23,7 +23,9 @@ public class JwtAuthFilter implements GlobalFilter {
     //    인증이 필요 없는 경로 설정 아래쪽 코드를 보면 여기 리스트에 있는 경로에 대해서는 토큰을 꺼내 검증하는 로직에서 패스시킴
     private static final List<String> ALLOWED_PATHS = List.of(
             "/silverpotion/user/create",
-            "/silverpotion/user/login"
+            "/silverpotion/user/login",
+            "/silverpotion/gathering-category",
+            "/silverpotion/gathering-category/detail"
     );
 
     @Override

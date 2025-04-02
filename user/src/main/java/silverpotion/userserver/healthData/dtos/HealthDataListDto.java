@@ -11,15 +11,15 @@ import lombok.NoArgsConstructor;
 @Builder
 public class HealthDataListDto {
     //  하루 평균 심박
-    private Integer heartbeat;
+    private int heartbeat;
     //  하루 걸음수
-    private Integer step;
+    private int step;
     //  하루 소모 칼로리
-    private Double calory;
+    private int calory;
     //  하루 활동칼로리
-    private Double activeCalory;
+    private int activeCalory;
     //  오늘 걸은 거리
-    private Double distance;
+    private int distance;
 
 
 

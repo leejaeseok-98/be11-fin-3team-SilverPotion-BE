@@ -152,7 +152,7 @@ public class PostService {
     public void delete(Long postId,String loginId){
         Long userId = userClient.getUserIdByLoginId(loginId);
         Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-        if (!userId.equals(post.getId())){return;}
+        if (!userId.equals(post.getWriterId())){return;}
         postRepository.delete(post);
     }
 

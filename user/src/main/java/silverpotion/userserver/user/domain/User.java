@@ -4,10 +4,7 @@ import jakarta.persistence.*;
 import lombok.*;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.healthData.domain.HealthData;
-import silverpotion.userserver.user.dto.UserCreateDto;
-import silverpotion.userserver.user.dto.UserLinkedUserDto;
-import silverpotion.userserver.user.dto.UserMyPageDto;
-import silverpotion.userserver.user.dto.UserUpdateDto;
+import silverpotion.userserver.user.dto.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -137,7 +134,11 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return protectorNames;
     }
 
-
-
-
+    public UserListDto ListDtoFromEntity(){
+        return UserListDto.builder()
+                .id(this.id)
+                .name(this.name)
+                .nickName(this.nickName)
+                .build();
+    }
 }

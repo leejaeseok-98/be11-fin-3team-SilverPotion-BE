@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import silverpotion.postserver.gathering.domain.GatheringPeople;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople,Long> {
@@ -18,4 +19,7 @@ public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople
     List<GatheringPeople> findByUserId(Long userId);
     @Query("SELECT COUNT(gp) FROM GatheringPeople gp WHERE gp.gathering.id = :gatheringId AND gp.status = 'ACTIVATE'")
     Long countByGatheringIdAndStatusActivate(@Param("gatheringId") Long gatheringId);
+    List<GatheringPeople> findByGatheringId(Long gatheringId);
+    Optional<GatheringPeople> findByGatheringIdAndUserId(Long gatheringId, Long userId);
+    boolean existsByGatheringIdAndUserId(Long gatheringId, Long userId);
 }

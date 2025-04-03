@@ -2,9 +2,7 @@ package silverpotion.postserver.gathering.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import silverpotion.postserver.gathering.dto.GatheringCreateDto;
-import silverpotion.postserver.gathering.dto.GatheringInfoDto;
-import silverpotion.postserver.gathering.dto.GatheringPeopleCountDto;
+import silverpotion.postserver.gathering.dto.*;
 import silverpotion.postserver.gathering.service.GatheringService;
 
 import java.util.List;
@@ -53,5 +51,44 @@ public class GatheringController {
 
         List<GatheringInfoDto> result = gatheringService.searchGatherings(category, gatheringName);
         return ResponseEntity.ok(result);
+    }
+
+    // 모임별 userlist
+    @GetMapping("/{gatheringId}/userList")
+    public ResponseEntity<List<GatheringPeopleDto>> getGatheringUserList(@PathVariable Long gatheringId) {
+        List<GatheringPeopleDto> userList = gatheringService.getGatheringUserList(gatheringId);
+        return ResponseEntity.ok(userList);
+    }
+
+    // 모임 가입
+    @PostMapping("/register")
+    public ResponseEntity<Void> createGatheringPeople(
+            @RequestHeader("X-User-Id") String loginId,
+            @RequestBody GatheringPeopleCreateDto dto) {
+
+        gatheringService.createGatheringPeople(dto, loginId);
+        return ResponseEntity.ok().build();
+    }
+
+    // 모임원 상태 변경
+    @PatchMapping("/peopleupdate/{gatheringPeopleId}")
+    public ResponseEntity<String> updateGatheringPeopleStatus(
+            @PathVariable Long gatheringPeopleId,
+            @RequestHeader("X-User-Id") String loginId,
+            @RequestBody GatheringPeopleUpdateDto dto) {
+
+        gatheringService.updateGatheringPeopleStatus(gatheringPeopleId, loginId, dto);
+        return ResponseEntity.ok("회원 상태가 성공적으로 변경되었습니다.");
+    }
+
+    // 모임장 양도
+    @PatchMapping("/leaderchange/{gatheringId}")
+    public ResponseEntity<String> changeLeader(
+            @PathVariable Long gatheringId,
+            @RequestHeader("X-User-Id") String loginId,
+            @RequestBody LeaderChangeDto dto) {
+
+        gatheringService.changeLeader(gatheringId, loginId, dto);
+        return ResponseEntity.ok("모임장이 변경되었습니다.");
     }
 }

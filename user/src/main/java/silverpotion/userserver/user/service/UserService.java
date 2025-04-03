@@ -230,9 +230,4 @@ public class UserService {
         user.withdraw();
         return user.getNickName();
     }
-
-
-
-
-
 }

@@ -154,9 +154,18 @@ public class UserService {
         User user = userRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         Long userId = user.getId();
         String nickname = user.getNickName();
-        String profileImage = user.getName();//꼭 프로필이미지로 수정해야함!!!!!
+        String profileImage = user.getProfileImage();//꼭 프로필이미지로 수정해야함!!!!!
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
     }
+    //    8.userId로 userId와 nickname 조회하기
+    public UserProfileInfoDto getUserProfileInfo(Long userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
+        String nickname = user.getNickName();
+        String profileImage = user.getProfileImage();//꼭 프로필이미지로 수정해야함!!!!!
+        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
+    }
+
+
     //  9. 유저 목록 조회
     public Page<UserListDto> findAll(Pageable pageable){
         Page<User> userList = userRepository.findAll(pageable);
@@ -193,6 +202,27 @@ public class UserService {
         return user.profileInfoDtoFromEntity();
     }
 
+//    12. 특정 유저 프로필 리스트 조회
+    public List<UserListDto> getUsersByIds(List<Long> userIds){
+        // 빈 리스트나 null이 들어오는 경우 방어
+        if (userIds == null || userIds.isEmpty()) {
+            throw new IllegalArgumentException("유저 ID 리스트가 비어 있습니다.");
+        }
+
+        // userIds로 DB에서 유저 리스트 조회
+        List<User> users = userRepository.findAllByIdInAndDelYN(userIds,DelYN.N);
+        System.out.println(users);
+
+        // User 엔티티 → UserListDto로 변환
+        List<UserListDto> userListDtos = new ArrayList<>();
+        for (User user : users) {
+            UserListDto dto = user.ListDtoFromEntity();
+            userListDtos.add(dto);
+        }
+        System.out.println(userListDtos);
+
+        return userListDtos;
+    }
 
 //    회원탈퇴
     public String withdraw(String loginIg){

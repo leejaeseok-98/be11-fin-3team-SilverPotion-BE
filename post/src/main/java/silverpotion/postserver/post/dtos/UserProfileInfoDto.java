@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 public class UserProfileInfoDto {
     private Long userId;
     private String nickname;
+    private String streetAddress; // ex.도봉구
     private String profileImage;
 
     public static UserProfileInfoDto userProfileInfoDto(Long userId, String nickname,String profileImage){

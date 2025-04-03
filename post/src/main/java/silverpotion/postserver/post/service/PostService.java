@@ -134,7 +134,7 @@ public class PostService {
 
     //  5. S3에 이미지저장
     public String uploadImage(MultipartFile file) {
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = "post/"+ UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
             s3Client.putObject(
@@ -185,21 +185,22 @@ public class PostService {
                     boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                     String isLike = isLiked ? "Y" : "N";
 
-                    return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, profileImage);
+                    return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, profileInfo);
                 });
     }
 
 //    게시물 상세조회
     @Transactional(readOnly = true)
     public PostDetailResDto getDetail(Long postId,String loginId) {
-        UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(loginId);
-        Long userId = profileInfo.getUserId();
-        String nickname = profileInfo.getNickname();
-        String profileImage = profileInfo.getProfileImage();
+        Long userId = userClient.getUserIdByLoginId(loginId);
 
         // 게시물 조회 (없으면 예외 발생)
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
+
+        Long writerId = post.getWriterId(); // 작성자 프로필을 가져오기 위해
+        UserProfileInfoDto writerProfile = userClient.getUserProfileInfo(writerId);
+        String profileImage = writerProfile.getProfileImage();
 
         // 게시물 좋아요 개수 조회
         Long postLikeCount = postRepository.countPostLikes(postId);
@@ -211,7 +212,7 @@ public class PostService {
                     Long commentLikeCount = commentRepository.countCommentLikes(comment.getId());
                     boolean isCommentLiked = commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
                     String isCommentLike = isCommentLiked ? "Y" : "N";
-                    return CommentListResDto.fromEntity(comment, commentLikeCount, isCommentLike, profileInfo);
+                    return CommentListResDto.fromEntity(comment, commentLikeCount, isCommentLike, writerProfile);
                 })
                 .collect(Collectors.toList());
 

@@ -8,10 +8,16 @@ import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.meeting.domain.MeetingParticipant;
+import silverpotion.postserver.meeting.dto.AttendeeDto;
 import silverpotion.postserver.meeting.dto.MeetingCreateDto;
+import silverpotion.postserver.meeting.dto.MeetingInfoDto;
 import silverpotion.postserver.meeting.repository.MeetingParticipantRepository;
 import silverpotion.postserver.meeting.repository.MeetingRepository;
 import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.dtos.UserProfileInfoDto;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -72,6 +78,36 @@ public class MeetingService {
                 .build();
 
         meetingParticipantRepository.save(participant);
+    }
+
+    // 모임별 정모 조회
+    public List<MeetingInfoDto> getMeetingsByGatheringId(Long gatheringId) {
+        List<Meeting> meetings = meetingRepository.findByGatheringId(gatheringId);
+
+        return meetings.stream().map(meeting -> {
+            // 해당 미팅의 모든 참가자 가져오기
+            List<MeetingParticipant> participants = meetingParticipantRepository.findByMeetingId(meeting.getId());
+
+            // 참가자 정보를 AttendeeDto 리스트로 변환
+            List<AttendeeDto> attendees = participants.stream().map(participant -> {
+                UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(participant.getUserId());
+                return new AttendeeDto(participant.getUserId(), profileInfo.getNickname(), profileInfo.getProfileImage());
+            }).collect(Collectors.toList());
+
+            // MeetingInfoDto 생성 후 반환
+            return new MeetingInfoDto(
+                    meeting.getId(),
+                    meeting.getGathering().getId(),
+                    meeting.getName(),
+                    meeting.getMeetingDate(),
+                    meeting.getMeetingTime(),
+                    meeting.getPlace(),
+                    meeting.getImageUrl(),
+                    meeting.getCost(),
+                    meeting.getMaxPeople(),
+                    attendees
+            );
+        }).collect(Collectors.toList());
     }
 
 }

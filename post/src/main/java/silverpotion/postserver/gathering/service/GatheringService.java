@@ -5,9 +5,9 @@ import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gathering.domain.Gathering;
-import silverpotion.postserver.gathering.dto.GatheringCreateDto;
-import silverpotion.postserver.gathering.dto.GatheringInfoDto;
-import silverpotion.postserver.gathering.dto.GatheringPeopleCountDto;
+import silverpotion.postserver.gathering.domain.GatheringPeople;
+import silverpotion.postserver.gathering.domain.Status;
+import silverpotion.postserver.gathering.dto.*;
 import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategoryDetail;
 import silverpotion.postserver.gatheringCategory.domain.GatheringDetail;
@@ -17,9 +17,12 @@ import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.repository.GatheringDetailRepository;
 import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -177,4 +180,102 @@ public class GatheringService {
                 .collect(Collectors.toList());
     }
 
+    // 모임별 userList
+    public List<GatheringPeopleDto> getGatheringUserList(Long gatheringId) {
+        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringId(gatheringId);
+
+        return gatheringPeopleList.stream().map(gatheringPeople -> {
+            // User 정보 조회
+            UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(gatheringPeople.getUserId());
+
+            return new GatheringPeopleDto(
+                    gatheringPeople.getGathering().getId(),
+                    gatheringPeople.getUserId(),
+                    profileInfo.getNickname(),
+                    profileInfo.getProfileImage(),
+                    gatheringPeople.getGreetingMessage(),
+                    gatheringPeople.getStatus().name(),  // Enum -> String 변환
+                    gatheringPeople.getCreatedTime()
+            );
+        }).collect(Collectors.toList());
+    }
+
+    // 모임 가입
+    public void createGatheringPeople(GatheringPeopleCreateDto dto, String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        Gathering gathering = gatheringRepository.findById(dto.getGatheringId())
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 Gathering ID입니다."));
+
+        Optional<GatheringPeople> existingMembership = gatheringPeopleRepository.findByGatheringIdAndUserId(dto.getGatheringId(), userId);
+
+        if (existingMembership.isPresent()) {
+            Status status = existingMembership.get().getStatus();
+            switch (status) {
+                case WAIT:
+                    throw new IllegalStateException("가입 대기중입니다.");
+                case ACTIVATE:
+                    throw new IllegalStateException("이미 가입된 모임입니다.");
+                case DEACTIVATE:
+                    throw new IllegalStateException("추방된 모임입니다.");
+            }
+        }
+
+        GatheringPeople gatheringPeople = GatheringPeople.builder()
+                .gathering(gathering)
+                .userId(userId)
+                .greetingMessage(dto.getGreetingMessage())
+                .status(Status.WAIT) // 기본 상태
+                .build();
+
+        gatheringPeopleRepository.save(gatheringPeople);
+    }
+
+    // 모임원 상태 변경
+    public void updateGatheringPeopleStatus(Long gatheringPeopleId, String loginId, GatheringPeopleUpdateDto dto) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        // GatheringPeople 조회
+        GatheringPeople gatheringPeople = gatheringPeopleRepository.findById(gatheringPeopleId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 GatheringPeople ID입니다."));
+
+        // 모임 조회
+        Gathering gathering = gatheringPeople.getGathering();
+
+        // 요청자가 해당 모임의 모임장인지 검증
+        if (!gathering.getLeaderId().equals(userId)) {
+            throw new IllegalStateException("해당 모임의 모임장만 상태를 변경할 수 있습니다.");
+        }
+
+        // 상태 변경
+        gatheringPeople.updateStatus(dto.getStatus());
+
+        // 저장
+        gatheringPeopleRepository.save(gatheringPeople);
+    }
+
+    // 모임장 양도
+    public void changeLeader(Long gatheringId, String loginId, LeaderChangeDto dto) {
+        // 로그인한 사용자의 ID 조회
+        Long currentLeaderId = userClient.getUserIdByLoginId(loginId);
+
+        // 해당 모임 조회
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 Gathering ID입니다."));
+
+        // 현재 로그인한 사용자가 모임장인지 검증
+        if (!gathering.getLeaderId().equals(currentLeaderId)) {
+            throw new IllegalArgumentException("모임장만이 모임장을 변경할 수 있습니다.");
+        }
+
+        // 새로운 모임장이 될 사람이 현재 모임의 멤버인지 검증
+        boolean isMember = gatheringPeopleRepository.existsByGatheringIdAndUserId(gatheringId, dto.getUserId());
+        if (!isMember) {
+            throw new IllegalArgumentException("새로운 모임장은 해당 모임에 속한 사람이어야 합니다.");
+        }
+
+        // 새로운 모임장으로 변경
+        gathering.changeLeader(dto.getUserId());
+        gatheringRepository.save(gathering);
+    }
 }

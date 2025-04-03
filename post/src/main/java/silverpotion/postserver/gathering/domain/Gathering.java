@@ -76,9 +76,13 @@ public class Gathering extends BaseTimeEntity {
         GatheringPeople leader = GatheringPeople.builder()
                 .gathering(this)
                 .userId(userId)
-                .greetingMessage("모임장")
+                .greetingMessage("처음 이 모임을 개설한 사람")
                 .status(Status.ACTIVATE)
                 .build();
         this.gatheringPeople.add(leader);
+    }
+
+    public void changeLeader(Long newLeaderId) {
+        this.leaderId = newLeaderId;
     }
 }

@@ -30,4 +30,8 @@ public class GatheringPeople extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private Status status;      //상태
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }

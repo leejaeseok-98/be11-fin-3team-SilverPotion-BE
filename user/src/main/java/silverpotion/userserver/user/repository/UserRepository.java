@@ -7,6 +7,7 @@ import org.springframework.stereotype.Repository;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,4 +25,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByLoginId(String loginId);
 
     Page<User> findAll(Pageable pageable);
+
+    List<User> findAllByIdInAndDelYN(List<Long> ids, DelYN delYN);
+
 }

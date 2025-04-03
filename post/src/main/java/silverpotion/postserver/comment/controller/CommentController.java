@@ -31,6 +31,7 @@ public class CommentController {
         Long postId = commentService.commentCreate(loginId,commentCreate);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "댓글 작성 완료",postId),HttpStatus.CREATED);
     }
+
 //  댓글 수정
     @PatchMapping("/update")
     public ResponseEntity<?> commentUpdate(@RequestHeader("X-User-Id") String loginId, @RequestBody CommentUpdateDto commentUpdateDto){

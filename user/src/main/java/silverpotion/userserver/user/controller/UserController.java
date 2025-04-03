@@ -122,15 +122,18 @@ public class    UserController {
     }
 
    // 12. 상대프로필 조회
-    @GetMapping("yourProfile/{id}" )
+    @GetMapping("/yourProfile/{id}" )
     public ResponseEntity<?> yourProfile(@PathVariable Long id){
                   UserProfileInfoDto dto = userService.yourProfile(id);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"user's profile is uploaded successfully",dto),HttpStatus.OK);
     }
 
-
-
-
+    // 13. 특정 유저 리스트 조회
+    @PostMapping("/profile/list")
+    public ResponseEntity<?> getUsersByIds(@RequestBody List<Long> userIds){
+        List<UserListDto> userListDtos = userService.getUsersByIds(userIds);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"특정 유저 리스트 조회",userListDtos),HttpStatus.OK);
+    }
 
 
     // 회원탈퇴

@@ -202,6 +202,27 @@ public class UserService {
         return user.profileInfoDtoFromEntity();
     }
 
+//    12. 특정 유저 프로필 리스트 조회
+    public List<UserListDto> getUsersByIds(List<Long> userIds){
+        // 빈 리스트나 null이 들어오는 경우 방어
+        if (userIds == null || userIds.isEmpty()) {
+            throw new IllegalArgumentException("유저 ID 리스트가 비어 있습니다.");
+        }
+
+        // userIds로 DB에서 유저 리스트 조회
+        List<User> users = userRepository.findAllByIdInAndDelYN(userIds,DelYN.N);
+        System.out.println(users);
+
+        // User 엔티티 → UserListDto로 변환
+        List<UserListDto> userListDtos = new ArrayList<>();
+        for (User user : users) {
+            UserListDto dto = user.ListDtoFromEntity();
+            userListDtos.add(dto);
+        }
+        System.out.println(userListDtos);
+
+        return userListDtos;
+    }
 
 //    회원탈퇴
     public String withdraw(String loginIg){

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.post.dtos.UserListDto;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
@@ -25,9 +26,8 @@ public interface UserClient {
     UserProfileInfoDto getUserProfileInfo(@RequestParam("userId") Long userId);
 
 //    유저id로 유저 프로필 리스트 가져오기
-    @PostMapping("/list")
-    //post로 하는 이유는 1. url길이 제한(사용자가 많아지면 사용) 2. 보안(url노출) 3. 대량 데이터 전송 적합
-    List<UserListDto> getUsersByIds(@RequestBody List<Long> userIds);
+    @PostMapping("/profile/list")//post로 하는 이유는 1. url길이 제한(사용자가 많아지면 사용) 2. 보안(url노출) 3. 대량 데이터 전송 적합
+    CommonDto getUsersByIds(@RequestBody List<Long> userIds);
 
 
 }

@@ -18,6 +18,7 @@ import silverpotion.userserver.user.service.UserService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("silverpotion/user")
@@ -133,6 +134,13 @@ public class    UserController {
     public ResponseEntity<?> getUsersByIds(@RequestBody List<Long> userIds){
         List<UserListDto> userListDtos = userService.getUsersByIds(userIds);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"특정 유저 리스트 조회",userListDtos),HttpStatus.OK);
+    }
+
+//    게시물 조회시, 작성자 프로필 조회
+    @PostMapping("/post/profileInfo")
+    public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){
+        Map<Long, UserProfileInfoDto> dto= userService.getProfileInfoMap(userIds);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 작성자 유저 리스트 조회",dto),HttpStatus.OK);
     }
 
 

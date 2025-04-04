@@ -25,11 +25,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -154,15 +152,17 @@ public class UserService {
         User user = userRepository.findByLoginId(loginId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         Long userId = user.getId();
         String nickname = user.getNickName();
-        String profileImage = user.getProfileImage();//꼭 프로필이미지로 수정해야함!!!!!
-        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
+        String profileImage = user.getProfileImage();
+        String street = user.getStreetAddress();
+        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage,street);
     }
     //    8.userId로 userId와 nickname 조회하기
     public UserProfileInfoDto getUserProfileInfo(Long userId) {
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         String nickname = user.getNickName();
-        String profileImage = user.getProfileImage();//꼭 프로필이미지로 수정해야함!!!!!
-        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
+        String profileImage = user.getProfileImage();
+        String street = user.getStreetAddress();
+        return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage,street);
     }
 
 
@@ -223,6 +223,22 @@ public class UserService {
 
         return userListDtos;
     }
+
+//    게시물 조회시, 작성자 프로필 조회
+    public  Map<Long, UserProfileInfoDto> getProfileInfoMap(List<Long> userIds) {
+        List<User> users = userRepository.findAllById(userIds); // JPA 기본 제공
+        return users.stream()
+                .collect(Collectors.toMap(
+                        User::getId,
+                        user -> UserProfileInfoDto.userProfileInfoDto(
+                                user.getId(),
+                                user.getNickName(),
+                                user.getStreetAddress(),
+                                user.getProfileImage()
+                        )
+                ));
+    }
+
 
 //    회원탈퇴
     public String withdraw(String loginIg){

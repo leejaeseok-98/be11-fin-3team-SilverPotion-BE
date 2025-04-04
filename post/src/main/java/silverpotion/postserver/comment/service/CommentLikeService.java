@@ -28,7 +28,6 @@ public class CommentLikeService {
     public Page<UserListDto> getCommentLikeUserList(Long commentId, Pageable pageable){
         // 1. 댓글 좋아요 누른 유저 ID 페이징 조회
         Page<Long> likedUserIdsPage = commentLikeRepository.findUsersWhoLikedComment(commentId,pageable);
-        System.out.println(likedUserIdsPage);
         // 2. ID리스트만 추출 (getContent는 현재 요청한 페이지에 존재하는 데이터 리스트를 가져옴)
         List<Long> userIds = likedUserIdsPage.getContent();
 //        3. userClient를 통해 유저 정보 받아오기 ** commonDto 타입으로 받아  데이터를 꺼내서 매핑시켜줌
@@ -39,6 +38,8 @@ public class CommentLikeService {
         }
         List<UserListDto> listDtos = objectMapper.convertValue(result, new TypeReference<List<UserListDto>>() {
         });
+        System.out.println(listDtos);
+        System.out.println("listDtos"+listDtos);
 
 //        4. pageImpl로 다시 포장(page 정보 유지)  pageImpl은 페이징하는 기본 클래스 / getTotalElements는 조건에 해당하는 전체 데이터 수
         return new PageImpl<>(listDtos, pageable, likedUserIdsPage.getTotalElements());

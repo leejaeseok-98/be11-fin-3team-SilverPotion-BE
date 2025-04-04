@@ -122,7 +122,6 @@
 ### 채팅
 ![스크린샷 2025-03-28 112434](https://github.com/user-attachments/assets/2cc2c98f-37cc-42e7-baed-c3318dbcd8f9)
 </details>
-
 👉 [📎 문서 보기](https://www.erdcloud.com/d/5zTkSLQ7qB9hg6b4G)
 ---
 ## 📑 화면설계서 (프로젝트기획)

@@ -8,14 +8,14 @@ import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.meeting.domain.MeetingParticipant;
-import silverpotion.postserver.meeting.dto.AttendeeDto;
-import silverpotion.postserver.meeting.dto.MeetingCreateDto;
-import silverpotion.postserver.meeting.dto.MeetingInfoDto;
+import silverpotion.postserver.meeting.dto.*;
 import silverpotion.postserver.meeting.repository.MeetingParticipantRepository;
 import silverpotion.postserver.meeting.repository.MeetingRepository;
 import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -37,6 +37,7 @@ public class MeetingService {
         this.meetingParticipantRepository = meetingParticipantRepository;
     }
 
+    // 정모 생성
     public void createMeeting(String loginId, MeetingCreateDto dto) {
         // 로그인 ID로 userId 조회
         Long userId = userClient.getUserIdByLoginId(loginId);
@@ -48,6 +49,21 @@ public class MeetingService {
         // 모임장만 생성 가능하도록 체크
         if (!gathering.getLeaderId().equals(userId)) {
             throw new IllegalArgumentException("모임장만 정모를 생성할 수 있습니다.");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        // 날짜 & 시간 검증
+        if (dto.getMeetingDate() != null) {
+            if (dto.getMeetingDate().isBefore(today)) {
+                throw new IllegalArgumentException("정모 날짜는 현재 날짜 이후로만 설정할 수 있습니다.");
+            }
+            if (dto.getMeetingDate().isEqual(today) && dto.getMeetingTime() != null) {
+                if (dto.getMeetingTime().isBefore(now)) {
+                    throw new IllegalArgumentException("오늘 날짜의 정모는 현재 시간 이후로만 설정할 수 있습니다.");
+                }
+            }
         }
 
         // 이미지 업로드 (S3)
@@ -80,6 +96,55 @@ public class MeetingService {
         meetingParticipantRepository.save(participant);
     }
 
+    // 정모 수정
+    public void updateMeeting(String loginId, Long meetingId, MeetingUpdateDto dto) {
+        // 로그인 ID로 userId 조회
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        // Meeting 조회
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 정모가 존재하지 않습니다."));
+
+        // Gathering 조회 및 모임장 검증
+        Gathering gathering = meeting.getGathering();
+        if (!gathering.getLeaderId().equals(userId)) {
+            throw new IllegalArgumentException("모임장만 정모를 수정할 수 있습니다.");
+        }
+
+        LocalDate today = LocalDate.now();
+        LocalTime now = LocalTime.now();
+
+        // 날짜 & 시간 검증
+        if (dto.getMeetingDate() != null) {
+            if (dto.getMeetingDate().isBefore(today)) {
+                throw new IllegalArgumentException("정모 날짜는 현재 날짜 이후로만 설정할 수 있습니다.");
+            }
+            if (dto.getMeetingDate().isEqual(today) && dto.getMeetingTime() != null) {
+                if (dto.getMeetingTime().isBefore(now)) {
+                    throw new IllegalArgumentException("오늘 날짜의 정모는 현재 시간 이후로만 설정할 수 있습니다.");
+                }
+            }
+        }
+
+        // 이미지 업로드 (새로운 이미지가 있는 경우 S3 업데이트)
+        String imageUrl = meeting.getImageUrl();
+        MultipartFile imageFile = dto.getImageFile();
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageUrl = imageService.uploadImage(imageFile);
+        }
+
+        // Meeting 정보 업데이트 (null 체크 후 수정)
+        if (dto.getName() != null) meeting.setName(dto.getName());
+        if (dto.getMeetingDate() != null) meeting.setMeetingDate(dto.getMeetingDate());
+        if (dto.getMeetingTime() != null) meeting.setMeetingTime(dto.getMeetingTime());
+        if (dto.getPlace() != null) meeting.setPlace(dto.getPlace());
+        if (dto.getCost() != null) meeting.setCost(dto.getCost());
+        if (dto.getMaxPeople() != null) meeting.setMaxPeople(dto.getMaxPeople());
+        meeting.setImageUrl(imageUrl);
+
+        meetingRepository.save(meeting);
+    }
+
     // 모임별 정모 조회
     public List<MeetingInfoDto> getMeetingsByGatheringId(Long gatheringId) {
         List<Meeting> meetings = meetingRepository.findByGatheringId(gatheringId);
@@ -108,6 +173,43 @@ public class MeetingService {
                     attendees
             );
         }).collect(Collectors.toList());
+    }
+
+    // 정모 참석
+    public void attendMeeting(String loginId, MeetingAttendDto dto) {
+        // 로그인 ID로 userId 조회
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        // Meeting 조회
+        Meeting meeting = meetingRepository.findById(dto.getMeetingId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 정모가 존재하지 않습니다."));
+
+        // 이미 참여한 경우 예외 처리
+        boolean alreadyParticipated = meetingParticipantRepository.existsByMeetingIdAndUserId(dto.getMeetingId(), userId);
+        if (alreadyParticipated) {
+            throw new IllegalStateException("이미 해당 정모에 참여하였습니다.");
+        }
+
+        // MeetingParticipant 저장
+        MeetingParticipant meetingParticipant = MeetingParticipant.builder()
+                .meeting(meeting)
+                .userId(userId)
+                .build();
+
+        meetingParticipantRepository.save(meetingParticipant);
+    }
+
+    // 정모 참석 취소
+    public void cancelAttendance(String loginId, MeetingAttendDto dto) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        Meeting meeting = meetingRepository.findById(dto.getMeetingId())
+                .orElseThrow(() -> new IllegalArgumentException("해당 정모가 존재하지 않습니다."));
+
+        MeetingParticipant participant = meetingParticipantRepository.findByMeetingAndUserId(meeting, userId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 정모에 참석하지 않았습니다."));
+
+        meetingParticipantRepository.delete(participant);
     }
 
 }

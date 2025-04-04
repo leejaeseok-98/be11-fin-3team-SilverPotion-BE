@@ -37,5 +37,11 @@ public class CommonExceptionHandler {
         return new ResponseEntity(new CommonErrorDto(HttpStatus.FORBIDDEN.value(), e.getMessage()), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(IllegalStateException.class)
+    public ResponseEntity<?> illegalStateException(IllegalStateException e){
+        e.printStackTrace();
+        return new ResponseEntity<>(new CommonErrorDto(HttpStatus.BAD_REQUEST.value(), e.getMessage()), HttpStatus.BAD_REQUEST);
+    }
+
 
 }

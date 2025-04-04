@@ -1,16 +1,13 @@
 package silverpotion.postserver.gathering.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Data
 @Builder
 public class GatheringPeople extends BaseTimeEntity {
 

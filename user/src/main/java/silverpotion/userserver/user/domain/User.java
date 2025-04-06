@@ -8,6 +8,7 @@ import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.user.dto.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -85,6 +86,13 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     private SocialType socialType;
     //소셜 로그인 아이디
     private String socialId;
+    //정지 여부
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private BanYN banYN = BanYN.N;
+
+//    정지 만료일 (이 날짜 전까지 정지 상태)
+    private LocalDateTime banUntil;
 
 //---------------------------일반 메서드--------------------------------------------------------
 
@@ -203,5 +211,17 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
                 .nickname(this.nickName).profileImage(this.profileImage).build();
     }
 
+
+    public void BanUntil(LocalDateTime banUntil){
+        this.banYN = BanYN.Y;
+        this.banUntil = banUntil;
+    }
+
+    public boolean shouldBeBanned(){
+        return banYN == BanYN.Y && LocalDateTime.now().isBefore(banUntil);
+    }
+    public void setBanYN(BanYN banYN){
+        this.banYN = banYN;
+    }
 
 }

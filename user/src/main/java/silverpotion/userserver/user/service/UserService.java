@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
+import silverpotion.userserver.user.domain.BanYN;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
@@ -25,6 +26,7 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -239,6 +241,20 @@ public class UserService {
                 ));
     }
 
+    public int banUsersAutomatically(){
+        List<User> users = userRepository.findUsersToBan(LocalDateTime.now());
+
+        for (User user : users) {
+            user.setBanYN(BanYN.Y);
+        }
+        return userRepository.saveAll(users).size(); //정지된 유저 수 반환
+    }
+
+//    유저 차단
+    public void banUserManually(Long userId,LocalDateTime until){
+        User user = userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(() -> new EntityNotFoundException("없는 사용자"));
+        user.BanUntil(until);
+    }
 
 //    회원탈퇴
     public String withdraw(String loginIg){

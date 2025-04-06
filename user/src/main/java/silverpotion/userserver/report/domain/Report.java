@@ -43,6 +43,17 @@ public class Report extends BaseTimeEntity {
     @JoinColumn(name = "reported_id")
     private User reportedId; //신고당한 id
 
-    private LocalDateTime processedId;//신고처리시간
+    private LocalDateTime processedAt;//신고처리시간
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Boolean isDeleted = false;
+
+    // 신고 상태 변경 메서드
+    public void updateStatusAndDelete(ReportStatus status, String adminComment) {
+        this.reportStatus = status;
+        this.adminComment = adminComment;
+        this.processedAt = LocalDateTime.now(); // 처리된 시간 갱신
+        this.isDeleted = true;
+    }
 }

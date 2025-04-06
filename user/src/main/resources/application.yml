@@ -53,3 +53,9 @@ jwt:
 openai:
   api-key: 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
 
+logging:
+  level:
+    root: info
+#    별도의 에러로그 없이, 날짜구분없이 모든로그를 남기는 설정
+  file:
+    name: logs/app.log

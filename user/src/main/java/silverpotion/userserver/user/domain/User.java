@@ -3,11 +3,17 @@ package silverpotion.userserver.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import silverpotion.userserver.careRelation.domain.CareRelation;
+import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.user.dto.*;
 
+import java.time.LocalDate;
+import java.time.Period;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @AllArgsConstructor
@@ -33,7 +39,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //이름
     @Column(nullable = false)
     private String name;
-    //생년월일(나이)
+    //생년월일(나이,19940818 이렇게 받을 것)
     @Column(nullable = false)
     private String birthday;
     //로그인아이디
@@ -80,7 +86,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //소셜 로그인 아이디
     private String socialId;
 
+//---------------------------일반 메서드--------------------------------------------------------
 
+
+    //회원 정보 수정 메서드
     public void updateUser(UserUpdateDto dto,String newPw){
         if(dto.getEmail() != null){
             this.email = dto.getEmail();
@@ -104,6 +113,50 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
             this.detailAddress = dto.getDetailAddress();
         }
     }
+
+    //   이미지 등록 메서드
+    public void changeMyProfileImag(String imgUrl){
+        this.profileImage = imgUrl;
+    }
+
+    // 나이 계산 메서드
+    public int myAge(){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        LocalDate birthday = LocalDate.parse(this.birthday,formatter);
+        LocalDate today = LocalDate.now();
+        return Period.between(birthday,today).getYears();
+    }
+
+    // 실시간 건강프롬프트 생성 메서드
+    public UserPromptDto healthPrompt(){
+
+        LocalDate today = LocalDate.now();
+        HealthData nowHealthData = this.myHealthData.stream().filter(h->h.getDataType()== DataType.DAY).filter(h->h.getCreatedDate().equals(today))
+                .findFirst().orElseThrow(()->new EntityNotFoundException("아직 리포트가 생성되지 않았습니다"));
+        //여기서부터 프롬프트
+
+        String promt ="나이 : " + this.myAge() +", 성별 : " + this.sex.toString() +
+                      ", 오늘 걸음 횟수 " + nowHealthData.getStep() + "현재까지 평균 심박수 :" + nowHealthData.getHeartbeat()
+                      +", 현재까지 걸은 거리 : " + nowHealthData.getDistance() + "현재까지 소모 칼로리 : " + nowHealthData.getCalory();
+
+       return UserPromptDto.builder().healthData(nowHealthData).prompt(promt).build();
+
+    }
+
+
+
+
+    //    회원탈퇴 메서드
+    public void withdraw(){
+        this.delYN = DelYN.Y;
+    }
+
+
+
+
+
+
+//    ----------------------------DTO관련 메서드------------------------------------------------
 
     public UserMyPageDto toMyPageDtoFromEntity(List<String> dependentNames, List<String>protectorNames){
         return UserMyPageDto.builder().nickName(this.nickName).name(this.name).email(this.email)
@@ -150,13 +203,5 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
                 .nickname(this.nickName).profileImage(this.profileImage).build();
     }
 
-//   이미지 등록 메서드
-    public void changeMyProfileImag(String imgUrl){
-        this.profileImage = imgUrl;
-    }
 
-//    회원탈퇴 메서드
-    public void withdraw(){
-        this.delYN = DelYN.Y;
-    }
 }

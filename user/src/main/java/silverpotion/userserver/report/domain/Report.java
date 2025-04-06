@@ -3,6 +3,7 @@ package silverpotion.userserver.report.domain;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Negative;
 import lombok.*;
+import silverpotion.userserver.common.domain.BaseTimeEntity;
 import silverpotion.userserver.user.domain.User;
 
 import java.time.LocalDateTime;
@@ -12,14 +13,14 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @Getter
 @Builder
-public class Report {
+public class Report extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     @ManyToOne
     @JoinColumn(name = "user_id",nullable = false)
-    private User user; //신고자id
+    private User reporter; //신고자id
 
     @Column(nullable = false)
     private ReportBigCategory reportBigCategory;//어디 유형에서 온 신고인지(채팅,게시물 등)
@@ -37,7 +38,9 @@ public class Report {
     private ReportStatus reportStatus = ReportStatus.WAIT;//신고처리상태(대기, 완료)
 
     private String adminComment; //관리자 코멘트
-    @Column(nullable = false)
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "reported_id")
     private User reportedId; //신고당한 id
 
     private LocalDateTime processedId;//신고처리시간

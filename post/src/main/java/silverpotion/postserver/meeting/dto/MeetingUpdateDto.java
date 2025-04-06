@@ -1,0 +1,22 @@
+package silverpotion.postserver.meeting.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.springframework.web.multipart.MultipartFile;
+
+import java.time.LocalDate;
+import java.time.LocalTime;
+
+@NoArgsConstructor
+@AllArgsConstructor
+@Data
+public class MeetingUpdateDto {
+    private String name;
+    private LocalDate meetingDate;
+    private LocalTime meetingTime;
+    private String place;
+    private MultipartFile imageFile;
+    private Long cost;
+    private Long maxPeople;
+}

@@ -75,7 +75,7 @@
 | 시스템 아키텍처 설계서 (프로젝트기획) | 프로젝트기획 | 시스템 구성 및 흐름도 | [📎 시스템 아키텍처 설계서 다운로드](./docs/시스템_아키텍처_설계서.pdf) |
 | WBS (프로젝트기획) | 프로젝트기획 | 업무 분장 및 세부 일정 | [📎 WBS 바로가기](https://docs.google.com/spreadsheets/d/1xPL9fzuUFguVioFHqQyqesHNe3U2_l63kEcYtexFRvk/edit?gid=1809279197#gid=1809279197) |
 | ERD (프로젝트기획) | 프로젝트기획 | 데이터베이스 구조 및 관계 | [📎 ERD 바로가기](https://www.erdcloud.com/d/5zTkSLQ7qB9hg6b4G) |
-| 화면설계서 (프로젝트기획) | 프로젝트기획 | UI/UX 화면 흐름 및 구조 | [📎 화면설계서 다운로드](./docs/화면설계서.pdf) |
+| 화면설계서 (프로젝트기획) | 프로젝트기획 | UI/UX 화면 흐름 및 구조 | [📎 화면설계서(피그마) 바로가기 ](https://www.figma.com/design/lieOgqHknZxpzSkXT6IsX7/silverpotion?node-id=0-1&t=f7PFNSWT2n8etaXt-1) |
 | 프로그램사양서 (백엔드 설계 및 구축) | 백엔드 설계 및 구축 | 각 기능별 상세 사양 기술 | [📎 프로그램사양서 다운로드](./docs/프로그램사양서.pdf) |
 | 단위 테스트 결과서 (백엔드 설계 및 구축) | 백엔드 설계 및 구축 | 기능별 테스트 수행 결과 | [📎 단위 테스트 결과서 다운로드](./docs/단위_테스트_결과서.pdf) |
 | UI/UX 단위 테스트 결과서 (프론트엔드 설계 및 구축) | 프론트엔드 설계 및 구축 | 화면 기반 사용자 테스트 결과 | [📎 UI/UX 단위 테스트 결과서 다운로드](./docs/UIUX_단위_테스트_결과서.pdf) |
@@ -122,13 +122,13 @@
 ### 채팅
 ![스크린샷 2025-03-28 112434](https://github.com/user-attachments/assets/2cc2c98f-37cc-42e7-baed-c3318dbcd8f9)
 </details>
-
 👉 [📎 문서 보기](https://www.erdcloud.com/d/5zTkSLQ7qB9hg6b4G)
+
 ---
+
 ## 📑 화면설계서 (프로젝트기획)
 > 주요 UI/UX 흐름  
-![UI 흐름](./images/ui-flow.png)  
-👉 [📎 문서 보기](./docs/화면설계서.pdf)
+👉 [📎 문서 보기](https://www.figma.com/design/lieOgqHknZxpzSkXT6IsX7/silverpotion?node-id=0-1&t=f7PFNSWT2n8etaXt-1)
 
 ---
 
@@ -183,9 +183,10 @@
 
 | 이름 | 역할 | GitHub |
 |:------|:------------------------|:-----------------------------|
-| 홍길동 | PM / 기획 | [github.com/hong](https://github.com/hong) |
-| 이몽룡 | 백엔드 개발 | [github.com/lee](https://github.com/lee) |
-| 성춘향 | 프론트엔드 개발 | [github.com/sung](https://github.com/sung) |
+| 경수혁 | 팀장 | [github.com/hong](https://github.com/hong) |
+| 이재석 | 팀원 | [github.com/lee](https://github.com/lee) |
+| 최영일 | 팀원 | [github.com/sung](https://github.com/sung) |
+| 김진영 | 팀원 | [github.com/sung](https://github.com/sung) |
 
 
 

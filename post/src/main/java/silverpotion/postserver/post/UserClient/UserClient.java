@@ -10,6 +10,7 @@ import silverpotion.postserver.post.dtos.UserListDto;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.util.List;
+import java.util.Set;
 
 @FeignClient(name = "user-service", path = "silverpotion/user")
 public interface UserClient {
@@ -29,5 +30,7 @@ public interface UserClient {
     @PostMapping("/profile/list")//post로 하는 이유는 1. url길이 제한(사용자가 많아지면 사용) 2. 보안(url노출) 3. 대량 데이터 전송 적합
     CommonDto getUsersByIds(@RequestBody List<Long> userIds);
 
-
+    //    유저id로 유저 프로필 리스트 가져오기(set)
+    @PostMapping("/post/profileInfo")
+    CommonDto PostProfileInfo(@RequestBody List<Long> accessibleUserIds);
 }

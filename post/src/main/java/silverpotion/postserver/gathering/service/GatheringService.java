@@ -3,7 +3,9 @@ package silverpotion.postserver.gathering.service;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
+import silverpotion.postserver.common.service.ImageService;
 import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.domain.GatheringPeople;
 import silverpotion.postserver.gathering.domain.Status;
@@ -35,14 +37,16 @@ public class GatheringService {
     private final GatheringCategoryDetailRepository gatheringCategoryDetailRepository;
     private final GatheringDetailRepository gatheringDetailRepository;
     private final GatheringPeopleRepository gatheringPeopleRepository;
+    private final ImageService imageService;
 
-    public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository) {
+    public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
         this.gatheringCategoryDetailRepository = gatheringCategoryDetailRepository;
         this.gatheringDetailRepository = gatheringDetailRepository;
         this.gatheringPeopleRepository = gatheringPeopleRepository;
+        this.imageService = imageService;
     }
 
 
@@ -78,6 +82,35 @@ public class GatheringService {
         // GatheringDetail 저장
         gatheringDetailRepository.saveAll(gatheringDetails);
         return gathering.getId();
+    }
+
+    // 모임 수정
+    public void updateGathering(String loginId, Long gatheringId, GatheringUpdateDto dto) {
+        // 로그인 ID로 userId 조회
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        // Gathering 조회 및 모임장 검증
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new IllegalArgumentException("해당 모임이 존재하지 않습니다."));
+
+        if (!gathering.getLeaderId().equals(userId)) {
+            throw new IllegalArgumentException("모임장만 수정할 수 있습니다.");
+        }
+
+        // 이미지 업로드 (새로운 이미지가 있는 경우 S3 업데이트)
+        String imageUrl = gathering.getImageUrl();
+        MultipartFile imageFile = dto.getImageFile();
+        if (imageFile != null && !imageFile.isEmpty()) {
+            imageUrl = imageService.uploadImage(imageFile);
+        }
+
+        // Meeting 정보 업데이트 (null 체크 후 수정)
+        if (dto.getGatheringName() != null) gathering.setGatheringName(dto.getGatheringName());
+        if (dto.getIntroduce() != null) gathering.setIntroduce(dto.getIntroduce());
+        if (dto.getMaxPeople() != null) gathering.setMaxPeople(dto.getMaxPeople());
+        gathering.setImageUrl(imageUrl);
+
+        gatheringRepository.save(gathering);
     }
 
     // 내 모임 조회
@@ -210,14 +243,22 @@ public class GatheringService {
         Optional<GatheringPeople> existingMembership = gatheringPeopleRepository.findByGatheringIdAndUserId(dto.getGatheringId(), userId);
 
         if (existingMembership.isPresent()) {
-            Status status = existingMembership.get().getStatus();
+            GatheringPeople gatheringPeople = existingMembership.get();
+            Status status = gatheringPeople.getStatus();
+
             switch (status) {
                 case WAIT:
                     throw new IllegalStateException("가입 대기중입니다.");
                 case ACTIVATE:
                     throw new IllegalStateException("이미 가입된 모임입니다.");
-                case DEACTIVATE:
+                case BAN:
                     throw new IllegalStateException("추방된 모임입니다.");
+                case DEACTIVATE:
+                    // DEACTIVATE 상태면 상태를 WAIT으로 바꾸고 저장
+                    gatheringPeople.setStatus(Status.WAIT);
+                    gatheringPeople.setGreetingMessage(dto.getGreetingMessage()); // 인사말도 갱신 가능
+                    gatheringPeopleRepository.save(gatheringPeople);
+                    return;
             }
         }
 
@@ -268,14 +309,52 @@ public class GatheringService {
             throw new IllegalArgumentException("모임장만이 모임장을 변경할 수 있습니다.");
         }
 
-        // 새로운 모임장이 될 사람이 현재 모임의 멤버인지 검증
-        boolean isMember = gatheringPeopleRepository.existsByGatheringIdAndUserId(gatheringId, dto.getUserId());
-        if (!isMember) {
-            throw new IllegalArgumentException("새로운 모임장은 해당 모임에 속한 사람이어야 합니다.");
+        // 새로운 모임장이 될 사람이 ACTIVATE 상태인지 검증
+        boolean isActiveMember = gatheringPeopleRepository.existsByGatheringIdAndUserIdAndStatus(
+                gatheringId, dto.getUserId(), Status.ACTIVATE);
+
+        if (!isActiveMember) {
+            throw new IllegalArgumentException("새로운 모임장은 해당 모임의 활성화된 멤버여야 합니다.");
         }
 
         // 새로운 모임장으로 변경
         gathering.changeLeader(dto.getUserId());
         gatheringRepository.save(gathering);
     }
+
+    // 모임 탈퇴
+    public void withdrawFromGathering(Long gatheringId, String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        GatheringPeople gatheringPeople = gatheringPeopleRepository.findByGatheringIdAndUserId(gatheringId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("참여 정보가 존재하지 않습니다."));
+
+        gatheringPeople.setStatus(Status.DEACTIVATE);
+        gatheringPeople.setUpdatedTime(LocalDateTime.now());
+        // save 생략 가능 (영속성 컨텍스트 관리하므로)
+    }
+
+    // 모임 해체
+    public void disbandGathering(Long gatheringId, String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        Gathering gathering = gatheringRepository.findById(gatheringId)
+                .orElseThrow(() -> new IllegalArgumentException("모임이 존재하지 않습니다."));
+
+        if (!gathering.getLeaderId().equals(userId)) {
+            throw new IllegalStateException("해당 모임의 모임장만 모임을 해체할 수 있습니다.");
+        }
+
+        // 모임 해체 처리
+        gathering.setDelYN(DelYN.Y);
+        gathering.setUpdatedTime(LocalDateTime.now());
+
+        // 해당 모임의 모든 참가자 상태 DEACTIVATE 처리
+        List<GatheringPeople> peopleList = gatheringPeopleRepository.findAllByGatheringId(gatheringId);
+        for (GatheringPeople person : peopleList) {
+            person.setStatus(Status.DEACTIVATE);
+            person.setUpdatedTime(LocalDateTime.now());
+        }
+    }
+
 }

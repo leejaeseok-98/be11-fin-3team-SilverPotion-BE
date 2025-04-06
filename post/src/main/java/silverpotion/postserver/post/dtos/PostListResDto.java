@@ -27,11 +27,12 @@ public class PostListResDto {
     private String isLike;
     private String isUpdate;
 
-    public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,UserProfileInfoDto profileInfo){
+    public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,UserProfileInfoDto writerInfo){
         return PostListResDto.builder()
                 .userId(post.getWriterId())
-                .nickname(profileInfo.getNickname())
-                .profileImage(profileInfo.getProfileImage())
+                .nickname(writerInfo.getNickname())
+                .title(post.getTitle())
+                .profileImage(writerInfo.getProfileImage())
                 .postId(post.getId())
                 .imageList(post.getFileUrls())
                 .content(post.getContent())

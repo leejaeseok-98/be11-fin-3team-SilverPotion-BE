@@ -6,6 +6,7 @@ import silverpotion.userserver.common.domain.BaseTimeEntity;
 import silverpotion.userserver.healthData.dtos.HealthAvgDataDto;
 import silverpotion.userserver.healthData.dtos.HealthDataListDto;
 import silverpotion.userserver.healthData.dtos.HealthSyncDto;
+import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.user.domain.User;
 
 import java.time.LocalDate;
@@ -30,14 +31,27 @@ public class HealthData extends BaseTimeEntity {
     private int calory;
     //  오늘 활동 칼로리
     private int activeCalory;
-    //  누구의 데이터인지
+    //  일일,주간,월간 데이터
     @Enumerated(EnumType.STRING)
     private DataType dataType;
+    // 누구의 데이터인지
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
     //  생성날짜
     private LocalDate createdDate;
+
+
+
+
+    public void update(HealthSyncDto dto,int averageBpm){
+        this.heartbeat =averageBpm;
+        this.calory = dto.getCaloriesBurnedData().intValue();
+        this.activeCalory = dto.getActiveCaloriesBurned().intValue();
+        this.step = dto.getStepData().get(0);
+        this.distance = dto.getDistanceWalked().intValue();
+
+    }
 
 
 

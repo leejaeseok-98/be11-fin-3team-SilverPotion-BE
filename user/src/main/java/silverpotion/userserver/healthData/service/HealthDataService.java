@@ -46,14 +46,9 @@ public class HealthDataService {
         }
         int averageBpm = sum / beatList.size();
         //엔티티 객체 생성
-        HealthData newData = dto.toEntityFromSync(averageBpm,user,today);
         Optional<HealthData> todayHealthData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(user.getId(), today, DataType.DAY);
         if(todayHealthData.isPresent()){ // 이미 오늘 날짜에 생성된 헬스데이터가 있다면 기존의 것을 지우고 최근 엔티티 객체를 새로 저장
-            healthDataRepository.delete(todayHealthData.get());
-            healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today));
-            //유저의 헬스데이터 리스트에서 오늘 날짜의 데이터를 찾아 제거
-        user.getMyHealthData().removeIf(data -> data.getCreatedDate().equals(today));
-        user.getMyHealthData().add(newData);
+          todayHealthData.get().update(dto,averageBpm);
         } else{ // 오늘날짜에 생성된 헬스데이터가 없다면 바로 저장
           HealthData data = healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today));
           user.getMyHealthData().add(data);

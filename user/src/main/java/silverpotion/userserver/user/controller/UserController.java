@@ -1,17 +1,14 @@
 package silverpotion.userserver.user.controller;
 
 
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.service.UserService;
 
@@ -59,6 +56,7 @@ public class UserController {
         }
     }
 
+
 //    3.회원정보수정(마이프로필 수정)
     @PatchMapping("/update")
     public ResponseEntity<?> userUpdate(@RequestBody UserUpdateDto dto,@RequestHeader("X-User-Id")String loginId){
@@ -100,12 +98,18 @@ public class UserController {
     }
 
     //  9. user list 전체 조회
-    //    @PreAuthorize("hasRole('ADMIN')")  테스트로 인해 주석 해놓음 나중에 주석 풀면됌.
+    //    @PreAuthorize("hasRole('ADMIN')")  어드민만 진입할만한 방법 대체해야함 이 어노테이션은 못씀
     @GetMapping("/list")
-    public ResponseEntity<?> findAllUser(@PageableDefault(size = 20) Pageable pageable) {
-        Page<UserListDto> list = userService.findAll(pageable);
+    public ResponseEntity<?> findAllUser(UserListDto dto) {
+        List<UserListDto> list = userService.findAll(dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "userList is uploaded successfully", list), HttpStatus.OK);
     }
-
+    // Feign chat. idByNickname (Feign 용)
+    @GetMapping("/nickname")
+    public String getUserByLoginId(@RequestParam Long id) {
+        User user = userService.getUseridByNickName(id);
+        System.out.println("유저 정보조회 login ID:"+ user.getNickName());
+        return user.getNickName();
+    }
 
 }

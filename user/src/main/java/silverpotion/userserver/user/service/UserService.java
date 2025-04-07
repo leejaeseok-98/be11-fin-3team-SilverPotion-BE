@@ -24,6 +24,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 @Service
 @Transactional
@@ -99,6 +100,12 @@ public class UserService {
          return loginInfo;
     }
 
+    //2.3 로그인 아이디로 유저찾기 feign 용
+    public User getUserByLoginId(String loginId) {
+        return userRepository.findByLoginIdAndDelYN(loginId, DelYN.N)
+                .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
+    }
+
 //    3.정보 업데이트
     public Long update(UserUpdateDto dto, String loginId){
       User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
@@ -147,8 +154,13 @@ public class UserService {
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage);
     }
     //  9. 유저 목록 조회
-    public Page<UserListDto> findAll(Pageable pageable){
-        Page<User> userList = userRepository.findAll(pageable);
-        return userList.map(u->u.ListDtoFromEntity());
+    public List<UserListDto> findAll(UserListDto dto){
+        List<User> users = userRepository.findAll();
+        return users.stream().map(UserListDto::fromEntity).collect(Collectors.toList());
+    }
+
+    //  feign용 getUseridByNickName
+    public User getUseridByNickName(Long id){
+        return userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
     }
 }

@@ -13,5 +13,7 @@ public class UserDto {
     private Long id;
     private String nickName;
     private String birthday;
+    private String loginId;
+    private String name;
 
 }

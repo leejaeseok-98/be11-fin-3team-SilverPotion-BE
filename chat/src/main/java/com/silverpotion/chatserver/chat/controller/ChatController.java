@@ -29,7 +29,7 @@ public class ChatController {
     @PostMapping("/room/group/create")
     public ResponseEntity<?> createGroupRoom(@RequestParam String roomName, @RequestHeader("X-User-LoginId")String loginId) {
         if (loginId == null || loginId.isBlank()) {
-            return ResponseEntity.badRequest().body("❌ X-User-Id 헤더가 없습니다.");
+            return ResponseEntity.badRequest().body("❌ X-User-LoginId 헤더가 없습니다.");
         }
 
         try {
@@ -37,7 +37,7 @@ public class ChatController {
             chatService.createGroupRoom(roomName, userId);
             return ResponseEntity.ok().build();
         } catch (NumberFormatException e) {
-            return ResponseEntity.badRequest().body("❌ X-User-Id 값이 유효한 숫자가 아닙니다.");
+            return ResponseEntity.badRequest().body("❌ X-User-LoginId 값이 유효한 숫자가 아닙니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + e.getMessage());
         }
@@ -86,7 +86,7 @@ public class ChatController {
     @PostMapping("/room/{roomId}/read")
     public ResponseEntity<?> messageRead(@PathVariable Long roomId, @RequestHeader("X-User-LoginId") String loginId) {
         if (loginId == null || loginId.isBlank()) {
-            return ResponseEntity.badRequest().body("❌ X-User-Id 헤더가 없습니다.");
+            return ResponseEntity.badRequest().body("❌ X-User-LoginId 헤더가 없습니다.");
         }
 
         try {
@@ -101,9 +101,9 @@ public class ChatController {
     // 🔹 내 채팅방 목록 조회
     @GetMapping("/my/rooms")
     public ResponseEntity<?> getMyChatRooms(HttpServletRequest request) {
-        String userIdHeader = request.getHeader("X-User-Id");
+        String userIdHeader = request.getHeader("X-User-LoginId");
         if (userIdHeader == null || userIdHeader.isBlank()) {
-            return ResponseEntity.badRequest().body("❌ X-User-Id 헤더가 없습니다.");
+            return ResponseEntity.badRequest().body("❌ X-User-LoginId 헤더가 없습니다.");
         }
 
         try {
@@ -118,9 +118,9 @@ public class ChatController {
     // 🔹 그룹 채팅방 나가기
     @DeleteMapping("/room/group/{roomId}/leave")
     public ResponseEntity<?> leaveGroupChatRoom(@PathVariable Long roomId, HttpServletRequest request) {
-        String userIdHeader = request.getHeader("X-User-Id");
+        String userIdHeader = request.getHeader("X-User-LoginId");
         if (userIdHeader == null || userIdHeader.isBlank()) {
-            return ResponseEntity.badRequest().body("❌ X-User-Id 헤더가 없습니다.");
+            return ResponseEntity.badRequest().body("❌ X-User-LoginId 헤더가 없습니다.");
         }
 
         try {

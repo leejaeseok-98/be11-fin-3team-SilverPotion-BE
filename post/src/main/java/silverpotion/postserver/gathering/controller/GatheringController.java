@@ -23,7 +23,7 @@ public class GatheringController {
 
     // 모임생성
     @PostMapping("/create")
-    public ResponseEntity<?> gatheringCreate(@RequestBody GatheringCreateDto dto, @RequestHeader("X-User-Id") String loginId) {
+    public ResponseEntity<?> gatheringCreate(@RequestBody GatheringCreateDto dto, @RequestHeader("X-User-LoginId") String loginId) {
         List<Long> gatheringCategoryDetailIds = dto.getGatheringCategoryDetailIds();
         gatheringService.gatheringCreate(dto, loginId, gatheringCategoryDetailIds);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 생성되었습니다.", dto), HttpStatus.OK);
@@ -32,7 +32,7 @@ public class GatheringController {
     // 모임 수정
     @PatchMapping("/update/{gatheringId}")
     public ResponseEntity<?> updateGathering(
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @PathVariable Long gatheringId,
             @ModelAttribute GatheringUpdateDto dto) {
         gatheringService.updateGathering(loginId, gatheringId, dto);
@@ -41,7 +41,7 @@ public class GatheringController {
 
     // 내 모임 조회
     @GetMapping("/mygatherings")
-    public ResponseEntity<?> getMyGatherings(@RequestHeader("X-User-Id") String loginId) {
+    public ResponseEntity<?> getMyGatherings(@RequestHeader("X-User-LoginId") String loginId) {
         List<GatheringInfoDto> dtos = gatheringService.getMyGatherings(loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "내가 속한 모임들이 조회되었습니다.", dtos), HttpStatus.OK);
     }
@@ -79,7 +79,7 @@ public class GatheringController {
     // 모임 가입
     @PostMapping("/register")
     public ResponseEntity<?> createGatheringPeople(
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @RequestBody GatheringPeopleCreateDto dto) {
 
         gatheringService.createGatheringPeople(dto, loginId);
@@ -90,7 +90,7 @@ public class GatheringController {
     @PatchMapping("/peopleupdate/{gatheringPeopleId}")
     public ResponseEntity<?> updateGatheringPeopleStatus(
             @PathVariable Long gatheringPeopleId,
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @RequestBody GatheringPeopleUpdateDto dto) {
 
         gatheringService.updateGatheringPeopleStatus(gatheringPeopleId, loginId, dto);
@@ -101,7 +101,7 @@ public class GatheringController {
     @PatchMapping("/leaderchange/{gatheringId}")
     public ResponseEntity<?> changeLeader(
             @PathVariable Long gatheringId,
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @RequestBody LeaderChangeDto dto) {
 
         gatheringService.changeLeader(gatheringId, loginId, dto);
@@ -112,7 +112,7 @@ public class GatheringController {
     @PatchMapping("/withdraw/{gatheringId}")
     public ResponseEntity<?> withdrawFromGathering(
             @PathVariable Long gatheringId,
-            @RequestHeader("X-User-Id") String loginId) {
+            @RequestHeader("X-User-LoginId") String loginId) {
         gatheringService.withdrawFromGathering(gatheringId, loginId);
 
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "탈퇴가 완료되었습니다.", gatheringId), HttpStatus.OK);
@@ -122,7 +122,7 @@ public class GatheringController {
     @PatchMapping("/disband/{gatheringId}")
     public ResponseEntity<?> disbandGathering(
             @PathVariable Long gatheringId,
-            @RequestHeader("X-User-Id") String loginId) {
+            @RequestHeader("X-User-LoginId") String loginId) {
         gatheringService.disbandGathering(gatheringId, loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 해체되었습니다.", gatheringId), HttpStatus.OK);
     }

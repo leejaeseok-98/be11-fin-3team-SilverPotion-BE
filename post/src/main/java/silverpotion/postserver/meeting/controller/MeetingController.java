@@ -25,7 +25,7 @@ public class MeetingController {
     // 정모 생성
     @PostMapping("/create")
     public ResponseEntity<?> createMeeting(
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @ModelAttribute MeetingCreateDto dto) {
 
         meetingService.createMeeting(loginId, dto);
@@ -35,7 +35,7 @@ public class MeetingController {
     // 정모 수정
     @PatchMapping("/update/{meetingId}")
     public ResponseEntity<?> updateMeeting(
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @PathVariable Long meetingId,
             @ModelAttribute MeetingUpdateDto dto) {
 
@@ -53,7 +53,7 @@ public class MeetingController {
     // 정모 참석
     @PostMapping("/attend")
     public ResponseEntity<?> attendMeeting(
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @RequestBody MeetingAttendDto dto) {
 
         meetingService.attendMeeting(loginId, dto);
@@ -63,7 +63,7 @@ public class MeetingController {
     // 정모 참석 취소
     @DeleteMapping("/deleteattend")
     public ResponseEntity<?> cancelAttendance(
-            @RequestHeader("X-User-Id") String loginId,
+            @RequestHeader("X-User-LoginId") String loginId,
             @RequestBody MeetingAttendDto dto) {
 
         meetingService.cancelAttendance(loginId, dto);

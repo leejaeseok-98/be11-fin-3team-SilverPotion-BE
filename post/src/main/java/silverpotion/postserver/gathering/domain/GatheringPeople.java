@@ -1,16 +1,13 @@
 package silverpotion.postserver.gathering.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Data
 @Builder
 public class GatheringPeople extends BaseTimeEntity {
 
@@ -30,4 +27,8 @@ public class GatheringPeople extends BaseTimeEntity {
 
     @Enumerated(EnumType.STRING)
     private Status status;      //상태
+
+    public void updateStatus(Status status) {
+        this.status = status;
+    }
 }

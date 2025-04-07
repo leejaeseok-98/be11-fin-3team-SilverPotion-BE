@@ -1,10 +1,7 @@
 package silverpotion.postserver.meeting.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gathering.domain.Gathering;
 
@@ -14,7 +11,7 @@ import java.time.LocalTime;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Data
 @Builder
 public class Meeting {
     @Id
@@ -26,7 +23,7 @@ public class Meeting {
     private Gathering gathering;    //모임id
 
     @Column(nullable = false)
-    private String gatheringName;   //모임명
+    private String name;   //모임명
 
     @Column(nullable = false)
     private LocalDate meetingDate;  // 날짜 ex) 2025-03-26

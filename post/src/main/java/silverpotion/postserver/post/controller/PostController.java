@@ -93,4 +93,5 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 좋아요 완료",likeInfo),HttpStatus.OK);
     }
 
+
 }

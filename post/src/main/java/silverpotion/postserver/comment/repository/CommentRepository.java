@@ -20,4 +20,10 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
 //    댓글좋아요수 조회
     @Query("SELECT COUNT(cl) FROM CommentLike cl WHERE cl.comment.id = :commentId")
     Long countCommentLikes(@Param("commentId") Long commentId);
+
+    // parentId를 이용해 해당 댓글과 연관된 Post 찾기
+    @Query("SELECT c.post FROM Comment c WHERE c.id = :parentId")
+    Post findPostByParentId(@Param("parentId") Long parentId);
+
+
 }

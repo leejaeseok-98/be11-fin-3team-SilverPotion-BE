@@ -15,6 +15,9 @@ public class UserListDto {
     private Long id;
     private String name;
     private String nickName;
+    private String profileImgUrl;
+  
+  
     public static UserListDto fromEntity(User user) {
         return new UserListDto(user.getId(), user.getName(), user.getNickName());
     }

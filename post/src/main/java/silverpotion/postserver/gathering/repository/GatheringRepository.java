@@ -6,11 +6,17 @@ import org.springframework.stereotype.Repository;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gathering.domain.Gathering;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
 public interface GatheringRepository extends JpaRepository<Gathering,Long> {
     Optional<Gathering> findByIdAndDelYN(Long id, DelYN delYN);
     Optional<Gathering> findByGatheringNameAndDelYN(String gatheringName, DelYN delYN);
+    List<Gathering> findByIdIn(List<Long> ids);
+    List<Gathering> findByGatheringCategoryNameAndGatheringNameContaining(String category, String gatheringName);
+    List<Gathering> findByGatheringCategoryName(String category);
+    List<Gathering> findByGatheringNameContaining(String gatheringName);
+    long countByLeaderId(Long leaderId);
 
 }

@@ -1,5 +1,7 @@
 package silverpotion.postserver.post.service;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
@@ -13,6 +15,7 @@ import silverpotion.postserver.comment.domain.Comment;
 import silverpotion.postserver.comment.dtos.CommentListResDto;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
+import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
@@ -32,6 +35,7 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import java.io.IOException;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 
@@ -47,6 +51,7 @@ public class PostService {
     private final CommentRepository commentRepository;
     private final CommentLikeRepository commentLikeRepository;
     private final GatheringPeopleRepository gatheringPeopleRepository;
+    private final ObjectMapper objectMapper;
 //    private final NotificationService notificationService;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -54,7 +59,7 @@ public class PostService {
     @Value("${cloud.aws.region.static}")
     private String region;
 
-    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository) {
+    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper) {
         this.postRepository = postRepository;
         this.gatheringRepository = gatheringRepository;
         this.postFileRepository = postFileRepository;
@@ -64,6 +69,7 @@ public class PostService {
         this.commentRepository = commentRepository;
         this.commentLikeRepository = commentLikeRepository;
         this.gatheringPeopleRepository = gatheringPeopleRepository;
+        this.objectMapper = objectMapper;
     }
 
     //    1. 게시물 생성시, 카테고리 유형 저장(임시저장)
@@ -134,7 +140,7 @@ public class PostService {
 
     //  5. S3에 이미지저장
     public String uploadImage(MultipartFile file) {
-        String fileName = UUID.randomUUID() + "_" + file.getOriginalFilename();
+        String fileName = "post/"+ UUID.randomUUID() + "_" + file.getOriginalFilename();
 
         try {
             s3Client.putObject(
@@ -163,43 +169,53 @@ public class PostService {
     //    7. 게시물 조회
     @Transactional(readOnly = true)
     public Page<PostListResDto> getList(Integer page, Integer size, String loginId){
-        UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(loginId);
+        Long userId = userClient.getUserIdByLoginId(loginId);
+        List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId);
+        System.out.println("gatheringIds"+gatheringUserIds);
 
-        Long userId = profileInfo.getUserId();
-        //해당 유저가 속한 모임참여자id 조회
-        List<Long> gatheringMemberId = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId);
-
-        // Set으로 중복 제거 + 본인 ID 포함
-        Set<Long> accessibleUserIds = new HashSet<>(gatheringMemberId);
-        accessibleUserIds.add(userId);// 본인 포함 (중복 제거는 Set으로!)
+        List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);
+        accessibleUserIds.addAll(gatheringUserIds);
+        accessibleUserIds.add(userId);
 
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime")); // 최신순 정렬
+
+        System.out.println("accessibleUserIds : " + accessibleUserIds);
+        // 작성자 프로필 정보 조회
+        CommonDto profileInfoDtoMap = userClient.PostProfileInfo(accessibleUserIds);
+        Object result = profileInfoDtoMap.getResult();
+
+        if (result == null) {
+            System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+            result = List.of(); // 빈 리스트 처리
+        }
+        Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
+
 
         // 해당 유저들의 게시물만 조회
         return postRepository.findByWriterIdIn(new ArrayList<>(accessibleUserIds), pageable)
                 .map(post -> {
                     Long likeCount = postRepository.countPostLikes(post.getId());
                     Long commentCount = postRepository.countPostComments(post.getId());
-                    String profileImage = profileInfo.getProfileImage();
+                    UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
 
                     boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                     String isLike = isLiked ? "Y" : "N";
 
-                    return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, profileImage);
+                    return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, writerInfo);
                 });
     }
 
 //    게시물 상세조회
     @Transactional(readOnly = true)
     public PostDetailResDto getDetail(Long postId,String loginId) {
-        UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(loginId);
-        Long userId = profileInfo.getUserId();
-        String nickname = profileInfo.getNickname();
-        String profileImage = profileInfo.getProfileImage();
+        Long userId = userClient.getUserIdByLoginId(loginId);
 
         // 게시물 조회 (없으면 예외 발생)
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
+
+        Long writerId = post.getWriterId(); // 작성자 프로필을 가져오기 위해
+        UserProfileInfoDto writerProfile = userClient.getUserProfileInfo(writerId);
 
         // 게시물 좋아요 개수 조회
         Long postLikeCount = postRepository.countPostLikes(postId);
@@ -211,7 +227,7 @@ public class PostService {
                     Long commentLikeCount = commentRepository.countCommentLikes(comment.getId());
                     boolean isCommentLiked = commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
                     String isCommentLike = isCommentLiked ? "Y" : "N";
-                    return CommentListResDto.fromEntity(comment, commentLikeCount, isCommentLike, profileInfo);
+                    return CommentListResDto.fromEntity(comment, commentLikeCount, isCommentLike, writerProfile);
                 })
                 .collect(Collectors.toList());
 
@@ -220,7 +236,7 @@ public class PostService {
         String isLike = isLiked ? "Y" : "N";
 
         // DTO 변환 후 반환
-        return PostDetailResDto.fromEntity(post,profileImage,postLikeCount, commentList, isLike);
+        return PostDetailResDto.fromEntity(post,writerProfile,postLikeCount, commentList, isLike);
     }
 
 }

@@ -1,10 +1,7 @@
 package silverpotion.postserver.gathering.domain;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
@@ -17,7 +14,7 @@ import java.util.List;
 
 @AllArgsConstructor
 @NoArgsConstructor
-@Getter
+@Data
 @Builder
 @Entity
 public class Gathering extends BaseTimeEntity {
@@ -76,9 +73,13 @@ public class Gathering extends BaseTimeEntity {
         GatheringPeople leader = GatheringPeople.builder()
                 .gathering(this)
                 .userId(userId)
-                .greetingMessage("모임장")
+                .greetingMessage("처음 이 모임을 개설한 사람")
                 .status(Status.ACTIVATE)
                 .build();
         this.gatheringPeople.add(leader);
+    }
+
+    public void changeLeader(Long newLeaderId) {
+        this.leaderId = newLeaderId;
     }
 }

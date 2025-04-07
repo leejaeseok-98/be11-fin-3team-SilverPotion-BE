@@ -9,16 +9,18 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @Data
 @Builder
-public class UserProfileInfoDto {
+public class  UserProfileInfoDto {
     private Long userId;
     private String nickname;
+    private String streetAddress; // ex.도봉구
     private String profileImage;
 
-    public static UserProfileInfoDto userProfileInfoDto(Long userId, String nickname,String profileImage){
+    public static UserProfileInfoDto userProfileInfoDto(Long userId, String nickname,String profileImage,String streetAddress){
         return UserProfileInfoDto.builder()
                 .userId(userId)
                 .nickname(nickname)
                 .profileImage(profileImage)
+                .streetAddress(streetAddress)
                 .build();
     }
 }

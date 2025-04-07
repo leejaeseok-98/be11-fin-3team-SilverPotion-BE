@@ -17,6 +17,7 @@ import java.util.List;
 public class PostDetailResDto {
     private Long userId;
     private String nickName;
+    private String title;
     private String profileImage;
     private Long postId;
     private List<String> imageList;
@@ -25,13 +26,14 @@ public class PostDetailResDto {
     private List<CommentListResDto> commentList;
     private LocalDateTime createdTime;
     private String isUpdate;
-    private List<String> hashTag;
     private String isLike;
 
-    public static PostDetailResDto fromEntity(Post post,String profileImage,Long postLikeCount, List<CommentListResDto> commentList, String isLike) {
+    public static PostDetailResDto fromEntity(Post post,UserProfileInfoDto writerProfile,Long postLikeCount, List<CommentListResDto> commentList, String isLike) {
         return PostDetailResDto.builder()
                 .userId(post.getWriterId())
-                .profileImage(profileImage)
+                .nickName(writerProfile.getNickname())
+                .title(post.getTitle())
+                .profileImage(writerProfile.getProfileImage())
                 .postId(post.getId())
                 .imageList(post.getFileUrls())
                 .content(post.getContent())

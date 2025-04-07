@@ -5,8 +5,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import silverpotion.postserver.gathering.domain.GatheringPeople;
+import silverpotion.postserver.gathering.domain.Status;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople,Long> {
@@ -15,4 +17,11 @@ public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople
             "JOIN GatheringPeople gp2 ON gp1.gathering.id = gp2.gathering.id " +
             "WHERE gp1.userId = :userId")
     List<Long> findMemberIdsInSameGatherings(@Param("userId") Long userId);
+    List<GatheringPeople> findByUserId(Long userId);
+    @Query("SELECT COUNT(gp) FROM GatheringPeople gp WHERE gp.gathering.id = :gatheringId AND gp.status = 'ACTIVATE'")
+    Long countByGatheringIdAndStatusActivate(@Param("gatheringId") Long gatheringId);
+    List<GatheringPeople> findByGatheringId(Long gatheringId);
+    Optional<GatheringPeople> findByGatheringIdAndUserId(Long gatheringId, Long userId);
+    boolean existsByGatheringIdAndUserIdAndStatus(Long gatheringId, Long userId, Status status);
+    List<GatheringPeople> findAllByGatheringId(Long gatheringId);
 }

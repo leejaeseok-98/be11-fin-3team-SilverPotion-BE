@@ -7,6 +7,9 @@ import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
@@ -14,10 +17,11 @@ import silverpotion.userserver.user.service.UserService;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @RestController
 @RequestMapping("silverpotion/user")
-public class UserController {
+public class    UserController {
    private final UserService userService;
 
 
@@ -91,14 +95,19 @@ public class UserController {
         return userService.getUserIdByLoginId(loginId);
     }
 
-    //    8.userId와 nickname 조회(UserClient)
+    //    8.loginId와 nickname 조회(UserClient)
     @GetMapping("/postUserInfo")
     public UserProfileInfoDto getUserProfileInfo(@RequestParam String loginId){
         return userService.getUserProfileInfo(loginId);
     }
 
-    //  9. user list 전체 조회
-    //    @PreAuthorize("hasRole('ADMIN')")  어드민만 진입할만한 방법 대체해야함 이 어노테이션은 못씀
+    //    9.userId와 nickname 조회(UserClient)
+    @GetMapping("/writer/postUserInfo")
+    public UserProfileInfoDto getUserProfileInfo(@RequestParam Long userId){
+        return userService.getUserProfileInfo(userId);
+    }
+
+    //  10. user list 전체 조회
     @GetMapping("/list")
     public ResponseEntity<?> findAllUser(UserListDto dto) {
         List<UserListDto> list = userService.findAll(dto);
@@ -110,6 +119,49 @@ public class UserController {
         User user = userService.getUseridByNickName(id);
         System.out.println("유저 정보조회 login ID:"+ user.getNickName());
         return user.getNickName();
+
+    // 11. 프로필 이미지 등록 및 수정
+    @PostMapping("/profileImg")
+    public ResponseEntity<?> postProfileImage(@RequestHeader("X-User-Id")String loginId,UserProfileImgDto dto){
+         String s3Url = userService.postProfileImage(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",s3Url),HttpStatus.OK);
+    }
+
+   // 12. 상대프로필 조회
+    @GetMapping("/yourProfile/{id}" )
+    public ResponseEntity<?> yourProfile(@PathVariable Long id){
+                  UserProfileInfoDto dto = userService.yourProfile(id);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"user's profile is uploaded successfully",dto),HttpStatus.OK);
+    }
+
+    // 13. 특정 유저 리스트 조회
+    @PostMapping("/profile/list")
+    public ResponseEntity<?> getUsersByIds(@RequestBody List<Long> userIds){
+        List<UserListDto> userListDtos = userService.getUsersByIds(userIds);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"특정 유저 리스트 조회",userListDtos),HttpStatus.OK);
+    }
+
+//    게시물 조회시, 작성자 프로필 조회
+    @PostMapping("/post/profileInfo")
+    public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){
+        Map<Long, UserProfileInfoDto> dto= userService.getProfileInfoMap(userIds);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 작성자 유저 리스트 조회",dto),HttpStatus.OK);
+    }
+
+//    사용자 정지(관리자 수동 처리)
+    //    @PreAuthorize("hasRole('ADMIN))
+    @PostMapping("/ban")
+    public ResponseEntity<?> banUser(@RequestBody UserBanRequestDto userBanRequestDto){
+        userService.banUserManually(userBanRequestDto.getUserId(),userBanRequestDto.getBanUntil());
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"사용자가 정지되었습니다.",userBanRequestDto.getUserId()),HttpStatus.OK);
+    }
+
+
+    // 회원탈퇴
+    @GetMapping("/withdraw")
+    public ResponseEntity<?> withdraw(@RequestHeader("X-User-Id")String loginId){
+       String nickName = userService.withdraw(loginId);
+       return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
     }
 
 }

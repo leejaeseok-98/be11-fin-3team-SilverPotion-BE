@@ -25,11 +25,17 @@ public class StompController {
 
     @MessageMapping("/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId, ChatMessageDto chatMessageReqDto) throws JsonProcessingException {
-        System.out.println(chatMessageReqDto.getMessage());
-        chatService.saveMessage(roomId, chatMessageReqDto);
-        chatMessageReqDto.setRoomId(roomId);
-        ObjectMapper objectMapper = new ObjectMapper();
-        String message = objectMapper.writeValueAsString(chatMessageReqDto);
-        pubSubService.publish("chat", message);
+        try {
+            System.out.println("🔥 메시지 수신: " + chatMessageReqDto);
+            chatService.saveMessage(roomId, chatMessageReqDto);
+            chatMessageReqDto.setRoomId(roomId);
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String message = objectMapper.writeValueAsString(chatMessageReqDto);
+            pubSubService.publish("chat", message);
+        } catch (Exception e) {
+            System.out.println("❌ 메시지 처리 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

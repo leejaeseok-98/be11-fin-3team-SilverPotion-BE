@@ -12,5 +12,5 @@ import lombok.NoArgsConstructor;
 public class ChatMessageDto extends com.example.chatserver.common.domain.BaseTimeEntity {
     private Long roomId;
     private String message;
-    private Long userId;
+    private String senderLoginId;
 }

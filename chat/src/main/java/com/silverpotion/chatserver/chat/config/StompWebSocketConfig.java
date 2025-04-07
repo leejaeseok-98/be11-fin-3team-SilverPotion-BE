@@ -11,16 +11,19 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @EnableWebSocketMessageBroker
 public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     private final StompHandler stompHandler;
+    private final CustomHandshakeInterceptor interceptor;
 
-    public StompWebSocketConfig(StompHandler stompHandler) {
+    public StompWebSocketConfig(StompHandler stompHandler, CustomHandshakeInterceptor interceptor) {
         this.stompHandler = stompHandler;
+        this.interceptor = interceptor;
     }
+
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/connect")
                 .setAllowedOrigins("http://localhost:3000")
-//                ws://가 아닌 http:// 엔드포인트를 사용할수 있게 해주는 sockJs라이브러리를 통한 요청을 허용하는 설정.
+                .addInterceptors(interceptor)
                 .withSockJS();
     }
 
@@ -29,7 +32,6 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //        /publish/1형태로 메시지 발행해야 함을 설정
 //        /publish로 시작하는 url패턴으로 메시지가 발행되면 @Controller 객체의 @MessaMapping메서드로 라우팅
         registry.setApplicationDestinationPrefixes("/publish");
-
 //        /topic/1형태로 메시지를 수신(subscribe)해야 함을 설정
         registry.enableSimpleBroker("/topic");
 
@@ -41,5 +43,4 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     public void configureClientInboundChannel(ChannelRegistration registration) {
         registration.interceptors(stompHandler);
     }
-
 }

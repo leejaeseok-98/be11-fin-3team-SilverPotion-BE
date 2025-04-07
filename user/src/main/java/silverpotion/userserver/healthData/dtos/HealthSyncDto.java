@@ -27,6 +27,14 @@ public class HealthSyncDto {
     private Double distanceWalked;
     //활동칼로리
     private Double activeCaloriesBurned;
+    //총 수면시간
+    private Long totalSleepMinutes;
+    //깊은 수면시간
+    private Long deepSleepMinutes;
+    //렘 수면시간
+    private Long remSleepMinutes;
+    //얉은 수면시간
+    private Long lightSleepMinutes;
 
 
 
@@ -36,6 +44,10 @@ public class HealthSyncDto {
                 .step(this.stepData.get(0)).heartbeat(averageHeartbeat)
                 .calory(this.caloriesBurnedData.intValue()).activeCalory(this.activeCaloriesBurned.intValue())
                 .distance(this.distanceWalked.intValue()).user(user).createdDate(createdDate)
+                .totalSleepMinutes(this.totalSleepMinutes.intValue())
+                .deepSleepMinutes(this.deepSleepMinutes.intValue())
+                .lightSleepMinutes(this.lightSleepMinutes.intValue())
+                .remSleepMinutes(this.remSleepMinutes.intValue())
                 .dataType(DataType.DAY) //일일 HealthDataType.
                 .build();
     }

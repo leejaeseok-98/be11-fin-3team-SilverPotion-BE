@@ -45,7 +45,7 @@ public class HealthReportService {
         Map<String, Object> requestBody = Map.of(
                 "model", "gpt-4o",
                 "messages", new Object[]{
-                        Map.of("role", "system", "content", "너는 사용자의 나이와 성별을 고려해서 심박수,오늘 걸음수, 걸은 거리, 오늘 소모칼로리에대해 문단별로 각 항목마다 현재까지 현황을 파악하며 조언을 해주고, 마지막 문단에는 건강관련 인사이트를 줬으면 좋겠어"),
+                        Map.of("role", "system", "content", "너는 사용자의 나이와 성별을 고려해서 심박수,오늘 걸음수, 걸은 거리, 오늘 소모칼로리,수면기록 에대해 문단별로 각 항목마다 현재까지 현황을 파악하며 이게 어떤의미인지 알려주고 그리고 조언도 해주고, 마지막 문단에는 건강관련한 인사이트를 줬으면 좋겠어. "),
                         Map.of("role", "user", "content", user.healthPrompt().getPrompt())
                 },
                 "temperature", 0.7 //temperature은 답변의 창의성 정도

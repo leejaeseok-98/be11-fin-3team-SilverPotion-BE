@@ -35,6 +35,7 @@ public class Report extends BaseTimeEntity {
     private Long referenceId;//참조 id
 
     @Column(nullable = false)
+    @Builder.Default
     private ReportStatus reportStatus = ReportStatus.WAIT;//신고처리상태(대기, 완료)
 
     private String adminComment; //관리자 코멘트

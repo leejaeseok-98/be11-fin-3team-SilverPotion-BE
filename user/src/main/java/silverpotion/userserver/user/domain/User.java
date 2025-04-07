@@ -145,13 +145,13 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
         String promt ="나이 : " + this.myAge() +", 성별 : " + this.sex.toString() +
                       ", 오늘 걸음 횟수 " + nowHealthData.getStep() + "현재까지 평균 심박수 :" + nowHealthData.getHeartbeat()
-                      +", 현재까지 걸은 거리 : " + nowHealthData.getDistance() + "현재까지 소모 칼로리 : " + nowHealthData.getCalory();
+                      +", 현재까지 걸은 거리 : " + nowHealthData.getDistance() + "현재까지 소모 칼로리 : " + nowHealthData.getCalory()
+                      +", 금일 총 수면시간(분) : " + nowHealthData.getTotalSleepMinutes() + "깊은 수면시간(분) : " +nowHealthData.getDeepSleepMinutes()
+                      +", 렘 수면시간(분) : " + nowHealthData.getRemSleepMinutes() + "얉은 수면시간(분) : " + nowHealthData.getLightSleepMinutes();
 
        return UserPromptDto.builder().healthData(nowHealthData).prompt(promt).build();
 
     }
-
-
 
 
     //    회원탈퇴 메서드

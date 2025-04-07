@@ -31,6 +31,14 @@ public class HealthData extends BaseTimeEntity {
     private int calory;
     //  오늘 활동 칼로리
     private int activeCalory;
+    //  오늘 총 수면시간
+    private int totalSleepMinutes;
+    //  오늘 깊은 수면시간
+    private int deepSleepMinutes;
+    //  오늘 렘 수면시간
+    private int remSleepMinutes;
+    //  오늘 얇은 수면시간
+    private int lightSleepMinutes;
     //  일일,주간,월간 데이터
     @Enumerated(EnumType.STRING)
     private DataType dataType;
@@ -50,6 +58,10 @@ public class HealthData extends BaseTimeEntity {
         this.activeCalory = dto.getActiveCaloriesBurned().intValue();
         this.step = dto.getStepData().get(0);
         this.distance = dto.getDistanceWalked().intValue();
+        this.totalSleepMinutes =dto.getTotalSleepMinutes().intValue();
+        this.deepSleepMinutes =dto.getDeepSleepMinutes().intValue();
+        this.remSleepMinutes = dto.getRemSleepMinutes().intValue();
+        this.lightSleepMinutes = dto.getLightSleepMinutes().intValue();
 
     }
 
@@ -60,6 +72,8 @@ public class HealthData extends BaseTimeEntity {
         return HealthDataListDto.builder()
                 .step(this.step).heartbeat(this.heartbeat).calory(this.calory)
                 .activeCalory(this.activeCalory).distance(this.distance)
+                .totalSleepMinutes(this.totalSleepMinutes).deepSleepMinutes(this.deepSleepMinutes)
+                .lightSleepMinutes(this.lightSleepMinutes).remSleepMinutes(this.remSleepMinutes)
                 .build();
     }
 
@@ -68,7 +82,8 @@ public class HealthData extends BaseTimeEntity {
         return HealthAvgDataDto.builder()
                 .heartbeat(this.heartbeat).step(this.step)
                 .calory(this.calory).activeCalory(this.activeCalory)
-                .distance(this.distance)
+                .distance(this.distance).totalSleepMinutes(this.totalSleepMinutes)
+                .deepSleepMinutes(this.deepSleepMinutes).remSleepMinutes(this.remSleepMinutes).lightSleepMinutes(this.lightSleepMinutes)
                 .build();
     }
 

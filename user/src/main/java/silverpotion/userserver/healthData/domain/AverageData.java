@@ -23,6 +23,14 @@ public class AverageData {
     private int avgCalory;
     //평균 활동칼로리
     private int avgActiveCalory;
+    //  오늘 총 수면시간
+    private int avgTotalSleepMinutes;
+    //  오늘 깊은 수면시간
+    private int avgDeepSleepMinutes;
+    //  오늘 렘 수면시간
+    private int avgRemSleepMinutes;
+    //  오늘 얇은 수면시간
+    private int avgLightSleepMinutes;
 
 
 
@@ -37,8 +45,14 @@ public class AverageData {
         int avgDistancd1 = (int)list.stream().mapToDouble(HealthData::getDistance).average().orElse(0);
         int avgCalory1 = (int)list.stream().mapToDouble(HealthData::getCalory).average().orElse(0);
         int avgActiveCalory1 = (int)list.stream().mapToDouble(HealthData::getActiveCalory).average().orElse(0);
+        int avgTotalSleepMinutes1 = (int)list.stream().mapToDouble(HealthData::getTotalSleepMinutes).average().orElse(0);
+        int avgDeepSleepMinutes1 = (int)list.stream().mapToDouble(HealthData::getDeepSleepMinutes).average().orElse(0);
+        int avgLightSleepMinutes1 = (int)list.stream().mapToDouble(HealthData::getLightSleepMinutes).average().orElse(0);
+        int avgRemSleepMinutes1 = (int)list.stream().mapToDouble(HealthData::getRemSleepMinutes).average().orElse(0);
+
         return AverageData.builder().avgStep(avgStep1).avgHeartBeat(avgHeartBeat1).avgDistancd(avgDistancd1).
-                avgCalory(avgCalory1).avgActiveCalory(avgActiveCalory1).build();
+                avgCalory(avgCalory1).avgActiveCalory(avgActiveCalory1).avgTotalSleepMinutes(avgTotalSleepMinutes1)
+                .avgDeepSleepMinutes(avgDeepSleepMinutes1).avgLightSleepMinutes(avgLightSleepMinutes1).avgRemSleepMinutes(avgRemSleepMinutes1).build();
 
     }
 

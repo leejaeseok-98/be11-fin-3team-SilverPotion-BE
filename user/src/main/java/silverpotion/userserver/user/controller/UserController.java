@@ -117,8 +117,9 @@ public class    UserController {
     @GetMapping("/nickname")
     public String getUserByLoginId(@RequestParam Long id) {
         User user = userService.getUseridByNickName(id);
-        System.out.println("유저 정보조회 login ID:"+ user.getNickName());
+        System.out.println("유저 정보조회 login ID:" + user.getNickName());
         return user.getNickName();
+    }
 
     // 11. 프로필 이미지 등록 및 수정
     @PostMapping("/profileImg")

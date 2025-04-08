@@ -59,3 +59,9 @@ logging:
 #    별도의 에러로그 없이, 날짜구분없이 모든로그를 남기는 설정
   file:
     name: logs/app.log
+
+oauth:
+  google:
+    client-id: 73727762121-skf00kqrlnfjput7t493mmdifss29170.apps.googleusercontent.com
+    client-secret: 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
+    redirect-url: http://localhost:3000/oauth/google/redirect

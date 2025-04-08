@@ -11,10 +11,13 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.user.domain.SocialType;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
+import silverpotion.userserver.user.service.GoogleService;
 import silverpotion.userserver.user.service.UserService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -23,11 +26,14 @@ import java.util.Set;
 @RequestMapping("silverpotion/user")
 public class    UserController {
    private final UserService userService;
+   private final GoogleService googleService;
+    private final JwtTokenProvider jwtTokenProvider;
 
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider) {
         this.userService = userService;
-
+        this.googleService = googleService;
+        this.jwtTokenProvider = jwtTokenProvider;
     }
 //    0.헬스체크용 url(배포용)
     @GetMapping
@@ -157,6 +163,26 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"사용자가 정지되었습니다.",userBanRequestDto.getUserId()),HttpStatus.OK);
     }
 
+//    구글 로그인
+    @PostMapping("/google/login")
+    public ResponseEntity<?> googleLogin(@RequestBody RedirectDto redirectDto){
+//        access토큰발급
+        AccessTokenDto accessTokenDto = googleService.getAccessToken(redirectDto.getCode());
+
+//        사용자 정보 얻기
+        GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
+//        회원가입이 되어있지 않다면 회원가입
+        User originalUser = userService.userBySocialId(googleProfileDto.getSub());
+        if(originalUser == null){
+            userService.createOauth(googleProfileDto.getSub(),googleProfileDto.getEmail(), SocialType.GOOGLE);
+        }
+//        회원가입 되어있으면 토큰 발급
+        String jwtToken = jwtTokenProvider.createToken(originalUser.getEmail(),originalUser.getRole().toString());
+        Map<String,Object> loginInfo = new HashMap<>();
+        loginInfo.put("token",jwtToken);
+        loginInfo.put("userId",originalUser.getId());
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+    }
 
     // 회원탈퇴
     @GetMapping("/withdraw")

@@ -18,6 +18,7 @@ import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.user.domain.BanYN;
 import silverpotion.userserver.user.domain.DelYN;
+import silverpotion.userserver.user.domain.SocialType;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.repository.UserRepository;
@@ -265,6 +266,21 @@ public class UserService {
     public void banUserManually(Long userId,LocalDateTime until){
         User user = userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(() -> new EntityNotFoundException("없는 사용자"));
         user.BanUntil(until);
+    }
+
+//   sns로그인 oauth만들기
+    public User userBySocialId(String socialId){
+        User user = userRepository.findBySocialId(socialId).orElse(null);
+        return user;
+    }
+
+    public User createOauth(String socialId, String email, SocialType socialType){
+        User user = User.builder()
+                .email(email)
+                .socialType(socialType)
+                .socialId(socialId)
+                .build();
+        return userRepository.save(user);
     }
 
 //    회원탈퇴

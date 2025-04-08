@@ -49,7 +49,7 @@ public class PostController {
 
     //    3. 자유글, 공지사항 게시물 작성시, 제목/이미지/내용 저장(최종 저장)
     @PutMapping("/update/free/{postId}") // 임시저장 때, postId가 나와서 쉽게 조회 후 저장
-    public ResponseEntity<?> freeSave(@PathVariable Long postId, @RequestHeader("X-User-Id") String loginId
+    public ResponseEntity<?> freeSave(@PathVariable Long postId, @RequestHeader("X-User-LoginId") String loginId
             , @ModelAttribute FreePostUpdateDto freePostUpdateDto) {
         Object dto = postService.updateFinalPost(postId, loginId, freePostUpdateDto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "최종 저장완료", dto), HttpStatus.OK);
@@ -57,7 +57,7 @@ public class PostController {
 
 //    4. 투표 게시물 저장
     @PutMapping("/update/vote/{postId}") // 임시저장 때, postId가 나와서 쉽게 조회 후 저장
-    public ResponseEntity<?> voteSave(@PathVariable Long postId, @RequestHeader("X-User-Id") String loginId
+    public ResponseEntity<?> voteSave(@PathVariable Long postId, @RequestHeader("X-User-LoginId") String loginId
             , @ModelAttribute VotePostUpdateDto votePostUpdateDto) {
         Object dto = postService.updateFinalPost(postId, loginId, votePostUpdateDto); //object로 받는 이유: 인터페이스를 사용해 서비스에서 분기처리를 하는데
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "최종 저장완료", dto), HttpStatus.OK);
@@ -65,7 +65,7 @@ public class PostController {
 
     //    5. 게시물 삭제
     @PostMapping("/delete/{postId}")
-    public ResponseEntity<?> delete(@PathVariable Long postId, @RequestHeader("X-User-Id") String loginId) {
+    public ResponseEntity<?> delete(@PathVariable Long postId, @RequestHeader("X-User-LoginId") String loginId) {
         postService.delete(postId, loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시물 삭제 완료", postId), HttpStatus.OK);
     }
@@ -74,21 +74,21 @@ public class PostController {
     @GetMapping("list")
     public ResponseEntity<?> getPostList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size,
-                                         @RequestHeader("X-User-Id") String loginId) {
+                                         @RequestHeader("X-User-LoginId") String loginId) {
         Page<PostListResDto> postListResDtos = postService.getList(page, size, loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시물 리스트 불러오기 완료", postListResDtos), HttpStatus.OK);
     }
 
     // 7. 상세게시물 조회
     @GetMapping("/detail/{postId}")
-    public ResponseEntity<?> getPostDetail(@PathVariable Long postId,@RequestHeader("X-User-Id") String loginId){
+    public ResponseEntity<?> getPostDetail(@PathVariable Long postId,@RequestHeader("X-User-LoginId") String loginId){
         PostDetailResDto postDetailResDto = postService.getDetail(postId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시줄 조회 완료",postDetailResDto),HttpStatus.OK);
     }
 
 //    8. 게시물 좋아요 완료
     @PostMapping("/like/{postId}")
-    public ResponseEntity<?> postLike(@PathVariable Long postId,@RequestHeader("X-User-Id") String loginId){
+    public ResponseEntity<?> postLike(@PathVariable Long postId,@RequestHeader("X-User-LoginId") String loginId){
         PostLikeResDto likeInfo = PostLikeService.togglePostLike(postId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 좋아요 완료",likeInfo),HttpStatus.OK);
     }

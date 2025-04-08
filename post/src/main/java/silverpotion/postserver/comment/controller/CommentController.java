@@ -27,35 +27,35 @@ public class CommentController {
     }
 //  댓글 생성
     @PostMapping("/create")
-    public ResponseEntity<?> commentCreate(@RequestHeader("X-User-Id") String loginId, @RequestBody CommentCreateDto commentCreate){
+    public ResponseEntity<?> commentCreate(@RequestHeader("X-User-LoginId") String loginId, @RequestBody CommentCreateDto commentCreate){
         Long postId = commentService.commentCreate(loginId,commentCreate);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "댓글 작성 완료",postId),HttpStatus.CREATED);
     }
 
 //  댓글 수정
     @PatchMapping("/update")
-    public ResponseEntity<?> commentUpdate(@RequestHeader("X-User-Id") String loginId, @RequestBody CommentUpdateDto commentUpdateDto){
+    public ResponseEntity<?> commentUpdate(@RequestHeader("X-User-LoginId") String loginId, @RequestBody CommentUpdateDto commentUpdateDto){
         Long postId = commentService.commentUpdate(loginId,commentUpdateDto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "댓글 수정 완료",postId),HttpStatus.OK);
     }
 
 //  댓글 삭제
     @PostMapping("/delete/{commentId}")
-    public ResponseEntity<?> commentDelete(@RequestHeader("X-User-Id") String loginId, @PathVariable Long commentId){
+    public ResponseEntity<?> commentDelete(@RequestHeader("X-User-LoginId") String loginId, @PathVariable Long commentId){
         Long postId = commentService.commentDelete(loginId, commentId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"댓글 삭제 완료",postId),HttpStatus.OK);
     }
 
 //    대댓글 생성
     @PostMapping("/reply")
-    public ResponseEntity<?> replyComment(@RequestHeader("X-User-Id") String loginId,@RequestBody ReplyCommentCreateReqDto dto){
+    public ResponseEntity<?> replyComment(@RequestHeader("X-User-LoginId") String loginId,@RequestBody ReplyCommentCreateReqDto dto){
         Long postId = commentService.replyCreate(loginId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"대댓글 작성 완료",postId),HttpStatus.OK);
     }
 
 //    댓글 좋아요
     @PostMapping("/like/{commentId}")
-    public ResponseEntity<?> commentLike(@PathVariable Long commentId, @RequestHeader("X-User-Id") String loginId){
+    public ResponseEntity<?> commentLike(@PathVariable Long commentId, @RequestHeader("X-User-LoginId") String loginId){
         CommentLikeResDto commentLikeResDto = commentService.commentLikeToggle(commentId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"댓글 좋아요 완료",commentLikeResDto),HttpStatus.OK);
     }

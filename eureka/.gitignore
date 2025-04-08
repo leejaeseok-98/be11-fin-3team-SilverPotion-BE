@@ -4,7 +4,8 @@ build/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**/build/
 !**/src/test/**/build/
-
+#로그 파일 무시
+*.log
 ### STS ###
 .apt_generated
 .classpath

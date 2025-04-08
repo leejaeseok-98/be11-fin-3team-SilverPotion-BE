@@ -3,6 +3,7 @@ package silverpotion.userserver.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import silverpotion.userserver.careRelation.domain.CareRelation;
+import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.user.dto.*;
@@ -78,9 +79,12 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     @OneToMany(mappedBy = "protector")
     @Builder.Default
     private List<CareRelation> asProtectors = new ArrayList<>();
+    //헬스데이터
     @OneToMany(mappedBy = "user")
     @Builder.Default
     private List<HealthData> myHealthData = new ArrayList<>();
+    //파이어베이스 토큰
+    private String fireBaseToken;
     //로그인 타입
     @Enumerated(EnumType.STRING)
     private SocialType socialType;
@@ -151,6 +155,11 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
        return UserPromptDto.builder().healthData(nowHealthData).prompt(promt).build();
 
+    }
+
+    //파이어베이스 토큰 저장 메서드
+    public void getFireBaseToken(TokenRequest tokenRequest){
+        this.fireBaseToken = tokenRequest.getToken();
     }
 
 

@@ -5,6 +5,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.careRelation.domain.LinkStatus;
+import silverpotion.userserver.fireBase.service.FireBaseService;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.domain.HeartRateData;
@@ -25,14 +26,16 @@ import java.util.Optional;
 public class HealthDataService {
     private final HealthDataRepository healthDataRepository;
     private final UserRepository userRepository;
+    private final FireBaseService fireBaseService;
 
 
-    public HealthDataService(HealthDataRepository healthDataRepository, UserRepository userRepository) {
+    public HealthDataService(HealthDataRepository healthDataRepository, UserRepository userRepository, FireBaseService fireBaseService) {
         this.healthDataRepository = healthDataRepository;
         this.userRepository = userRepository;
+        this.fireBaseService = fireBaseService;
     }
 
-    //  1.앱으로부터 데이터를 받아와 HealthData 생성
+    //  0.앱으로부터 데이터를 받아와 HealthData 생성
     public void save(HealthSyncDto dto,String loinId){
         User user = userRepository.findByLoginIdAndDelYN(loinId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         //오늘 날짜
@@ -54,6 +57,12 @@ public class HealthDataService {
           user.getMyHealthData().add(data);
 
         }
+    }
+
+    //  1. 사용자의 앱에 헬스데이터 보내달라고 요청하는 api
+    public void sendHealthDataReq(String loginId){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        fireBaseService.sendHealthSyncReq(user.getFireBaseToken()); //유저의 파이어베이스 토큰을 매개로 유저의 디바이스에 헬스데이터보내달라고 알림을 보냄
     }
 
     //  2. 헬스데이터 오늘꺼 조회

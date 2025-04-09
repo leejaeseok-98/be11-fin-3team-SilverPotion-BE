@@ -73,27 +73,28 @@ public class UserService {
         return user.getId();
     }
 
-//    2-1.로그인
+    //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
 
-       User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
-       if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
-           throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
-       }
-       String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString());
-       String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
-       redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
-       Map<String, Object> loginInfo = new HashMap<>();
-       loginInfo.put("id", user.getLoginId());
-       loginInfo.put("token", jwtToken);
-       loginInfo.put("refreshToken", refreshToken);
+        User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
+        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+        }
+        String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
+        redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
+        Map<String, Object> loginInfo = new HashMap<>();
+        loginInfo.put("id", user.getLoginId());
+        loginInfo.put("token", jwtToken);
+        loginInfo.put("refreshToken", refreshToken);
 
-       return loginInfo;
+        return loginInfo;
 
     }
 
-//    2-2.로그인(리프레쉬토큰 재발급)
+    //    2-2.로그인(리프레쉬토큰 재발급)
     public Map<String,Object> recreateAccessToken(UserRefreshDto dto){
+        System.out.println(dto.getRefreshToken());
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKeyRt)
                 .build()
@@ -107,8 +108,8 @@ public class UserService {
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
         String token = jwtTokenProvider.createToken(claims.getSubject(),claims.get("role").toString());
-         loginInfo.put("token",token);
-         return loginInfo;
+        loginInfo.put("token",token);
+        return loginInfo;
     }
 
     //2.3 로그인 아이디로 유저찾기 feign 용
@@ -117,24 +118,24 @@ public class UserService {
                 .orElseThrow(() -> new EntityNotFoundException("유저를 찾을 수 없습니다."));
     }
 
-//    3.정보 업데이트
+    //    3.정보 업데이트
     public Long update(UserUpdateDto dto, String loginId){
-      User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
-      String newPw = null;
-      if(dto.getPassword() != null){
-          newPw = passwordEncoder.encode(dto.getPassword());
-      }
-      user.updateUser(dto,newPw);
-      return user.getId();
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
+        String newPw = null;
+        if(dto.getPassword() != null){
+            newPw = passwordEncoder.encode(dto.getPassword());
+        }
+        user.updateUser(dto,newPw);
+        return user.getId();
     }
 
-//    4.내 정보 조회(마이페이지)
+    //    4.내 정보 조회(마이페이지)
     public UserMyPageDto userMyPage(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
         return user.toMyPageDtoFromEntity(user.findNameFromDependentList(),user.findNameFromProtectorsList());
     }
 
-//    5.내 피보호자 조회
+    //    5.내 피보호자 조회
     public List<UserLinkedUserDto> whoMyDependents(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 유저입니다"));
         List<CareRelation> dependents = user.getAsProtectors(); // 내 피보호자는 내가 보호자로 맺은 관계속에 있으니까
@@ -142,7 +143,7 @@ public class UserService {
 
     }
 
-//    6.내 보호자 조회
+    //    6.내 보호자 조회
     public List<UserLinkedUserDto> whoMyProtectors(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 유저입니다"));
         List<CareRelation> protectors = user.getAsDependents(); //내 보호자는 내가 피보호자로 맺은 관계속에 있으니까
@@ -216,7 +217,7 @@ public class UserService {
         return user.profileInfoDtoFromEntity();
     }
 
-//    12. 특정 유저 프로필 리스트 조회
+    //    12. 특정 유저 프로필 리스트 조회
     public List<UserListDto> getUsersByIds(List<Long> userIds){
         // 빈 리스트나 null이 들어오는 경우 방어
         if (userIds == null || userIds.isEmpty()) {
@@ -238,7 +239,7 @@ public class UserService {
         return userListDtos;
     }
 
-//    게시물 조회시, 작성자 프로필 조회
+    //    게시물 조회시, 작성자 프로필 조회
     public  Map<Long, UserProfileInfoDto> getProfileInfoMap(List<Long> userIds) {
         List<User> users = userRepository.findAllById(userIds); // JPA 기본 제공
         return users.stream()
@@ -262,13 +263,13 @@ public class UserService {
         return userRepository.saveAll(users).size(); //정지된 유저 수 반환
     }
 
-//    유저 차단
+    //    유저 차단
     public void banUserManually(Long userId,LocalDateTime until){
         User user = userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(() -> new EntityNotFoundException("없는 사용자"));
         user.BanUntil(until);
     }
 
-//   sns로그인 oauth만들기
+    //   sns로그인 oauth만들기
     public User userBySocialId(String socialId){
         User user = userRepository.findBySocialId(socialId).orElse(null);
         return user;
@@ -283,7 +284,7 @@ public class UserService {
         return userRepository.save(user);
     }
 
-//    회원탈퇴
+    //    회원탈퇴
     public String withdraw(String loginIg){
         User user = userRepository.findByLoginIdAndDelYN(loginIg,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         user.withdraw();

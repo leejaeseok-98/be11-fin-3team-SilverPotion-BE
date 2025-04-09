@@ -64,4 +64,4 @@ oauth:
   google:
     client-id: 73727762121-skf00kqrlnfjput7t493mmdifss29170.apps.googleusercontent.com
     client-secret: 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
-    redirect-url: http://localhost:3000/oauth/google/redirect
+    redirect-uri: http://localhost:3000/oauth/google/redirect

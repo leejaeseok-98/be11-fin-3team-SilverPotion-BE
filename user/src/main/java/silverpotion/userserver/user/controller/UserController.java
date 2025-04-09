@@ -21,6 +21,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("silverpotion/user")
@@ -65,7 +66,6 @@ public class    UserController {
             return new ResponseEntity<>(new CommonDto(HttpStatus.CREATED.value(), "success",loginInfo),HttpStatus.CREATED);
         }
     }
-
 
 //    3.회원정보수정(마이프로필 수정)
     @PatchMapping("/update")
@@ -171,16 +171,18 @@ public class    UserController {
 
 //        사용자 정보 얻기
         GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
+        System.out.println(googleProfileDto);
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
         if(originalUser == null){
             userService.createOauth(googleProfileDto.getSub(),googleProfileDto.getEmail(), SocialType.GOOGLE);
         }
+
 //        회원가입 되어있으면 토큰 발급
         String jwtToken = jwtTokenProvider.createToken(originalUser.getEmail(),originalUser.getRole().toString());
-        Map<String,Object> loginInfo = new HashMap<>();
-        loginInfo.put("token",jwtToken);
-        loginInfo.put("userId",originalUser.getId());
+        Map<String, Object> loginInfo = new HashMap<>();
+        loginInfo.put("id",originalUser.getId());
+        loginInfo.put("token", jwtToken);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
     }
 

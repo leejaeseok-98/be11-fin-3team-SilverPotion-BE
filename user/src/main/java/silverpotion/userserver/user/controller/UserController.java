@@ -33,7 +33,7 @@ public class    UserController {
         this.kakaoService = kakaoService;
     }
 //    0.헬스체크용 url(배포용)
-    @GetMapping
+    @GetMapping("/healthcheck")
     public ResponseEntity<?> healthCheck(){
         return new ResponseEntity<>("transmission sucess",HttpStatus.OK);
     }
@@ -225,7 +225,7 @@ public class    UserController {
         }
     }
     // 회원탈퇴
-    @GetMapping("/withdraw")
+    @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestHeader("X-User-LoginId")String loginId){
        String nickName = userService.withdraw(loginId);
        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);

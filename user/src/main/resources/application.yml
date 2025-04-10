@@ -13,7 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
-      ddl-auto: update
+      ddl-auto: validate
 #      ddl-auto: create
     show_sql: true
   application:
@@ -59,3 +59,8 @@ logging:
 #    별도의 에러로그 없이, 날짜구분없이 모든로그를 남기는 설정
   file:
     name: logs/app.log
+#포트원 결제 관련 키값들
+imp:
+  code: imp47183178
+  access: 7168720802721558
+  secret: t2AhyJMVDyBFN40RKrzgLB6mkX6SLQNNyzdecjDpTWIPD1CU19AVSU8UmNANGmCk1JlEBjZnUV6w3nrP

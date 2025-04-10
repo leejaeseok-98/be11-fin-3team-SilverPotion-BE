@@ -40,6 +40,9 @@ dependencies {
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
+
+	//opensearch
+	implementation 'org.opensearch.client:opensearch-rest-high-level-client:2.17.0'
 }
 
 dependencyManagement {

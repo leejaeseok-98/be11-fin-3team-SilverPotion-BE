@@ -9,7 +9,7 @@ import silverpotion.postserver.gathering.service.GatheringService;
 import silverpotion.postserver.meeting.dto.MeetingUpdateDto;
 import silverpotion.postserver.opensearch.GatheringSearchRequest;
 import silverpotion.postserver.opensearch.GatheringSearchResultDto;
-import silverpotion.postserver.opensearch.OpenSearchService;
+//import silverpotion.postserver.opensearch.OpenSearchService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -18,11 +18,13 @@ import java.util.List;
 @RequestMapping("silverpotion/gathering")
 public class GatheringController {
     private final GatheringService gatheringService;
-    private final OpenSearchService openSearchService;
+//    private final OpenSearchService openSearchService;
 
-    public GatheringController(GatheringService gatheringService, OpenSearchService openSearchService) {
+    public GatheringController(GatheringService gatheringService
+//                               , OpenSearchService openSearchService
+    ) {
         this.gatheringService = gatheringService;
-        this.openSearchService = openSearchService;
+//        this.openSearchService = openSearchService;
     }
 
 
@@ -132,17 +134,17 @@ public class GatheringController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 해체되었습니다.", gatheringId), HttpStatus.OK);
     }
 
-    // OpenSearch
-    @PostMapping("/opensearch")
-    public ResponseEntity<?> searchGatherings(@RequestBody GatheringSearchRequest request) {
-        List<GatheringSearchResultDto> result = gatheringService.searchGatherings(request);
-        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "검색 성공", result));
-    }
-
-    // 자동완성
-    @GetMapping("/suggest")
-    public ResponseEntity<?> suggestGatherings(@RequestParam String prefix) {
-        List<String> suggestions = openSearchService.suggestGatherings(prefix);
-        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "자동완성 성공", suggestions));
-    }
+//    // OpenSearch
+//    @PostMapping("/opensearch")
+//    public ResponseEntity<?> searchGatherings(@RequestBody GatheringSearchRequest request) {
+//        List<GatheringSearchResultDto> result = gatheringService.searchGatherings(request);
+//        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "검색 성공", result));
+//    }
+//
+//    // 자동완성
+//    @GetMapping("/suggest")
+//    public ResponseEntity<?> suggestGatherings(@RequestParam String prefix) {
+//        List<String> suggestions = openSearchService.suggestGatherings(prefix);
+//        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "자동완성 성공", suggestions));
+//    }
 }

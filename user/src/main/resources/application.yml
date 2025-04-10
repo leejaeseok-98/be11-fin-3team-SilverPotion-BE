@@ -13,7 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 #      ddl-auto: create
     show_sql: true
   application:
@@ -68,3 +68,12 @@ imp:
   code: imp47183178
   access: 7168720802721558
   secret: t2AhyJMVDyBFN40RKrzgLB6mkX6SLQNNyzdecjDpTWIPD1CU19AVSU8UmNANGmCk1JlEBjZnUV6w3nrP
+
+oauth:
+  google:
+    client-id: 73727762121-skf00kqrlnfjput7t493mmdifss29170.apps.googleusercontent.com
+    client-secret: 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
+    redirect-uri: http://localhost:3000/oauth/google/redirect
+  kakao:
+    client-id: 740a1fc6969a1fc6c821d81a2236d3fe
+    redirect-uri: http://localhost:3000/oauth/kakao/redirect

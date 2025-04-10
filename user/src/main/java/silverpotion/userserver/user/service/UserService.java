@@ -21,6 +21,7 @@ import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.BanYN;
 import silverpotion.userserver.user.domain.DelYN;
+import silverpotion.userserver.user.domain.SocialType;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.repository.UserRepository;
@@ -78,19 +79,19 @@ public class UserService {
 //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
 
-       User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
-       if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
-           throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
-       }
-       String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString());
-       String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
-       redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
-       Map<String, Object> loginInfo = new HashMap<>();
-       loginInfo.put("id", user.getLoginId());
-       loginInfo.put("token", jwtToken);
-       loginInfo.put("refreshToken", refreshToken);
+        User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
+        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
+            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+        }
+        String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString());
+        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
+        redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
+        Map<String, Object> loginInfo = new HashMap<>();
+        loginInfo.put("id", user.getLoginId());
+        loginInfo.put("token", jwtToken);
+        loginInfo.put("refreshToken", refreshToken);
 
-       return loginInfo;
+        return loginInfo;
 
     }
 
@@ -277,7 +278,14 @@ public class UserService {
         user.BanUntil(until);
     }
 
-//    회원탈퇴
+    //   sns로그인 oauth만들기
+    public User userBySocialId(String loginId){
+        User user = userRepository.findByLoginId(loginId).orElse(null);
+        return user;
+    }
+
+
+    //    회원탈퇴
     public String withdraw(String loginIg){
         User user = userRepository.findByLoginIdAndDelYN(loginIg,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         user.withdraw();

@@ -39,6 +39,27 @@ public class RedisConfig {
     }
 
     @Bean
+    @Qualifier("pay")
+    public RedisConnectionFactory redisConnectionFactoryForPay(){
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(host);
+        configuration.setPort(port);
+        configuration.setDatabase(2);
+        return new LettuceConnectionFactory(configuration);
+    }
+
+    @Bean
+    @Qualifier("pay")
+    public RedisTemplate<String,String> redisTemplateForPay(@Qualifier("pay") RedisConnectionFactory redisConnectionFactory){
+        RedisTemplate<String,String> redisTemplate = new RedisTemplate<>();
+        redisTemplate.setKeySerializer(new StringRedisSerializer());
+        redisTemplate.setValueSerializer(new StringRedisSerializer());
+        redisTemplate.setConnectionFactory(redisConnectionFactory);
+        return redisTemplate;
+    }
+
+
+    @Bean
     public StringRedisTemplate stringRedisTemplate(@Qualifier("redisConnectionFactory") RedisConnectionFactory redisConnectionFactory) {
         StringRedisTemplate template = new StringRedisTemplate();
         template.setConnectionFactory(redisConnectionFactory);

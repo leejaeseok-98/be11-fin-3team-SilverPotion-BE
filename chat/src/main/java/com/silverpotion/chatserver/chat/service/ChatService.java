@@ -45,7 +45,7 @@ public class ChatService {
 //        메시지저장
         ChatMessage chatMessage = ChatMessage.builder()
                 .chatRoom(chatRoom)
-                .userId(userId)
+                .senderLoginId(chatMessageDto.getSenderLoginId())
                 .message(chatMessageDto.getMessage())
                 .build();
         chatMessageRepository.save(chatMessage);
@@ -120,12 +120,13 @@ public class ChatService {
     }
 
     // 채팅 히스토리 조회
-    public List<ChatMessageDto> getChatHistory(Long roomId, Long userId) {
+    public List<ChatMessageDto> getChatHistory(Long roomId, String loginId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new EntityNotFoundException("room cannot be found"));
 
         List<ChatParticipant> chatParticipants = chatParticipantRepository.findByChatRoom(chatRoom);
         boolean check = false;
+        Long userId = userFeign.getUserIdByLoginId(loginId);
         for (ChatParticipant c : chatParticipants) {
             if (c.getUserId().equals(userId)) {
                 check = true;
@@ -139,6 +140,8 @@ public class ChatService {
         for (ChatMessage c : chatMessages) {
             ChatMessageDto chatMessageDto = ChatMessageDto.builder()
                     .message(c.getMessage())
+                    .senderLoginId(c.getSenderLoginId())
+                    .createdTime(c.getCreatedTime())
                     .build();
             chatMessageDtos.add(chatMessageDto);
         }
@@ -158,13 +161,11 @@ public class ChatService {
         }
         return false;
     }
-
     public void messageRead(Long roomId, Long userId) {
         ChatRoom chatRoom = chatRoomRepository.findById(roomId)
                 .orElseThrow(() -> new EntityNotFoundException("room cannot be found"));
-
-        List<ReadStatus> readStatuses = readStatusRepository.findByChatRoomAndUserId(chatRoom, userId);
-        for (ReadStatus r : readStatuses) {
+        List<ReadStatus> unreadStatuses = readStatusRepository.findByChatRoomAndUserIdAndIsReadFalse(chatRoom, userId);
+        for (ReadStatus r : unreadStatuses) {
             r.updateIsRead(true);
         }
     }

@@ -4,6 +4,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.fireBase.service.FireBaseService;
 import silverpotion.userserver.healthData.dtos.*;
 import silverpotion.userserver.healthData.service.HealthDataService;
 
@@ -12,18 +13,25 @@ import silverpotion.userserver.healthData.service.HealthDataService;
 public class HealthDataController {
 
     private final HealthDataService healthDataService;
+    private final FireBaseService fireBaseService;
 
 
-    public HealthDataController(HealthDataService healthDataService) {
+    public HealthDataController(HealthDataService healthDataService, FireBaseService fireBaseService) {
         this.healthDataService = healthDataService;
+        this.fireBaseService = fireBaseService;
     }
 
-    //    1.앱으로부터 데이터 받아오는 api
+    //    0.앱으로부터 헬스데이터 받아오는 api
     @PostMapping("/fromPhone")
     public void receiveData(@RequestBody HealthSyncDto dto, @RequestHeader("X-User-LoginId") String loginId) {
         healthDataService.save(dto, loginId);
     }
 
+    //    1. 사용자의 앱에 헬스데이터 보내달라고 요청하는 api(건강탭에 들어가면 바로 이 api가 작동되도록 해야함)
+    @GetMapping("/dataFromApp")
+    public void sendHealthDataReq(@RequestHeader("X-User-LoginId")String loginId){
+        healthDataService.sendHealthDataReq(loginId);
+    }
 
     //    2.헬스데이터 오늘꺼 조회
     @GetMapping("/dataList")

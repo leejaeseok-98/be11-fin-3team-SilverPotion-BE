@@ -10,6 +10,7 @@ import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.service.GoogleService;
+import silverpotion.userserver.user.service.KakaoService;
 import silverpotion.userserver.user.service.UserService;
 
 import java.util.HashMap;
@@ -22,12 +23,14 @@ public class    UserController {
    private final UserService userService;
    private final GoogleService googleService;
     private final JwtTokenProvider jwtTokenProvider;
+    private final KakaoService kakaoService;
 
 
-    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider) {
+    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider, KakaoService kakaoService) {
         this.userService = userService;
         this.googleService = googleService;
         this.jwtTokenProvider = jwtTokenProvider;
+        this.kakaoService = kakaoService;
     }
 //    0.헬스체크용 url(배포용)
     @GetMapping
@@ -193,7 +196,34 @@ public class    UserController {
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }
+    //    구글 로그인
+    @PostMapping("/kakao/login")
+    public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto){
+//        access토큰발급
+        AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
 
+//        사용자 정보 얻기
+        KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
+//        회원가입이 되어있지 않다면 회원가입
+        User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
+        if(originalUser == null){
+            KakaoSignUpDto signUpDto = new KakaoSignUpDto(
+                    kakaoProfileDto.getId(),
+                    kakaoProfileDto.getKakao_account().getEmail(),
+                    kakaoProfileDto.getKakao_account().getProfile().getNickname()
+            );
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
+        }
+
+//        회원가입 되어있으면 토큰 발급
+        else {
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            Map<String, Object> loginInfo = new HashMap<>();
+            loginInfo.put("id",originalUser.getId());
+            loginInfo.put("token", jwtToken);
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+        }
+    }
     // 회원탈퇴
     @GetMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestHeader("X-User-LoginId")String loginId){

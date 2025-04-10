@@ -45,7 +45,43 @@ public class InitialDataLoader implements CommandLineRunner {
                     .streetAddress("010")
                     .detailAddress("010")
                     .build();
+
             userRepository.save(user);
+        }
+        if(!userRepository.findByLoginIdAndDelYN("admin",DelYN.N).isPresent()){
+            User admin = User.builder()
+                    .sex(Sex.FEMALE)
+                    .role(Role.ADMIN)
+                    .phoneNumber("01076084578")
+                    .name("신림00년생여자")
+                    .birthday("19990102")
+                    .loginId("admin")
+                    .password(passwordEncoder.encode("12341234"))
+                    .nickName("홍홍홍")
+                    .email("riri")
+                    .address("010")
+                    .streetAddress("010")
+                    .detailAddress("010")
+                    .build();
+
+            userRepository.save(admin);
+        }
+        if(!userRepository.findByLoginIdAndDelYN("user1",DelYN.N).isPresent()){
+            User user1 = User.builder()
+                    .sex(Sex.FEMALE)
+                    .role(Role.USER)
+                    .phoneNumber("01095551234")
+                    .name("고등학생")
+                    .birthday("20000401")
+                    .loginId("user1")
+                    .password(passwordEncoder.encode("12341234"))
+                    .nickName("보딩고지")
+                    .email("qwer")
+                    .address("010")
+                    .streetAddress("010")
+                    .detailAddress("010")
+                    .build();
+            userRepository.save(user1);
         }
 
 

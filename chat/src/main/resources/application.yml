@@ -19,7 +19,8 @@ spring:
   application:
     #   user-sevice?? ???? eureka? ??
     name: chat-service
-
+#  kafka:
+#    bootstrap-servers: localhost:9092
 eureka:
   client:
     serviceUrl:

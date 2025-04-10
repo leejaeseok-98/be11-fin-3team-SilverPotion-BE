@@ -52,7 +52,7 @@ public class InitialDataLoader implements CommandLineRunner {
             User admin = User.builder()
                     .sex(Sex.FEMALE)
                     .role(Role.ADMIN)
-                    .phoneNumber("01076084578")
+                    .phoneNumber("01055881234")
                     .name("신림00년생여자")
                     .birthday("19990102")
                     .loginId("admin")

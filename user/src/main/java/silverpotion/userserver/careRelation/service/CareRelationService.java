@@ -36,6 +36,10 @@ public class CareRelationService {
     public void sendCareLink(CareRelationCreateDto dto, String loginId){
         User protector = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다1"));
         User dependent = userRepository.findByPhoneNumberAndDelYN(dto.getPhoneNumber(), DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다.2"));
+        if(protector.getHealingPotion()<1){
+            throw new IllegalArgumentException("연결을 위해서는 힐링포션 1개가 필요합니다");
+        }
+        protector.updateMyHealingPotion(-1); //연결할때 힐링포션 1개소모(단 연결이 이루어지지않으면 돌려받음)
         CareRelation careRelation = careRelationRepository.save(dto.toEntityFromCreateDto(protector,dependent));
     }
 
@@ -52,7 +56,7 @@ public class CareRelationService {
         Map<Long,String> map = new HashMap<>();// 키값에 관계요청id 밸류값에 관계를 수락했는지 거절했는지
 
         CareRelation careRelation = careRelationRepository.findByIdAndLinkStatus(dto.getCareRelationId(),LinkStatus.PENDING).orElseThrow(()->new EntityNotFoundException("관계요청이 없습니다"));
-        //loginUser = 피보호자로 요청박은 사람 senderUser= 보호자로서 요청 제안한 사람
+        //loginUser = 피보호자로 요청받은 사람 senderUser= 보호자로서 요청 제안한 사람
         User loginUser = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         User senderUser = userRepository.findByLoginIdAndDelYN(dto.getSenderId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         if(dto.getYesOrNo().equals("yes")){
@@ -63,6 +67,7 @@ public class CareRelationService {
         } else{
             careRelation.changeMyStatus(dto.getYesOrNo()); //status가 rejected로 바뀜
             map.put(careRelation.getId(),"rejected");
+            senderUser.updateMyHealingPotion(1); // 연결이 거부당하면 다시 힐링포션 1개 요청자에게 돌려줌
         }
 
         return map;

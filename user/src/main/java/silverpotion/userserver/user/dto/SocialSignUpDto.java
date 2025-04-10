@@ -1,6 +1,5 @@
 package silverpotion.userserver.user.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -8,10 +7,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Data
-@JsonIgnoreProperties(ignoreUnknown = true) //없는필드 자동무시
-public class GoogleProfileDto {
-    private String sub;
+public class SocialSignUpDto {
+    private String loginId; //소셜로그인id
     private String email;
     private String name;
-    private String picture;
 }

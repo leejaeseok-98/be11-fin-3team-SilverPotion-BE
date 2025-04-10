@@ -1,17 +1,11 @@
 package silverpotion.userserver.user.controller;
 
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
-import silverpotion.userserver.user.domain.SocialType;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.service.GoogleService;
@@ -20,8 +14,6 @@ import silverpotion.userserver.user.service.UserService;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("silverpotion/user")
@@ -171,19 +163,27 @@ public class    UserController {
 
 //        사용자 정보 얻기
         GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
-        System.out.println(googleProfileDto);
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
+        System.out.println(googleProfileDto.getSub());
+        System.out.println(originalUser);
         if(originalUser == null){
-            userService.createOauth(googleProfileDto.getSub(),googleProfileDto.getEmail(), SocialType.GOOGLE);
+            SocialSignUpDto signUpDto = new SocialSignUpDto(
+                    googleProfileDto.getSub(),
+                    googleProfileDto.getEmail(),
+                    googleProfileDto.getName()
+            );
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
         }
 
 //        회원가입 되어있으면 토큰 발급
-        String jwtToken = jwtTokenProvider.createToken(originalUser.getEmail(),originalUser.getRole().toString());
-        Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id",originalUser.getId());
-        loginInfo.put("token", jwtToken);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+        else {
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            Map<String, Object> loginInfo = new HashMap<>();
+            loginInfo.put("id",originalUser.getId());
+            loginInfo.put("token", jwtToken);
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+        }
     }
 
     // 회원탈퇴

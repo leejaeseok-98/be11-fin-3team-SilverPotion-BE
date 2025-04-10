@@ -270,19 +270,11 @@ public class UserService {
     }
 
     //   sns로그인 oauth만들기
-    public User userBySocialId(String socialId){
-        User user = userRepository.findBySocialId(socialId).orElse(null);
+    public User userBySocialId(String loginId){
+        User user = userRepository.findByLoginId(loginId).orElse(null);
         return user;
     }
 
-    public User createOauth(String socialId, String email, SocialType socialType){
-        User user = User.builder()
-                .email(email)
-                .socialType(socialType)
-                .socialId(socialId)
-                .build();
-        return userRepository.save(user);
-    }
 
     //    회원탈퇴
     public String withdraw(String loginIg){

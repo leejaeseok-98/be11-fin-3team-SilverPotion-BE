@@ -35,5 +35,4 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findUsersToBan(@Param("now") LocalDateTime now);
 
 
-    Optional<User> findBySocialId(String socialId);
 }

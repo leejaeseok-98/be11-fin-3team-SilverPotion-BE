@@ -54,3 +54,10 @@ cloud:
     s3:
       bucket: silverpotion
 
+opensearch:
+  host: search-gathering-search-surdnnjq4pvdojukarr6575gsy.ap-northeast-2.es.amazonaws.com
+  port: 443
+  scheme: https
+  username: silverpotion
+  password: Qqqq1111!
+

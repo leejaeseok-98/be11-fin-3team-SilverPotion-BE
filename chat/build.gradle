@@ -44,7 +44,7 @@ dependencies {
 
 	implementation 'org.json:json:20231013'// 화상채팅 구현에 필요해서 추가
 
-
+	implementation 'org.springframework.kafka:spring-kafka'
 }
 
 dependencyManagement {

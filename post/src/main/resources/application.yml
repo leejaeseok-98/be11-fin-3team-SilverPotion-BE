@@ -29,6 +29,8 @@ spring:
   application:
     #   user-sevice?? ???? eureka? ??
     name: post-service
+  kafka:
+    bootstrap-servers: kafka:9092
 
 eureka:
   client:

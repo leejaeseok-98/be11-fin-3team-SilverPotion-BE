@@ -57,7 +57,7 @@ dependencies {
 //	파이어베이스 라이브러리 의존성 주입
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
 
-
+	implementation 'org.springframework.kafka:spring-kafka'
 
 }
 

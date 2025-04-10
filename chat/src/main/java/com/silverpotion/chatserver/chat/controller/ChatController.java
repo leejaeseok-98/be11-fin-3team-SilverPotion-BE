@@ -67,16 +67,11 @@ public class ChatController {
 
     // 🔹 이전 메시지 조회
     @GetMapping("/history/{roomId}")
-    public ResponseEntity<?> getChatHistory(@PathVariable Long roomId, HttpServletRequest request) {
-        String loginId = request.getHeader("X-User-loginId");
-        if (loginId == null || loginId.isBlank()) {
-            return ResponseEntity.badRequest().body("Missing X-User-LoginId header");
-        }
+    public ResponseEntity<?> getChatHistory(@PathVariable Long roomId, @RequestHeader("X-User-LoginId")String loginId) {
 
         try {
-            Long userId = userFeign.getUserIdByLoginId(loginId);
-            List<ChatMessageDto> chatMessageDtos = chatService.getChatHistory(roomId, userId);
-            return ResponseEntity.ok(chatMessageDtos);
+            List<ChatMessageDto> massages = chatService.getChatHistory(roomId, loginId);
+            return ResponseEntity.ok(massages);
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("❌ " + e.getMessage());
         }
@@ -85,9 +80,6 @@ public class ChatController {
     // 🔹 채팅 메시지 읽음 처리
     @PostMapping("/room/{roomId}/read")
     public ResponseEntity<?> messageRead(@PathVariable Long roomId, @RequestHeader("X-User-LoginId") String loginId) {
-        if (loginId == null || loginId.isBlank()) {
-            return ResponseEntity.badRequest().body("❌ X-User-LoginId 헤더가 없습니다.");
-        }
 
         try {
             Long userId = userFeign.getUserIdByLoginId(loginId);

@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -15,7 +16,7 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 @Getter
-public class ChatMessage extends BaseTimeEntity {
+public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -24,11 +25,13 @@ public class ChatMessage extends BaseTimeEntity {
     @JoinColumn(name = "chat_room_id", nullable = false)
     private ChatRoom chatRoom;
 
-    private Long userId;
+    private String senderLoginId;
 
     @Column(nullable = false, length = 500)
     private String message;
 
     @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<ReadStatus> readStatuses = new ArrayList<>();
+
+    private LocalDateTime createdTime;
 }

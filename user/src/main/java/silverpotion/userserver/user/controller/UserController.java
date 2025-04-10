@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.service.UserService;
@@ -30,7 +31,7 @@ public class    UserController {
 
     }
 //    0.헬스체크용 url(배포용)
-    @GetMapping
+    @GetMapping("/healthcheck")
     public ResponseEntity<?> healthCheck(){
         return new ResponseEntity<>("transmission sucess",HttpStatus.OK);
     }
@@ -142,6 +143,13 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"특정 유저 리스트 조회",userListDtos),HttpStatus.OK);
     }
 
+    //14. 내 결제내역 조회하기
+    @GetMapping("/mypayment")
+    public ResponseEntity<?> getMyPayments(@RequestHeader("X-User-LoginId")String loginId){
+                 List<CashItemOfPaymentListDto> list = userService.getMyPayments(loginId);
+                 return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",list),HttpStatus.OK);
+    }
+
 //    게시물 조회시, 작성자 프로필 조회
     @PostMapping("/post/profileInfo")
     public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){
@@ -159,7 +167,7 @@ public class    UserController {
 
 
     // 회원탈퇴
-    @GetMapping("/withdraw")
+    @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestHeader("X-User-LoginId")String loginId){
        String nickName = userService.withdraw(loginId);
        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);

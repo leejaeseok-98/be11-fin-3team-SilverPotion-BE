@@ -15,7 +15,10 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.careRelation.domain.CareRelation;
+import silverpotion.userserver.careRelation.domain.LinkStatus;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
+import silverpotion.userserver.payment.domain.CashItem;
+import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.BanYN;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
@@ -137,7 +140,7 @@ public class UserService {
     public List<UserLinkedUserDto> whoMyDependents(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 유저입니다"));
         List<CareRelation> dependents = user.getAsProtectors(); // 내 피보호자는 내가 보호자로 맺은 관계속에 있으니까
-        return dependents.stream().map(c->c.getDependent().toLinkUserDtoFromEntity()).toList();
+        return dependents.stream().filter(c->c.getLinkStatus()== LinkStatus.CONNECTED).map(c->c.getDependent().toLinkUserDtoFromEntity()).toList();
 
     }
 
@@ -145,7 +148,7 @@ public class UserService {
     public List<UserLinkedUserDto> whoMyProtectors(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("없는 유저입니다"));
         List<CareRelation> protectors = user.getAsDependents(); //내 보호자는 내가 피보호자로 맺은 관계속에 있으니까
-        return protectors.stream().map(c->c.getProtector().toLinkUserDtoFromEntity()).toList();
+        return protectors.stream().filter(c->c.getLinkStatus()== LinkStatus.CONNECTED).map(c->c.getProtector().toLinkUserDtoFromEntity()).toList();
 
     }
 
@@ -235,6 +238,13 @@ public class UserService {
         System.out.println(userListDtos);
 
         return userListDtos;
+    }
+
+//    14. 내 결제내역 조회하기
+    public List<CashItemOfPaymentListDto> getMyPayments(String loginId){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        List<CashItem> payments = user.getMyPaymentList();
+        return payments.stream().map(c->c.ListDtoFromEntity()).toList();
     }
 
 //    게시물 조회시, 작성자 프로필 조회

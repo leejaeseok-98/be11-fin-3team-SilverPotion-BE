@@ -6,6 +6,7 @@ import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
+import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
 
 import java.time.LocalDate;
@@ -13,9 +14,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @AllArgsConstructor
@@ -63,8 +62,12 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //주소(상세주소)
     @Column(nullable = false)
     private String detailAddress;
-    //캐시
-    private Integer cash;
+    //캐시(힐링포션)
+    private int healingPotion;
+    //결제내역
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<CashItem> myPaymentList = new ArrayList<>();
     //프로필 이미지
     private String profileImage;
     //회원탈퇴여부
@@ -162,6 +165,11 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         this.fireBaseToken = tokenRequest.getToken();
     }
 
+    // 내가 보유한 힐링포션(캐시템) 개수 업데이트
+    public void updateMyHealingPotion(int a){
+        this.healingPotion += a;
+    }
+
 
     //    회원탈퇴 메서드
     public void withdraw(){
@@ -179,7 +187,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return UserMyPageDto.builder().nickName(this.nickName).name(this.name).email(this.email)
                 .sex(this.sex.toString()).phoneNumber(this.phoneNumber).birthday(this.birthday)
                 .address(this.address).streetAddress(this.streetAddress).detailAddress(this.detailAddress)
-                .cash(this.cash).id(this.id)
+                .healingPotion(this.healingPotion).id(this.id)
                 .dependentName(dependentNames)
                 .protectorName(protectorNames)
                 .build();

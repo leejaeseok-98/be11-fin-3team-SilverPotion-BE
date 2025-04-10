@@ -23,7 +23,7 @@ public class UserMyPageDto {
     private String address;
     private String streetAddress;
     private String detailAddress;
-    private Integer cash;
+    private int healingPotion;
     //아래는 나와 연결된 피보호자와 보호자 이름들
     private List<String> dependentName;
     private List<String> protectorName;

@@ -2,6 +2,7 @@ package silverpotion.userserver.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
@@ -239,6 +240,11 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
     public void setBanYN(BanYN banYN){
         this.banYN = banYN;
+    }
+
+    //    비밀번호 변경
+    public void changePassword(String newPassword, PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(newPassword);
     }
 
 }

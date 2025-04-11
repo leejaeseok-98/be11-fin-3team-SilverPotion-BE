@@ -165,6 +165,14 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"사용자가 정지되었습니다.",userBanRequestDto.getUserId()),HttpStatus.OK);
     }
 
+//  비밀번호 변경
+    @PostMapping("/password/change")
+    public ResponseEntity<?> changePassword(@RequestHeader("X-User-LoginId")String loginId,@RequestBody ChangePasswordDto dto){
+        Long userId = userService.changePassword(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "password is changed",userId),HttpStatus.OK);
+    }
+
+
 
     // 회원탈퇴
     @DeleteMapping("/withdraw")

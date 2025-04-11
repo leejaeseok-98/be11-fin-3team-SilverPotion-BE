@@ -277,10 +277,41 @@ public class UserService {
         user.BanUntil(until);
     }
 
-//    회원탈퇴
-    public String withdraw(String loginIg){
-        User user = userRepository.findByLoginIdAndDelYN(loginIg,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
-        user.withdraw();
-        return user.getNickName();
+//    비밀번호 변경
+    public Long changePassword(String loginId,ChangePasswordDto dto){
+        User user =userRepository.findByLoginId(loginId).orElseThrow(()->new EntityNotFoundException("없는 사용자"));
+    //본인인증 확인
+        if (!user.getLoginId().equals(loginId)) {
+            throw new SecurityException("비밀번호 변경 권한이 없습니다");
+        }
+//  현재 비밀번호 확인
+        System.out.println(dto.getCurrentPassword());
+        System.out.println(user.getPassword());
+
+        if (!passwordEncoder.matches(dto.getCurrentPassword(), user.getPassword())){
+            throw new IllegalArgumentException("현재 비밀번호와 일치하지 않습니다.");
+        }
+
+        // 새 비밀번호 정책 검증 (예: 8자 이상, 숫자/특수문자 포함)
+        if (!isValidPassword(dto.getNewPassword())) {
+            throw new IllegalArgumentException("비밀번호가 보안 정책을 충족하지 않습니다.");
+        }
+        // 비밀번호 변경
+        user.changePassword(dto.getNewPassword(),passwordEncoder);
+        return user.getId();
     }
-}
+
+        //   8. 비밀번호 검증
+        private boolean isValidPassword(String password) {
+            return password.length() >= 8 && password.matches(".*[0-9].*") && password.matches(".*[!@#$%^&*()].*");
+        }
+
+
+
+    //    회원탈퇴
+        public String withdraw(String loginIg){
+            User user = userRepository.findByLoginIdAndDelYN(loginIg,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+            user.withdraw();
+            return user.getNickName();
+        }
+    }

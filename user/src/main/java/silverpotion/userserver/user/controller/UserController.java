@@ -1,34 +1,36 @@
 package silverpotion.userserver.user.controller;
 
 
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
+import silverpotion.userserver.user.service.GoogleService;
+import silverpotion.userserver.user.service.KakaoService;
 import silverpotion.userserver.user.service.UserService;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 @RestController
 @RequestMapping("silverpotion/user")
 public class    UserController {
    private final UserService userService;
+   private final GoogleService googleService;
+    private final JwtTokenProvider jwtTokenProvider;
+    private final KakaoService kakaoService;
 
 
-    public UserController(UserService userService) {
+    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider, KakaoService kakaoService) {
         this.userService = userService;
-
+        this.googleService = googleService;
+        this.jwtTokenProvider = jwtTokenProvider;
+        this.kakaoService = kakaoService;
     }
 //    0.헬스체크용 url(배포용)
     @GetMapping("/healthcheck")
@@ -60,7 +62,6 @@ public class    UserController {
             return new ResponseEntity<>(new CommonDto(HttpStatus.CREATED.value(), "success",loginInfo),HttpStatus.CREATED);
         }
     }
-
 
 //    3.회원정보수정(마이프로필 수정)
     @PatchMapping("/update")
@@ -165,14 +166,71 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"사용자가 정지되었습니다.",userBanRequestDto.getUserId()),HttpStatus.OK);
     }
 
-//  비밀번호 변경
+//    구글 로그인
+    @PostMapping("/google/login")
+    public ResponseEntity<?> googleLogin(@RequestBody RedirectDto redirectDto){
+//        access토큰발급
+        AccessTokenDto accessTokenDto = googleService.getAccessToken(redirectDto.getCode());
+
+//        사용자 정보 얻기
+        GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
+//        회원가입이 되어있지 않다면 회원가입
+        User originalUser = userService.userBySocialId(googleProfileDto.getSub());
+        System.out.println(googleProfileDto.getSub());
+        System.out.println(originalUser);
+        if(originalUser == null){
+            SocialSignUpDto signUpDto = new SocialSignUpDto(
+                    googleProfileDto.getSub(),
+                    googleProfileDto.getEmail(),
+                    googleProfileDto.getName()
+            );
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
+        }
+
+//        회원가입 되어있으면 토큰 발급
+        else {
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            Map<String, Object> loginInfo = new HashMap<>();
+            loginInfo.put("id",originalUser.getId());
+            loginInfo.put("token", jwtToken);
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+        }
+    }
+    //    구글 로그인
+    @PostMapping("/kakao/login")
+    public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto){
+//        access토큰발급
+        AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
+
+//        사용자 정보 얻기
+        KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
+//        회원가입이 되어있지 않다면 회원가입
+        User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
+        if(originalUser == null){
+            KakaoSignUpDto signUpDto = new KakaoSignUpDto(
+                    kakaoProfileDto.getId(),
+                    kakaoProfileDto.getKakao_account().getEmail(),
+                    kakaoProfileDto.getKakao_account().getProfile().getNickname()
+            );
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
+        }
+
+//        회원가입 되어있으면 토큰 발급
+        else {
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            Map<String, Object> loginInfo = new HashMap<>();
+            loginInfo.put("id",originalUser.getId());
+            loginInfo.put("token", jwtToken);
+            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+        }
+    }
+
+    //  비밀번호 변경
     @PostMapping("/password/change")
     public ResponseEntity<?> changePassword(@RequestHeader("X-User-LoginId")String loginId,@RequestBody ChangePasswordDto dto){
         Long userId = userService.changePassword(loginId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "password is changed",userId),HttpStatus.OK);
     }
-
-
 
     // 회원탈퇴
     @DeleteMapping("/withdraw")

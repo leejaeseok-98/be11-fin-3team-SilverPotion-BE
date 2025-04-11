@@ -20,8 +20,8 @@ import java.util.Map;
 @RestController
 @RequestMapping("silverpotion/user")
 public class    UserController {
-   private final UserService userService;
-   private final GoogleService googleService;
+    private final UserService userService;
+    private final GoogleService googleService;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoService kakaoService;
 
@@ -62,6 +62,14 @@ public class    UserController {
             return new ResponseEntity<>(new CommonDto(HttpStatus.CREATED.value(), "success",loginInfo),HttpStatus.CREATED);
         }
     }
+
+//    로그아웃
+    @PostMapping("/logout")
+    public ResponseEntity<?> logout(@RequestHeader("X-User-LoginId")String loginId){
+        userService.logout(loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"logout success",loginId),HttpStatus.OK);
+    }
+
 
 //    3.회원정보수정(마이프로필 수정)
     @PatchMapping("/update")
@@ -224,6 +232,14 @@ public class    UserController {
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }
+
+    //  비밀번호 변경
+    @PostMapping("/password/change")
+    public ResponseEntity<?> changePassword(@RequestHeader("X-User-LoginId")String loginId,@RequestBody ChangePasswordDto dto){
+        Long userId = userService.changePassword(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "password is changed",userId),HttpStatus.OK);
+    }
+
     // 회원탈퇴
     @DeleteMapping("/withdraw")
     public ResponseEntity<?> withdraw(@RequestHeader("X-User-LoginId")String loginId){

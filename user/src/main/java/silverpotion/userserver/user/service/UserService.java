@@ -3,11 +3,13 @@ package silverpotion.userserver.user.service;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.Transient;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.careRelation.domain.LinkStatus;
@@ -295,6 +297,7 @@ public class UserService {
     }
 
     //    비밀번호 변경
+    @Transactional
     public Long changePassword(String loginId,ChangePasswordDto dto){
         User user =userRepository.findByLoginId(loginId).orElseThrow(()->new EntityNotFoundException("없는 사용자"));
         //본인인증 확인

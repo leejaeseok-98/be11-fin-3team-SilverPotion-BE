@@ -9,6 +9,7 @@
 //import org.opensearch.client.RestHighLevelClient;
 //import org.opensearch.common.xcontent.XContentType;
 //import org.opensearch.index.query.BoolQueryBuilder;
+//import org.opensearch.index.query.MultiMatchQueryBuilder;
 //import org.opensearch.index.query.QueryBuilders;
 //import org.opensearch.search.builder.SearchSourceBuilder;
 //import org.springframework.stereotype.Service;
@@ -41,18 +42,17 @@
 //        }
 //    }
 //
-//    public void indexMeeting(Meeting meeting) throws IOException {
-//        MeetingIndexDto dto = MeetingIndexDto.builder()
-//                .id(meeting.getId())
-//                .name(meeting.getName())
-//                .place(meeting.getPlace())
-//                .build();
-//
+//    public void indexMeeting(Meeting meeting) {
+//        MeetingIndexDto dto = MeetingIndexDto.fromEntity(meeting); // 여기서 변환
 //        IndexRequest request = new IndexRequest("meetings")
 //                .id(dto.getId().toString())
-//                .source(objectMapper.writeValueAsString(dto), XContentType.JSON);
+//                .source(objectMapper.convertValue(dto, Map.class));
 //
-//        client.index(request, RequestOptions.DEFAULT);
+//        try {
+//            client.index(request, RequestOptions.DEFAULT);
+//        } catch (IOException e) {
+//            throw new RuntimeException("Failed to index meeting", e);
+//        }
 //    }
 //
 //    public List<GatheringSearchResultDto> searchGatherings(GatheringSearchRequest request) {
@@ -98,6 +98,7 @@
 //                                .region((String) source.get("region"))
 //                                .imageUrl((String) source.get("imageUrl"))
 //                                .introduce((String) source.get("introduce"))
+//                                .categoryId(Long.valueOf(source.get("categoryId").toString()))
 //                                .build();
 //                    })
 //                    .collect(Collectors.toList());
@@ -107,12 +108,64 @@
 //        }
 //    }
 //
-//    public List<String> suggestGatherings(String prefix) {
-//        SearchRequest searchRequest = new SearchRequest("gatherings");
+//    public List<MeetingSearchResultDto> searchMeetings(MeetingSearchRequest request) {
+//        String keyword = request.getKeyword();
+//
+//        System.out.println("🔍 [Meeting 검색] 키워드: " + keyword);
+//
+//        SearchRequest searchRequest = new SearchRequest("meetings");
+//
+//        SearchSourceBuilder searchSourceBuilder = new SearchSourceBuilder()
+//                .size(20)
+//                .query(QueryBuilders.boolQuery()
+//                        .must(QueryBuilders.multiMatchQuery(keyword)
+//                                .field("name", 1.0f)
+//                                .field("name._2gram", 1.0f)
+//                                .field("name._3gram", 1.0f)
+//                                .field("place", 1.0f)
+//                                .type(MultiMatchQueryBuilder.Type.BOOL_PREFIX)
+//                        )
+//                        .filter(QueryBuilders.termQuery("delYN", "N"))
+//                );
+//
+//        searchRequest.source(searchSourceBuilder);
+//
+//        System.out.println("🔍 Meeting 쿼리 DSL: \n" + searchSourceBuilder.toString());
+//
+//        try {
+//            SearchResponse searchResponse = client.search(searchRequest, RequestOptions.DEFAULT);
+//
+//            return Arrays.stream(searchResponse.getHits().getHits())
+//                    .map(hit -> {
+//                        Map<String, Object> sourceAsMap = hit.getSourceAsMap();
+//                        return MeetingSearchResultDto.builder()
+//                                .id(Long.valueOf(sourceAsMap.get("id").toString()))
+//                                .name((String) sourceAsMap.get("name"))
+//                                .place((String) sourceAsMap.get("place"))
+//                                .imageUrl((String) sourceAsMap.get("imageUrl"))
+//                                .meetingDate((String) sourceAsMap.get("meetingDate"))
+//                                .meetingTime((String) sourceAsMap.get("meetingTime"))
+//                                .cost(Long.valueOf(sourceAsMap.get("cost").toString()))
+//                                .maxPeople(Long.valueOf(sourceAsMap.get("maxPeople").toString()))
+//                                .gatheringId(Long.valueOf(sourceAsMap.get("gatheringId").toString()))
+//                                .build();
+//                    })
+//                    .collect(Collectors.toList());
+//
+//        } catch (IOException e) {
+//            throw new RuntimeException("OpenSearch 조회 실패", e);
+//        }
+//    }
+//
+//    public List<String> suggestAll(String prefix) {
+//        SearchRequest searchRequest = new SearchRequest("gatherings", "meetings");
 //
 //        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-//        sourceBuilder.query(QueryBuilders.prefixQuery("gatheringName", prefix));
-//        sourceBuilder.size(10); // 최대 10개까지 자동완성 결과
+//        sourceBuilder.size(20);
+//        sourceBuilder.query(QueryBuilders.boolQuery()
+//                .should(QueryBuilders.prefixQuery("gatheringName", prefix))
+//                .should(QueryBuilders.prefixQuery("name", prefix))
+//        );
 //
 //        searchRequest.source(sourceBuilder);
 //
@@ -120,11 +173,20 @@
 //            SearchResponse response = client.search(searchRequest, RequestOptions.DEFAULT);
 //
 //            return Arrays.stream(response.getHits().getHits())
-//                    .map(hit -> (String) hit.getSourceAsMap().get("gatheringName"))
+//                    .map(hit -> {
+//                        Map<String, Object> source = hit.getSourceAsMap();
+//                        if (source.containsKey("gatheringName")) {
+//                            return (String) source.get("gatheringName");
+//                        } else {
+//                            return (String) source.get("name");
+//                        }
+//                    })
+//                    .distinct()
+//                    .limit(10)
 //                    .collect(Collectors.toList());
 //
 //        } catch (IOException e) {
-//            throw new RuntimeException("자동완성 중 오류 발생", e);
+//            throw new RuntimeException("자동완성 통합 검색 중 오류 발생", e);
 //        }
 //    }
 //}

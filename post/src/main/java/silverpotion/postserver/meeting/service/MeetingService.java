@@ -11,6 +11,9 @@ import silverpotion.postserver.meeting.domain.MeetingParticipant;
 import silverpotion.postserver.meeting.dto.*;
 import silverpotion.postserver.meeting.repository.MeetingParticipantRepository;
 import silverpotion.postserver.meeting.repository.MeetingRepository;
+import silverpotion.postserver.opensearch.MeetingSearchRequest;
+import silverpotion.postserver.opensearch.MeetingSearchResultDto;
+//import silverpotion.postserver.opensearch.OpenSearchService;
 import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
@@ -28,13 +31,17 @@ public class MeetingService {
     private final UserClient userClient;
     private final ImageService imageService;
     private final MeetingParticipantRepository meetingParticipantRepository;
+//    private final OpenSearchService openSearchService;
 
-    public MeetingService(MeetingRepository meetingRepository, GatheringRepository gatheringRepository, UserClient userClient, ImageService imageService, MeetingParticipantRepository meetingParticipantRepository) {
+    public MeetingService(MeetingRepository meetingRepository, GatheringRepository gatheringRepository, UserClient userClient, ImageService imageService, MeetingParticipantRepository meetingParticipantRepository
+//                          , OpenSearchService openSearchService
+    ) {
         this.meetingRepository = meetingRepository;
         this.gatheringRepository = gatheringRepository;
         this.userClient = userClient;
         this.imageService = imageService;
         this.meetingParticipantRepository = meetingParticipantRepository;
+//        this.openSearchService = openSearchService;
     }
 
     // 정모 생성
@@ -94,6 +101,9 @@ public class MeetingService {
                 .build();
 
         meetingParticipantRepository.save(participant);
+
+        // OpenSearch index 저장
+//        openSearchService.indexMeeting(meeting);
     }
 
     // 정모 수정
@@ -143,6 +153,9 @@ public class MeetingService {
         meeting.setImageUrl(imageUrl);
 
         meetingRepository.save(meeting);
+
+        // OpenSearch index 저장
+//        openSearchService.indexMeeting(meeting);
     }
 
     // 모임별 정모 조회
@@ -211,5 +224,10 @@ public class MeetingService {
 
         meetingParticipantRepository.delete(participant);
     }
+
+//    // opensearch
+//    public List<MeetingSearchResultDto> searchMeetings(MeetingSearchRequest request) {
+//        return openSearchService.searchMeetings(request);
+//    }
 
 }

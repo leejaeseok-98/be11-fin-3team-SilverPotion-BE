@@ -66,11 +66,12 @@ public class GatheringService {
 //    public void init() {
 //        try {
 //            OpenSearchIndexUtil util = new OpenSearchIndexUtil(client);
-//            util.createIndexIfNotExists("gathering");
-//            System.out.println("✅ Gathering index 확인 완료");
+//            util.createGatheringIndexIfNotExists();
+//            util.createMeetingIndexIfNotExists();
+//            System.out.println("✅ OpenSearch 인덱스 확인 완료 (gathering, meeting)");
 //        } catch (Exception e) {
-//            System.err.println("❌ Gathering index 생성 중 오류 발생: " + e.getMessage());
-//            e.printStackTrace(); // 로그에 전체 예외 출력
+//            System.err.println("❌ OpenSearch 인덱스 생성 중 오류 발생: " + e.getMessage());
+//            e.printStackTrace();
 //        }
 //    }
 

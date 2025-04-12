@@ -42,7 +42,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-amqp'
 
 
-//	//opensearch
+	//opensearch
 //	implementation 'org.opensearch.client:opensearch-rest-high-level-client:2.17.0'
 
 //	implementation 'org.springframework.kafka:spring-kafka'

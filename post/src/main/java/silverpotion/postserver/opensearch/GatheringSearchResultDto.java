@@ -11,4 +11,5 @@ public class GatheringSearchResultDto {
     private String region;
     private String imageUrl;
     private String introduce;
+    private Long categoryId;
 }

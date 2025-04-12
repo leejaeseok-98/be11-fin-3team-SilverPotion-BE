@@ -7,9 +7,8 @@ import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.gathering.dto.*;
 import silverpotion.postserver.gathering.service.GatheringService;
 import silverpotion.postserver.meeting.dto.MeetingUpdateDto;
-import silverpotion.postserver.opensearch.GatheringSearchRequest;
-import silverpotion.postserver.opensearch.GatheringSearchResultDto;
-//import silverpotion.postserver.opensearch.OpenSearchService;
+import silverpotion.postserver.meeting.service.MeetingService;
+import silverpotion.postserver.opensearch.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,12 +18,14 @@ import java.util.List;
 public class GatheringController {
     private final GatheringService gatheringService;
 //    private final OpenSearchService openSearchService;
+    private final MeetingService meetingService;
 
-    public GatheringController(GatheringService gatheringService
+    public GatheringController(GatheringService gatheringService, MeetingService meetingService
 //                               , OpenSearchService openSearchService
     ) {
         this.gatheringService = gatheringService;
 //        this.openSearchService = openSearchService;
+        this.meetingService = meetingService;
     }
 
 
@@ -136,15 +137,22 @@ public class GatheringController {
 
 //    // OpenSearch
 //    @PostMapping("/opensearch")
-//    public ResponseEntity<?> searchGatherings(@RequestBody GatheringSearchRequest request) {
-//        List<GatheringSearchResultDto> result = gatheringService.searchGatherings(request);
+//    public ResponseEntity<?> search(@RequestBody IntegratedSearchRequest request) {
+//        List<GatheringSearchResultDto> gatheringResults = gatheringService.searchGatherings(request.getGatheringSearchRequest());
+//        List<MeetingSearchResultDto> meetingResults = meetingService.searchMeetings(request.getMeetingSearchRequest());
+//
+//        IntegratedSearchResultDto result = IntegratedSearchResultDto.builder()
+//                .gatherings(gatheringResults)
+//                .meetings(meetingResults)
+//                .build();
+//
 //        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "검색 성공", result));
 //    }
 //
 //    // 자동완성
 //    @GetMapping("/suggest")
-//    public ResponseEntity<?> suggestGatherings(@RequestParam String prefix) {
-//        List<String> suggestions = openSearchService.suggestGatherings(prefix);
+//    public ResponseEntity<?> suggestAll(@RequestParam String prefix) {
+//        List<String> suggestions = openSearchService.suggestAll(prefix);
 //        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "자동완성 성공", suggestions));
 //    }
 }

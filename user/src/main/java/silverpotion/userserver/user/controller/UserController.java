@@ -204,7 +204,7 @@ public class    UserController {
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }
-    //    구글 로그인
+    //    카카오 로그인
     @PostMapping("/kakao/login")
     public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto){
 //        access토큰발급

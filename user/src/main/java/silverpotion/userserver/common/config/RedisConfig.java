@@ -65,4 +65,24 @@ public class RedisConfig {
         template.setConnectionFactory(redisConnectionFactory);
         return template;
     }
+    @Bean
+    @Qualifier("sms")
+    public RedisConnectionFactory redisConnectionFactoryForSms(){ //레디스 연결을 설정하는 ConnectonFactory객체를 생성하고 반환
+        RedisStandaloneConfiguration configuration = new RedisStandaloneConfiguration();
+        configuration.setHostName(host); //레디스 서버의 호스트 이름
+        configuration.setPort(port); //레디스 서버의 포트 번호
+        configuration.setDatabase(3); //레디스에 사용할 데이터베이스 인덱스
+        return new LettuceConnectionFactory(configuration); //위에서 설정한 configuration을 기반으로 레디스에 연결할 객체
+    }
+
+    //sms기능 간섭안하는지 체크---------------------------------------------------------------------------------------------
+    @Bean
+    @Qualifier("sms")
+    public StringRedisTemplate stringRedisTemplateforSms(@Qualifier("sms") RedisConnectionFactory redisConnectionFactory) {
+        StringRedisTemplate stringRedisTemplate = new StringRedisTemplate();
+        stringRedisTemplate.setConnectionFactory(redisConnectionFactory);
+        return stringRedisTemplate;
+    }
+//    ------------------------
+
 }

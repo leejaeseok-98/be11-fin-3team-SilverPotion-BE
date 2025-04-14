@@ -77,3 +77,9 @@ oauth:
   kakao:
     client-id: 740a1fc6969a1fc6c821d81a2236d3fe
     redirect-uri: http://localhost:3000/oauth/kakao/redirect
+
+# 휴대폰 API 관련설정
+coolsms:
+  apiKey: NCS8RKPNPBJOMS4Q
+  apiSecret: URWJ7PYCYB66BC5WBINDZTCHU1XUILXC
+  fromNumber: 01042891784 # 발신번호

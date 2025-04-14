@@ -63,6 +63,9 @@ dependencies {
 
 	implementation 'org.springframework.kafka:spring-kafka'
 
+	// coolsms 휴대폰API 관련 의존성 추가
+	implementation 'net.nurigo:sdk:4.3.2'
+
 }
 
 dependencyManagement {

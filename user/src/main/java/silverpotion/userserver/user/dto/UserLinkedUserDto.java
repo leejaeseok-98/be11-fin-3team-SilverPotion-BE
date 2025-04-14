@@ -14,4 +14,5 @@ public class UserLinkedUserDto {
 //   보호자조회에선 보호자아이디, 피보호자 조회에선 피보호자 아이디
     private Long userId;
     private String name;
+    private String profileImg;
 }

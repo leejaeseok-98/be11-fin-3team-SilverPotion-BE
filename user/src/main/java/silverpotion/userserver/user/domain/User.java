@@ -54,15 +54,15 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //이메일
     @Column(nullable = false)
     private String email;
-    //주소(우편번호)
+    //일반주소
     @Column(nullable = false)
     private String address;
-    //주소(지번주소)
-    @Column(nullable = false)
-    private String streetAddress;
-    //주소(상세주소)
+    //상세주소
     @Column(nullable = false)
     private String detailAddress;
+    //우편번호
+    @Column(nullable = false)
+    private String zipcode;
     //캐시(힐링포션)
     private int healingPotion;
     //결제내역
@@ -122,8 +122,8 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         if(dto.getAddress() != null){
             this.address = dto.getAddress();
         }
-        if(dto.getStreetAddress() != null){
-            this.streetAddress = dto.getStreetAddress();
+        if(dto.getZipcode() != null){
+            this.zipcode = dto.getZipcode();
         }
         if(dto.getDetailAddress() != null){
             this.detailAddress = dto.getDetailAddress();
@@ -187,14 +187,14 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     public UserMyPageDto toMyPageDtoFromEntity(List<String> dependentNames, List<String>protectorNames){
         return UserMyPageDto.builder().nickName(this.nickName).name(this.name).email(this.email)
                 .sex(this.sex.toString()).phoneNumber(this.phoneNumber).birthday(this.birthday)
-                .address(this.address).streetAddress(this.streetAddress).detailAddress(this.detailAddress)
+                .address(this.address).zipcode(this.zipcode).detailAddress(this.detailAddress)
                 .healingPotion(this.healingPotion).id(this.id)
                 .dependentName(dependentNames)
                 .protectorName(protectorNames)
                 .build();
     }
     public UserLinkedUserDto toLinkUserDtoFromEntity(){
-        return UserLinkedUserDto.builder().userId(this.id).name(this.name).build();
+        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).build();
     }
 
     public List<String> findNameFromDependentList(){
@@ -225,7 +225,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
 
     public UserProfileInfoDto profileInfoDtoFromEntity(){
-        return UserProfileInfoDto.builder().userId(this.id).streetAddress(this.streetAddress)
+        return UserProfileInfoDto.builder().userId(this.id).address(this.address)
                 .nickname(this.nickName).profileImage(this.profileImage).build();
     }
 

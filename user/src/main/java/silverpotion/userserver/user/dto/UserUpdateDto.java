@@ -16,7 +16,7 @@ public class UserUpdateDto {
     private String nickName;
     private String password;
     private String address;
-    private String streetAddress;
+    private String zipcode;
     private String detailAddress;
 
 

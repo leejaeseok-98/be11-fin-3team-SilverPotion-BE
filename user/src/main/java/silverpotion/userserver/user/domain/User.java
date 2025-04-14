@@ -171,6 +171,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         this.healingPotion += a;
     }
 
+    // 내가 보유한 힐링포션 개수 조회
+    public int howManyPotion(){
+        return this.healingPotion;
+    }
 
     //    회원탈퇴 메서드
     public void withdraw(){

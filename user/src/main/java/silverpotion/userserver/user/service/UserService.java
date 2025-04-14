@@ -253,6 +253,12 @@ public class UserService {
         return payments.stream().map(c->c.ListDtoFromEntity()).toList();
     }
 
+    //15. 내 보유한 힐링포션 조회
+    public int getMyPotion(String loginId){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        return user.howManyPotion();
+    }
+
     //    게시물 조회시, 작성자 프로필 조회
     public  Map<Long, UserProfileInfoDto> getProfileInfoMap(List<Long> userIds) {
         List<User> users = userRepository.findAllById(userIds); // JPA 기본 제공

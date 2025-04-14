@@ -232,6 +232,7 @@ public class HealthDataService {
 
         LocalDate selectedDate =LocalDate.parse(dto.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         DataType selectedType = DataType.valueOf(dto.getType());
+        System.out.println(selectedDate);
 
         HealthData selectedData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(selectedUser.getId(), selectedDate,selectedType).orElseThrow(()->new EntityNotFoundException("해당 데이터가 존재하지 않습니다"));
         return selectedData.toListDtoFromEntity();

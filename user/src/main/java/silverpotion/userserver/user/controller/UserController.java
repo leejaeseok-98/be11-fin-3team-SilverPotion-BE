@@ -159,6 +159,13 @@ public class    UserController {
                  return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",list),HttpStatus.OK);
     }
 
+    //15. 내가 보유한 힐링포션 갯수 조회하기
+    @GetMapping("/myownpotion")
+    public ResponseEntity<?> getMyPotion(@RequestHeader("X-User-LoginId")String loginId){
+           int potions = userService.getMyPotion(loginId);
+           return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",potions),HttpStatus.OK);
+    }
+
 //    게시물 조회시, 작성자 프로필 조회
     @PostMapping("/post/profileInfo")
     public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){

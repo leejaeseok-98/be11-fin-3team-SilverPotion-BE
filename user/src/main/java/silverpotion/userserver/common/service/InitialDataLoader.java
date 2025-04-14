@@ -42,7 +42,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .nickName("홍홍홍")
                     .email("riri")
                     .address("010")
-                    .streetAddress("010")
+                    .zipcode("010")
                     .detailAddress("010")
                     .build();
 
@@ -60,7 +60,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .nickName("홍홍홍")
                     .email("riri")
                     .address("010")
-                    .streetAddress("010")
+                    .zipcode("010")
                     .detailAddress("010")
                     .build();
 
@@ -78,7 +78,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .nickName("보딩고지")
                     .email("qwer")
                     .address("010")
-                    .streetAddress("010")
+                    .zipcode("010")
                     .detailAddress("010")
                     .build();
             userRepository.save(user1);

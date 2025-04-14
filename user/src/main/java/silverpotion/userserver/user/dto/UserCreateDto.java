@@ -38,7 +38,7 @@ public class UserCreateDto {
     private String password;
     @NotBlank(message = "주소를 입력하세요")
     private String address;
-    private String streetAddress;
+    private String zipcode;
     private String detailAddress;
     @Builder.Default
     private SocialType socialType =SocialType.NONE;
@@ -48,7 +48,7 @@ public class UserCreateDto {
         return User.builder().loginId(this.loginId).name(this.name).sex(this.sex)
                 .email(this.email).phoneNumber(this.phoneNumber).birthday(this.birthday)
                 .nickName(this.nickName).password(encodedPassword).address(this.address)
-                .streetAddress(this.streetAddress).detailAddress(this.detailAddress)
+                .zipcode(this.zipcode).detailAddress(this.detailAddress)
                 .socialType(this.socialType).socialId(this.socialId)
                 .build();
 

@@ -170,7 +170,7 @@ public class UserService {
         Long userId = user.getId();
         String nickname = user.getNickName();
         String profileImage = user.getProfileImage();
-        String street = user.getStreetAddress();
+        String street = user.getAddress();
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage,street);
     }
     //    8.userId로 userId와 nickname 조회하기
@@ -178,7 +178,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         String nickname = user.getNickName();
         String profileImage = user.getProfileImage();
-        String street = user.getStreetAddress();
+        String street = user.getAddress();
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage,street);
     }
 
@@ -262,7 +262,7 @@ public class UserService {
                         user -> UserProfileInfoDto.userProfileInfoDto(
                                 user.getId(),
                                 user.getNickName(),
-                                user.getStreetAddress(),
+                                user.getZipcode(),
                                 user.getProfileImage()
                         )
                 ));

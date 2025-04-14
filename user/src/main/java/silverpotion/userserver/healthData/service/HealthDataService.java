@@ -3,6 +3,7 @@ package silverpotion.userserver.healthData.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PostMapping;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.careRelation.domain.LinkStatus;
 import silverpotion.userserver.fireBase.service.FireBaseService;
@@ -17,6 +18,7 @@ import silverpotion.userserver.user.repository.UserRepository;
 
 import java.time.DayOfWeek;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -204,6 +206,36 @@ public class HealthDataService {
        HealthData targetData = dependentData.stream().filter(c->c.getCreatedDate().equals(targetDate)).filter(c->c.getDataType()==DataType.MONTHAVG)
                                 .findFirst().orElseThrow(()->new EntityNotFoundException("해당 월간 데이터가 존재하지 않습니다"));
        return targetData.toListDtoFromEntity();
+    }
+
+//    11.헬스데이터 올인원 조회
+
+    public HealthDataListDto allInOne(String loginId,SelectAllInOneReqDto dto){
+        User loginUser = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        //로그인한 유저의 피보호자 리스트 꺼내기
+        List<CareRelation> dependentsOfUser = loginUser.getAsProtectors().stream().filter(c->c.getLinkStatus()==LinkStatus.CONNECTED).toList();
+        List<User> dependentUsers = dependentsOfUser.stream().map(c->c.getDependent()).toList();
+        //사용자가 조회하려는 건강데이터의 주인이 나 혹은 나의 피보호자인지 확인하는 boolean
+        boolean isMyId = dto.getLoginId().equals(loginId);
+        boolean isMyDependent = dependentUsers.stream().anyMatch(u->u.getLoginId().equals(dto.getLoginId())); //anyMatch는 조건을 만족하는 항목이 하나라도 있으면 true를 반환
+
+        if(!isMyId && !isMyDependent){
+            throw new IllegalArgumentException("잘못된 입력입니다");
+        }
+
+        User selectedUser = null;
+        if(isMyId){
+            selectedUser = loginUser;
+        } else{
+            selectedUser = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        }
+
+        LocalDate selectedDate =LocalDate.parse(dto.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        DataType selectedType = DataType.valueOf(dto.getType());
+
+        HealthData selectedData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(selectedUser.getId(), selectedDate,selectedType).orElseThrow(()->new EntityNotFoundException("해당 데이터가 존재하지 않습니다"));
+        return selectedData.toListDtoFromEntity();
+
     }
 
 

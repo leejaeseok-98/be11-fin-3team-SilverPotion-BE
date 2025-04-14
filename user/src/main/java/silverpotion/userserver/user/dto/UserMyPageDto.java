@@ -21,7 +21,7 @@ public class UserMyPageDto {
     private String phoneNumber;
     private String birthday;
     private String address;
-    private String streetAddress;
+    private String zipcode;
     private String detailAddress;
     private int healingPotion;
     //아래는 나와 연결된 피보호자와 보호자 이름들

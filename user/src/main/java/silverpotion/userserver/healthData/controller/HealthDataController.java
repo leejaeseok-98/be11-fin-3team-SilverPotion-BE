@@ -96,6 +96,13 @@ public class HealthDataController {
         return new ResponseEntity<>((new CommonDto(HttpStatus.OK.value(), "My dependent's weekly AvgHealthData you select is uploaded successfully",dependentMonthHealthData)),HttpStatus.OK);
     }
 
+    //11. 헬스데이터 올인원 조회(헬스데이터 컴포넌트화에 맞춘 apI)
+    @PostMapping("/allinone")
+    public ResponseEntity<?> allInOne(@RequestHeader("X-User-LoginId")String loginId, @RequestBody SelectAllInOneReqDto dto){
+              HealthDataListDto healthData =  healthDataService.allInOne(loginId,dto);
+              return  new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",healthData),HttpStatus.OK);
+    }
+
 
 
 }

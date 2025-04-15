@@ -44,6 +44,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .address("010")
                     .zipcode("010")
                     .detailAddress("010")
+                    .region("서울시 동작구")
                     .build();
 
             userRepository.save(user);
@@ -62,6 +63,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .address("010")
                     .zipcode("010")
                     .detailAddress("010")
+                    .region("서울시 동작구")
                     .build();
 
             userRepository.save(admin);
@@ -80,6 +82,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .address("010")
                     .zipcode("010")
                     .detailAddress("010")
+                    .region("서울시 동작구")
                     .build();
             userRepository.save(user1);
         }

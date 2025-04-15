@@ -72,8 +72,9 @@ public class GatheringController {
     @GetMapping("/search")
     public ResponseEntity<?> searchGatherings(
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String gatheringName) {
-        List<GatheringInfoDto> result = gatheringService.searchGatherings(category, gatheringName);
+            @RequestParam(required = false) String gatheringName,
+            @RequestParam(required = false) String region) {
+        List<GatheringInfoDto> result = gatheringService.searchGatherings(category, gatheringName, region);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 검색되었습니다.", result), HttpStatus.OK);
     }
 

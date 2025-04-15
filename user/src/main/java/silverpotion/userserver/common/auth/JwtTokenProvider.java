@@ -5,6 +5,7 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import silverpotion.userserver.user.domain.Role;
 
 import javax.crypto.spec.SecretKeySpec;
 import java.security.Key;
@@ -31,9 +32,12 @@ public class JwtTokenProvider {
         this.SECRET_KEY_RT = new SecretKeySpec(Base64.getDecoder().decode(secretKeyRt), SignatureAlgorithm.HS512.getJcaName());
     }
 
-    public String createToken(String loginId, String role){
+    public String createToken(String loginId, String role, Long userId, String profileUrl, String nickName){
         Claims claims = Jwts.claims().setSubject(loginId);
         claims.put("role",role);
+        claims.put("userId",userId);
+        claims.put("profileUrl",profileUrl);
+        claims.put("nickName",nickName);
         Date now = new Date();
         String token = Jwts.builder()
                 .setClaims(claims)

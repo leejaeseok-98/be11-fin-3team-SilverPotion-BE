@@ -45,6 +45,8 @@ dependencies {
 	implementation 'org.json:json:20231013'// 화상채팅 구현에 필요해서 추가
 
 	implementation 'org.springframework.kafka:spring-kafka'
+	//dateTime 의존성
+	implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
 }
 
 dependencyManagement {

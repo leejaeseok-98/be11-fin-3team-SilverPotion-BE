@@ -74,11 +74,13 @@ public class JwtAuthFilter implements GlobalFilter {
 
             String loginId = claims.getSubject();
             String role = claims.get("role", String.class);
+            Long id = claims.get("id", Long.class);
 
             // ✅ 커스텀 헤더 추가
             ServerWebExchange modifiedExchange = exchange.mutate()
                     .request(builder -> builder
                             .header("X-User-LoginId", loginId)
+                            .header("X-User-Id", String.valueOf(id))
                             .header("X-User-Role", "ROLE_" + role))
                     .build();
 

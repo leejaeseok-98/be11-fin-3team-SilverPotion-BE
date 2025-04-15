@@ -3,6 +3,7 @@ package com.silverpotion.chatserver.chat.service;
 import com.silverpotion.chatserver.chat.dto.UserDto;
 import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 @FeignClient(name = "user-service")
@@ -14,8 +15,10 @@ public interface UserFeign {
     @GetMapping("silverpotion/user/id")
     UserDto getUserById(@RequestParam("id") Long id);
 
-    @GetMapping("silverpotion/user/nickname")
-    String getUserIdByNickname(@RequestParam("id") Long id);
+    @GetMapping("silverpotion/user/{userId}/nickname")
+    String getNicknameByUserId(@PathVariable("userId") Long userId);
 
+    @GetMapping("silverpotion/user/loginId")
+    String getLoginIdByUserId(@RequestParam("id") Long id);
 
 }

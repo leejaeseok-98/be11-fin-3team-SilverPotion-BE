@@ -1,41 +1,64 @@
 package com.silverpotion.chatserver.chat.controller;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
-import com.silverpotion.chatserver.chat.service.ChatService;
-import com.silverpotion.chatserver.chat.service.RedisPubSubService;
+import com.silverpotion.chatserver.chat.service.ChatMessageService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
+import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
 
+import java.time.LocalDateTime;
+
 @Controller
+@RequiredArgsConstructor
 public class StompController {
 
-    private final SimpMessageSendingOperations messageTemplate;
-    private final ChatService chatService;
-    private final RedisPubSubService pubSubService;
+    private final SimpMessageSendingOperations messagingTemplate;
+    private final ChatMessageService chatMessageService;
 
-    public StompController(SimpMessageSendingOperations messageTemplate, ChatService chatService, RedisPubSubService pubSubService) {
-        this.messageTemplate = messageTemplate;
-        this.chatService = chatService;
-        this.pubSubService = pubSubService;
+    @MessageMapping("/room/{roomId}")
+    public void sendMessage(@DestinationVariable Long roomId, Message<?> message) {
+        // 1. STOMP 세션에서 loginId 꺼냄
+        System.out.println("✅ [StompController] sendMessage() 호출됨");
+        StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
+        Long userId = (Long) accessor.getSessionAttributes().get("id");
+        System.out.println(userId);
+        if (userId == null) {
+            System.out.println("❌ loginId 세션 없음");
+            return;
+        }
+
+        // 2. payload 직접 파싱
+        ChatMessageDto dto = parseMessage(message);
+        dto.setSenderId(userId);
+        dto.setCreatedAt(LocalDateTime.now());
+        System.out.println("message : "+message.getPayload());
+        // 3. 저장
+        ChatMessageDto saved = chatMessageService.saveAndPublish(roomId, dto);
+
+        // 4. 브로드캐스트
+        messagingTemplate.convertAndSend("/sub/room/" + roomId, saved);
     }
 
-    @MessageMapping("/{roomId}")
-    public void sendMessage(@DestinationVariable Long roomId, ChatMessageDto chatMessageReqDto) throws JsonProcessingException {
+    //메시지 파싱해주는 서브 메서드
+    private ChatMessageDto parseMessage(Message<?> message) {
         try {
-            System.out.println("🔥 메시지 수신: " + chatMessageReqDto);
-            chatService.saveMessage(roomId, chatMessageReqDto);
-            chatMessageReqDto.setRoomId(roomId);
+            String payload;
+            if (message.getPayload() instanceof byte[]) {
+                payload = new String((byte[]) message.getPayload());
+            } else {
+                payload = message.getPayload().toString();
+            }
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            String message = objectMapper.writeValueAsString(chatMessageReqDto);
-            pubSubService.publish("chat", message);
+            System.out.println("📨 수신된 raw payload = " + payload);
+            return new ObjectMapper().readValue(payload, ChatMessageDto.class);
         } catch (Exception e) {
-            System.out.println("❌ 메시지 처리 중 오류 발생: " + e.getMessage());
             e.printStackTrace();
+            throw new RuntimeException("❌ 메시지 파싱 실패", e);
         }
     }
 }

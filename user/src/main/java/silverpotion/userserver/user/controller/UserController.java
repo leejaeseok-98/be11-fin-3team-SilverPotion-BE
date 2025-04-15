@@ -204,7 +204,7 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
@@ -232,7 +232,7 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);

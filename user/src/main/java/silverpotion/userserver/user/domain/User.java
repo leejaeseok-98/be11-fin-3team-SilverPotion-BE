@@ -98,6 +98,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 //    정지 만료일 (이 날짜 전까지 정지 상태)
     private LocalDateTime banUntil;
 
+    //채팅을 위한 온라인체크 및 마지막으로 본 시간.
+    private boolean isOnline;
+    private LocalDateTime lastSeenAt;
+
 //---------------------------일반 메서드--------------------------------------------------------
 
 

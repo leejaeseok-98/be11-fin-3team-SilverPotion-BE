@@ -113,12 +113,19 @@ public class    UserController {
         List<UserListDto> list = userService.findAll(dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "userList is uploaded successfully", list), HttpStatus.OK);
     }
-    // Feign chat. idByNickname (Feign 용)
-    @GetMapping("/nickname")
-    public String getUserByLoginId(@RequestParam Long id) {
-        User user = userService.getUseridByNickName(id);
+    // Feign chat. getNicknameByUserId (Feign 용)
+    @GetMapping("/{userId}/nickname")
+    public String getNickNameByUserId(@PathVariable Long userId) {
+        User user = userService.getNickNameByUserId(userId);
         System.out.println("유저 정보조회 login ID:" + user.getNickName());
         return user.getNickName();
+    }
+    // Feign chat. id로 loginid 찾기 (Feign 용)
+    @GetMapping("/loginId")
+    public String getLoginIdByUserId(@RequestParam Long id) {
+        User user = userService.getLoginIdByUserId(id);
+        System.out.println("유저 정보조회 login ID:" + user.getLoginId());
+        return user.getLoginId();
     }
 
     // 11. 프로필 이미지 등록 및 수정

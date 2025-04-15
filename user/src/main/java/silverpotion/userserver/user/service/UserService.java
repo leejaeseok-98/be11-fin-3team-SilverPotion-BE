@@ -79,13 +79,22 @@ public class UserService {
        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
        }
-       String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString());
+       String jwtToken = jwtTokenProvider.createToken(
+               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName());
        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
+
        redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
+
        Map<String, Object> loginInfo = new HashMap<>();
+
+       loginInfo.put("userId",user.getId());
+       loginInfo.put("role",user.getRole());
+       loginInfo.put("profileUrl",user.getProfileImage());
+       loginInfo.put("nickName",user.getNickName());
        loginInfo.put("id", user.getLoginId());
        loginInfo.put("token", jwtToken);
        loginInfo.put("refreshToken", refreshToken);
+
 
        return loginInfo;
 
@@ -105,7 +114,7 @@ public class UserService {
             loginInfo.put("token", "fail");
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
-        String token = jwtTokenProvider.createToken(claims.getSubject(),claims.get("role").toString());
+        String token = jwtTokenProvider.createToken(claims.getSubject(),claims.get("role").toString(),Long.parseLong(claims.get("userId").toString()),claims.get("profileUrl").toString(),claims.get("nickName").toString());
          loginInfo.put("token",token);
          return loginInfo;
     }
@@ -180,9 +189,13 @@ public class UserService {
         return users.stream().map(UserListDto::fromEntity).collect(Collectors.toList());
     }
 
-    //  feign용 getUseridByNickName
-    public User getUseridByNickName(Long id){
+    //  feign용 getNickNameByUserId
+    public User getNickNameByUserId(Long id){
         return userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
+    }
+    // feign용 userId로 loginId 조회하기
+    public User getLoginIdByUserId(Long userId){
+        return userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
     }
 
     // 10.프로필 이미지 등록 및 수정

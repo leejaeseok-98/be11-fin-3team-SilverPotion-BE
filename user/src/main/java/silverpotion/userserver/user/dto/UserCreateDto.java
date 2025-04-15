@@ -40,16 +40,18 @@ public class UserCreateDto {
     private String address;
     private String zipcode;
     private String detailAddress;
+    private String region;
     @Builder.Default
     private SocialType socialType =SocialType.NONE;
     private String socialId;
+
 
     public User toEntity(String encodedPassword){
         return User.builder().loginId(this.loginId).name(this.name).sex(this.sex)
                 .email(this.email).phoneNumber(this.phoneNumber).birthday(this.birthday)
                 .nickName(this.nickName).password(encodedPassword).address(this.address)
                 .zipcode(this.zipcode).detailAddress(this.detailAddress)
-                .socialType(this.socialType).socialId(this.socialId)
+                .socialType(this.socialType).socialId(this.socialId).region(this.region)
                 .build();
 
     }

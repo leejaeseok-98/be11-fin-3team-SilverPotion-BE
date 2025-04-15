@@ -95,6 +95,8 @@ public class GatheringService {
 
         Gathering gathering = gatheringRepository.save(dto.toEntity(gatheringCategory, leaderId));
 
+        dto.setGatheringId(gathering.getId());
+
         // 선택한 GatheringCategoryDetail을 기반으로 GatheringDetail 생성
         List<GatheringDetail> gatheringDetails = new ArrayList<>();
         for (Long gatheringCategoryDetailId : gatheringCategoryDetailIds) {

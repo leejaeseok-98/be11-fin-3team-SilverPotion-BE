@@ -15,6 +15,8 @@ import java.util.List;
 @Builder
 public class GatheringCreateDto {
 
+    private long gatheringId;
+
     private long categoryId;
 
     private String gatheringName;

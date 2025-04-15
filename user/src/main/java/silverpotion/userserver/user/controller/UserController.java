@@ -1,6 +1,7 @@
 package silverpotion.userserver.user.controller;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("silverpotion/user")
 public class    UserController {
@@ -204,10 +206,11 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(), originalUser.getName());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
+            loginInfo.put("name",originalUser.getName());
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }
@@ -232,10 +235,11 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(), originalUser.getName());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
+            loginInfo.put("name", originalUser.getName());
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }

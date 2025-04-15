@@ -31,9 +31,10 @@ public class JwtTokenProvider {
         this.SECRET_KEY_RT = new SecretKeySpec(Base64.getDecoder().decode(secretKeyRt), SignatureAlgorithm.HS512.getJcaName());
     }
 
-    public String createToken(String loginId, String role){
+    public String createToken(String loginId, String role, String name){
         Claims claims = Jwts.claims().setSubject(loginId);
         claims.put("role",role);
+        claims.put("name",name);
         Date now = new Date();
         String token = Jwts.builder()
                 .setClaims(claims)

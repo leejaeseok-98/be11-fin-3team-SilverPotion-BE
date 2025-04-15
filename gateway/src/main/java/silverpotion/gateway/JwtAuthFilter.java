@@ -31,8 +31,6 @@ public class JwtAuthFilter implements GlobalFilter {
             "/silverpotion/user/google/login",
             "/silverpotion/user/kakao/login",
             "/silverpotion/firebase/token",
-            "/silverpotion/payment/prepare",
-            "/silverpotion/payment/afterPayment",
             "/connect/**",             // SockJS 엔드포인트 및 하위 경로 허용
             "/chat-service/room/**/read",
             "/chat-service/**/info",                // info 요청 (핸드셰이크용)

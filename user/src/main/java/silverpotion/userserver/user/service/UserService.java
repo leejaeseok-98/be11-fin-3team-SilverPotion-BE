@@ -79,11 +79,12 @@ public class UserService {
         if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
         }
-        String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString());
+        String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString(), user.getName());
         String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
         redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
         Map<String, Object> loginInfo = new HashMap<>();
         loginInfo.put("id", user.getLoginId());
+        loginInfo.put("name",user.getName());
         loginInfo.put("token", jwtToken);
         loginInfo.put("refreshToken", refreshToken);
 
@@ -105,7 +106,7 @@ public class UserService {
             loginInfo.put("token", "fail");
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
-        String token = jwtTokenProvider.createToken(claims.getSubject(),claims.get("role").toString());
+        String token = jwtTokenProvider.createToken(claims.getSubject(),claims.get("role").toString(),claims.get("name").toString());
         loginInfo.put("token",token);
         return loginInfo;
     }

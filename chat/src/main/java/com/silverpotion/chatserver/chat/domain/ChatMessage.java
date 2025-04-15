@@ -2,10 +2,7 @@ package com.silverpotion.chatserver.chat.domain;
 
 import com.example.chatserver.common.domain.BaseTimeEntity;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -14,24 +11,33 @@ import java.util.List;
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
+@Data
 @Builder
-@Getter
 public class ChatMessage {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    // 채팅방 ID (연관관계)
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "chat_room_id", nullable = false)
+    @JoinColumn(name = "chat_room_id")
     private ChatRoom chatRoom;
 
-    private String senderLoginId;
+    // 유저 서비스 분리된 구조: senderId만 저장
+    private Long senderId;
 
-    @Column(nullable = false, length = 500)
-    private String message;
+    // 메시지 타입: TEXT, IMAGE
+    @Enumerated(EnumType.STRING)
+    private MessageType type;
 
-    @OneToMany(mappedBy = "chatMessage", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<ReadStatus> readStatuses = new ArrayList<>();
+    // 내용 (텍스트 or 이미지 URL 등)
+    @Lob
+    private String content;
 
-    private LocalDateTime createdTime;
+    // 생성 시간
+    private LocalDateTime createdAt;
+
+    // 메시지 수정/삭제 여부 (추후 확장용)
+    private boolean isEdited = false;
+    private boolean isDeleted = false;
 }

@@ -19,17 +19,6 @@ public class CustomHandshakeInterceptor implements HandshakeInterceptor {
                                    ServerHttpResponse response,
                                    WebSocketHandler wsHandler,
                                    Map<String, Object> attributes) {
-
-        URI uri = request.getURI();
-        String loginId = UriComponentsBuilder.fromUri(uri).build().getQueryParams().getFirst("loginId");
-
-        if (loginId != null && !loginId.isBlank()) {
-            attributes.put("loginId", loginId);
-            System.out.println("✅ loginId 쿼리 파라미터로 세션 저장됨: " + loginId);
-        } else {
-            System.out.println("❌ loginId 쿼리 없음");
-        }
-
         return true;
     }
 

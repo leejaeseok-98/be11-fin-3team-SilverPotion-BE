@@ -74,40 +74,48 @@ public class UserService {
 
     //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
-
-        User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
-        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
-        }
-        String jwtToken = jwtTokenProvider.createToken(user.getLoginId(), user.getRole().toString(), user.getName());
-        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
+        
+       User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
+       if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
+           throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
+       }
+       String jwtToken = jwtTokenProvider.createToken(
+               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName());
+       String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
         redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
-        Map<String, Object> loginInfo = new HashMap<>();
-        loginInfo.put("id", user.getLoginId());
-        loginInfo.put("name",user.getName());
-        loginInfo.put("token", jwtToken);
-        loginInfo.put("refreshToken", refreshToken);
+       Map<String, Object> loginInfo = new HashMap<>();
 
-        return loginInfo;
+       loginInfo.put("userId",user.getId());
+       loginInfo.put("role",user.getRole());
+       loginInfo.put("profileUrl",user.getProfileImage());
+       loginInfo.put("nickName",user.getNickName());
+       loginInfo.put("id", user.getLoginId());
+       loginInfo.put("token", jwtToken);
+       loginInfo.put("refreshToken", refreshToken);
+
+
+       return loginInfo;
+
 
     }
 
     //    2-2.로그인(리프레쉬토큰 재발급)
-    public Map<String,Object> recreateAccessToken(UserRefreshDto dto){
+    public Map<String,Object> recreateAccessToken(UserRefreshDto dto) {
         Claims claims = Jwts.parserBuilder()
                 .setSigningKey(secretKeyRt)
                 .build()
                 .parseClaimsJws(dto.getRefreshToken())
                 .getBody();
 
-        Map<String,Object> loginInfo = new HashMap<>();
+        Map<String, Object> loginInfo = new HashMap<>();
         Object refreshTokenOfDto = redisTemplate.opsForValue().get(claims.getSubject());
-        if(refreshTokenOfDto == null || !refreshTokenOfDto.toString().equals(dto.getRefreshToken())){
+        if (refreshTokenOfDto == null || !refreshTokenOfDto.toString().equals(dto.getRefreshToken())) {
             loginInfo.put("token", "fail");
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
-        String token = jwtTokenProvider.createToken(claims.getSubject(),claims.get("role").toString(),claims.get("name").toString());
-        loginInfo.put("token",token);
+
+        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString());
+        loginInfo.put("token", token);
         return loginInfo;
     }
 
@@ -190,9 +198,13 @@ public class UserService {
         return users.stream().map(UserListDto::fromEntity).collect(Collectors.toList());
     }
 
-    //  feign용 getUseridByNickName
-    public User getUseridByNickName(Long id){
+    //  feign용 getNickNameByUserId
+    public User getNickNameByUserId(Long id){
         return userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
+    }
+    // feign용 userId로 loginId 조회하기
+    public User getLoginIdByUserId(Long userId){
+        return userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
     }
 
     // 10.프로필 이미지 등록 및 수정

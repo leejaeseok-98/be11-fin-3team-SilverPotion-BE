@@ -46,6 +46,9 @@ public class CareRelation extends BaseTimeEntity {
     }
 
 
+
+
+
 //
     public CareRelationListDto toRecievedListFromEntity(){
         return CareRelationListDto.builder()

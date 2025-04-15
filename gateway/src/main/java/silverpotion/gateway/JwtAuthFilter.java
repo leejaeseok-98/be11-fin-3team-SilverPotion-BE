@@ -28,7 +28,11 @@ public class JwtAuthFilter implements GlobalFilter {
             "/silverpotion/gathering-category",
             "/silverpotion/gathering-category/detail",
             "/silverpotion/user/refresh-token",
-            "silverpotion/firebase/token",
+            "/silverpotion/user/google/login",
+            "/silverpotion/user/kakao/login",
+            "/silverpotion/firebase/token",
+            "/silverpotion/payment/prepare",
+            "/silverpotion/payment/afterPayment",
             "/connect/**",             // SockJS 엔드포인트 및 하위 경로 허용
             "/chat-service/room/**/read",
             "/chat-service/**/info",                // info 요청 (핸드셰이크용)
@@ -36,6 +40,7 @@ public class JwtAuthFilter implements GlobalFilter {
             "/chat-service/**/xhr*",                // fallback transport 경로들
             "/chat-service/**/eventsource",         // fallback transport
             "/chat-service/**/htmlfile"             // 일부 브라우저 fallback
+
     );
 
     @Override

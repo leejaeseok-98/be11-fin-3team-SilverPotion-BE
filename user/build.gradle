@@ -21,6 +21,8 @@ configurations {
 
 repositories {
 	mavenCentral()
+	//포트원은 maven 기반으로 의존성을 추가한다(여기에 jitpack.io를 추가하면 gradle에서도 iamport라이브러리를 추가할 수 있음
+	maven { url 'https://jitpack.io' }
 }
 
 ext {
@@ -56,8 +58,13 @@ dependencies {
 	implementation 'org.redisson:redisson-spring-boot-starter:3.45.1'
 //	파이어베이스 라이브러리 의존성 주입
 	implementation 'com.google.firebase:firebase-admin:9.2.0'
+//	포트원 라이브러리
+	implementation 'com.github.iamport:iamport-rest-client-java:0.2.23'
 
 	implementation 'org.springframework.kafka:spring-kafka'
+
+	// coolsms 휴대폰API 관련 의존성 추가
+	implementation 'net.nurigo:sdk:4.3.2'
 
 }
 

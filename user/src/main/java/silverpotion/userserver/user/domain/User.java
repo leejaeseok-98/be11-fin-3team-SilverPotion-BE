@@ -2,10 +2,12 @@ package silverpotion.userserver.user.domain;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
+import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
 
 import java.time.LocalDate;
@@ -13,9 +15,7 @@ import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 @Entity
 @AllArgsConstructor
@@ -54,17 +54,21 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //이메일
     @Column(nullable = false)
     private String email;
-    //주소(우편번호)
+    //일반주소
     @Column(nullable = false)
     private String address;
-    //주소(지번주소)
-    @Column(nullable = false)
-    private String streetAddress;
-    //주소(상세주소)
+    //상세주소
     @Column(nullable = false)
     private String detailAddress;
-    //캐시
-    private Integer cash;
+    //우편번호
+    @Column(nullable = false)
+    private String zipcode;
+    //캐시(힐링포션)
+    private int healingPotion;
+    //결제내역
+    @OneToMany(mappedBy = "user")
+    @Builder.Default
+    private List<CashItem> myPaymentList = new ArrayList<>();
     //프로필 이미지
     private String profileImage;
     //회원탈퇴여부
@@ -122,8 +126,8 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         if(dto.getAddress() != null){
             this.address = dto.getAddress();
         }
-        if(dto.getStreetAddress() != null){
-            this.streetAddress = dto.getStreetAddress();
+        if(dto.getZipcode() != null){
+            this.zipcode = dto.getZipcode();
         }
         if(dto.getDetailAddress() != null){
             this.detailAddress = dto.getDetailAddress();
@@ -166,6 +170,11 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         this.fireBaseToken = tokenRequest.getToken();
     }
 
+    // 내가 보유한 힐링포션(캐시템) 개수 업데이트
+    public void updateMyHealingPotion(int a){
+        this.healingPotion += a;
+    }
+
 
     //    회원탈퇴 메서드
     public void withdraw(){
@@ -182,14 +191,14 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     public UserMyPageDto toMyPageDtoFromEntity(List<String> dependentNames, List<String>protectorNames){
         return UserMyPageDto.builder().nickName(this.nickName).name(this.name).email(this.email)
                 .sex(this.sex.toString()).phoneNumber(this.phoneNumber).birthday(this.birthday)
-                .address(this.address).streetAddress(this.streetAddress).detailAddress(this.detailAddress)
-                .cash(this.cash).id(this.id)
+                .address(this.address).zipcode(this.zipcode).detailAddress(this.detailAddress)
+                .healingPotion(this.healingPotion).id(this.id)
                 .dependentName(dependentNames)
                 .protectorName(protectorNames)
                 .build();
     }
     public UserLinkedUserDto toLinkUserDtoFromEntity(){
-        return UserLinkedUserDto.builder().userId(this.id).name(this.name).build();
+        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).build();
     }
 
     public List<String> findNameFromDependentList(){
@@ -220,7 +229,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
 
     public UserProfileInfoDto profileInfoDtoFromEntity(){
-        return UserProfileInfoDto.builder().userId(this.id).streetAddress(this.streetAddress)
+        return UserProfileInfoDto.builder().userId(this.id).address(this.address)
                 .nickname(this.nickName).profileImage(this.profileImage).build();
     }
 
@@ -235,6 +244,11 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
     public void setBanYN(BanYN banYN){
         this.banYN = banYN;
+    }
+
+    //    비밀번호 변경
+    public void changePassword(String newPassword, PasswordEncoder passwordEncoder) {
+        this.password = passwordEncoder.encode(newPassword);
     }
 
 }

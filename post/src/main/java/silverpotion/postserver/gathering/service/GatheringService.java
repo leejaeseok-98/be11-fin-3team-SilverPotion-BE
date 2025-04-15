@@ -1,7 +1,11 @@
 package silverpotion.postserver.gathering.service;
 
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+//import org.opensearch.client.RestHighLevelClient;
+//import org.opensearch.client.RestHighLevelClient;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
@@ -18,9 +22,11 @@ import silverpotion.postserver.gatheringCategory.repository.GatheringCategoryRep
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.repository.GatheringDetailRepository;
+import silverpotion.postserver.opensearch.*;
 import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -38,8 +44,14 @@ public class GatheringService {
     private final GatheringDetailRepository gatheringDetailRepository;
     private final GatheringPeopleRepository gatheringPeopleRepository;
     private final ImageService imageService;
+//    private final OpenSearchService openSearchService;
+//    @Autowired
+//    private RestHighLevelClient client;
 
-    public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService) {
+
+    public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService
+//            , OpenSearchService openSearchService
+    ) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
@@ -47,7 +59,21 @@ public class GatheringService {
         this.gatheringDetailRepository = gatheringDetailRepository;
         this.gatheringPeopleRepository = gatheringPeopleRepository;
         this.imageService = imageService;
+//        this.openSearchService = openSearchService;
     }
+
+//    @PostConstruct
+//    public void init() {
+//        try {
+//            OpenSearchIndexUtil util = new OpenSearchIndexUtil(client);
+//            util.createGatheringIndexIfNotExists();
+//            util.createMeetingIndexIfNotExists();
+//            System.out.println("✅ OpenSearch 인덱스 확인 완료 (gathering, meeting)");
+//        } catch (Exception e) {
+//            System.err.println("❌ OpenSearch 인덱스 생성 중 오류 발생: " + e.getMessage());
+//            e.printStackTrace();
+//        }
+//    }
 
 
     // 모임 생성
@@ -81,6 +107,10 @@ public class GatheringService {
 
         // GatheringDetail 저장
         gatheringDetailRepository.saveAll(gatheringDetails);
+
+        // OpenSearch index 저장
+//        openSearchService.indexGathering(gathering);
+
         return gathering.getId();
     }
 
@@ -111,6 +141,9 @@ public class GatheringService {
         gathering.setImageUrl(imageUrl);
 
         gatheringRepository.save(gathering);
+
+        // OpenSearch Index 저장
+//        openSearchService.indexGathering(gathering);
     }
 
     // 내 모임 조회
@@ -355,6 +388,14 @@ public class GatheringService {
             person.setStatus(Status.DEACTIVATE);
             person.setUpdatedTime(LocalDateTime.now());
         }
+
+        // OpenSearch Index 저장
+//        openSearchService.indexGathering(gathering);
     }
+
+//    // opensearch
+//    public List<GatheringSearchResultDto> searchGatherings(GatheringSearchRequest request) {
+//        return openSearchService.searchGatherings(request);
+//    }
 
 }

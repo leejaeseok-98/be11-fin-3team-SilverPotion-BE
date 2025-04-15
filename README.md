@@ -76,7 +76,7 @@
 | WBS (프로젝트기획) | 프로젝트기획 | 업무 분장 및 세부 일정 | [📎 WBS 바로가기](https://docs.google.com/spreadsheets/d/1xPL9fzuUFguVioFHqQyqesHNe3U2_l63kEcYtexFRvk/edit?gid=1809279197#gid=1809279197) |
 | ERD (프로젝트기획) | 프로젝트기획 | 데이터베이스 구조 및 관계 | [📎 ERD 바로가기](https://www.erdcloud.com/d/5zTkSLQ7qB9hg6b4G) |
 | 화면설계서 (프로젝트기획) | 프로젝트기획 | UI/UX 화면 흐름 및 구조 | [📎 화면설계서(피그마) 바로가기 ](https://www.figma.com/design/lieOgqHknZxpzSkXT6IsX7/silverpotion?node-id=0-1&t=f7PFNSWT2n8etaXt-1) |
-| 프로그램사양서 (백엔드 설계 및 구축) | 백엔드 설계 및 구축 | 각 기능별 상세 사양 기술 | [📎 프로그램사양서 다운로드](./docs/프로그램사양서.pdf) |
+| API명세서 (백엔드 설계 및 구축) | 백엔드 설계 및 구축 | 각 기능별 상세 사양 기술 | [📎 API명세서 바로보기](https://docs.google.com/spreadsheets/d/1xPL9fzuUFguVioFHqQyqesHNe3U2_l63kEcYtexFRvk/edit?gid=1214004648#gid=1214004648) |
 | 단위 테스트 결과서 (백엔드 설계 및 구축) | 백엔드 설계 및 구축 | 기능별 테스트 수행 결과 | [📎 단위 테스트 결과서 다운로드](./docs/단위_테스트_결과서.pdf) |
 | UI/UX 단위 테스트 결과서 (프론트엔드 설계 및 구축) | 프론트엔드 설계 및 구축 | 화면 기반 사용자 테스트 결과 | [📎 UI/UX 단위 테스트 결과서 다운로드](./docs/UIUX_단위_테스트_결과서.pdf) |
 | 배포 후 통합 테스트 결과서 (시스템 통합) | 시스템 통합 | 배포 후 통합 테스트 결과 정리 | [📎 배포 후 통합 테스트 결과서 다운로드](./docs/배포후_통합_테스트_결과서.pdf) |
@@ -132,9 +132,9 @@
 
 ---
 
-## 📑 프로그램사양서 (백엔드 설계 및 구축)
+## 📑 API명세서
 - 상세 기능별 사양, 입력/출력 정의
-  👉 [📎 문서 보기](./docs/프로그램사양서.pdf)
+  👉 [📎 문서 보기](https://docs.google.com/spreadsheets/d/1xPL9fzuUFguVioFHqQyqesHNe3U2_l63kEcYtexFRvk/edit?gid=1214004648#gid=1214004648)
 
 ---
 
@@ -144,7 +144,7 @@
 | 로그인 기능 | 올바른 ID/Password | ✅ 성공 | 정상 작동 |
 | 회원가입 기능 | 필수 입력값 누락 테스트 | ✅ 성공 | 예외처리 확인 |
 
-👉 [📎 문서 보기](./docs/단위_테스트_결과서.pdf)
+👉 [📎 문서 보기](https://documenter.getpostman.com/view/41079416/2sB2cYbzyb#6ba25797-9674-4873-9b11-99b092b2b0cb)
 
 ---
 

@@ -13,7 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: validate
 #      ddl-auto: create
     show_sql: true
   application:
@@ -63,3 +63,23 @@ logging:
 #    별도의 에러로그 없이, 날짜구분없이 모든로그를 남기는 설정
   file:
     name: logs/app.log
+#포트원 결제 관련 키값들
+imp:
+  code: imp47183178
+  access: 7168720802721558
+  secret: t2AhyJMVDyBFN40RKrzgLB6mkX6SLQNNyzdecjDpTWIPD1CU19AVSU8UmNANGmCk1JlEBjZnUV6w3nrP
+
+oauth:
+  google:
+    client-id: 73727762121-skf00kqrlnfjput7t493mmdifss29170.apps.googleusercontent.com
+    client-secret: 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
+    redirect-uri: http://localhost:3000/oauth/google/redirect
+  kakao:
+    client-id: 740a1fc6969a1fc6c821d81a2236d3fe
+    redirect-uri: http://localhost:3000/oauth/kakao/redirect
+
+# 휴대폰 API 관련설정
+coolsms:
+  apiKey: NCS8RKPNPBJOMS4Q
+  apiSecret: URWJ7PYCYB66BC5WBINDZTCHU1XUILXC
+  fromNumber: 01042891784 # 발신번호

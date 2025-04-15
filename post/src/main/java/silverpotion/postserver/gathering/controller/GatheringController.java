@@ -7,6 +7,8 @@ import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.gathering.dto.*;
 import silverpotion.postserver.gathering.service.GatheringService;
 import silverpotion.postserver.meeting.dto.MeetingUpdateDto;
+import silverpotion.postserver.meeting.service.MeetingService;
+import silverpotion.postserver.opensearch.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -15,9 +17,15 @@ import java.util.List;
 @RequestMapping("silverpotion/gathering")
 public class GatheringController {
     private final GatheringService gatheringService;
+//    private final OpenSearchService openSearchService;
+    private final MeetingService meetingService;
 
-    public GatheringController(GatheringService gatheringService) {
+    public GatheringController(GatheringService gatheringService, MeetingService meetingService
+//                               , OpenSearchService openSearchService
+    ) {
         this.gatheringService = gatheringService;
+//        this.openSearchService = openSearchService;
+        this.meetingService = meetingService;
     }
 
 
@@ -126,4 +134,25 @@ public class GatheringController {
         gatheringService.disbandGathering(gatheringId, loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 해체되었습니다.", gatheringId), HttpStatus.OK);
     }
+
+//    // OpenSearch
+//    @PostMapping("/opensearch")
+//    public ResponseEntity<?> search(@RequestBody IntegratedSearchRequest request) {
+//        List<GatheringSearchResultDto> gatheringResults = gatheringService.searchGatherings(request.getGatheringSearchRequest());
+//        List<MeetingSearchResultDto> meetingResults = meetingService.searchMeetings(request.getMeetingSearchRequest());
+//
+//        IntegratedSearchResultDto result = IntegratedSearchResultDto.builder()
+//                .gatherings(gatheringResults)
+//                .meetings(meetingResults)
+//                .build();
+//
+//        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "검색 성공", result));
+//    }
+//
+//    // 자동완성
+//    @GetMapping("/suggest")
+//    public ResponseEntity<?> suggestAll(@RequestParam String prefix) {
+//        List<String> suggestions = openSearchService.suggestAll(prefix);
+//        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "자동완성 성공", suggestions));
+//    }
 }

@@ -149,7 +149,7 @@ public class    UserController {
 
    // 12. 상대프로필 조회
     @GetMapping("/yourProfile/{id}" )
-    public ResponseEntity<?> yourProfile(@PathVariable Long id){
+    public ResponseEntity<?> yourProfile(@PathVariable("id") Long id){
                   UserProfileInfoDto dto = userService.yourProfile(id);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"user's profile is uploaded successfully",dto),HttpStatus.OK);
     }

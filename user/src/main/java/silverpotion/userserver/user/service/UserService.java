@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -207,7 +208,7 @@ public class UserService {
         return userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
     }
 
-    // 10.프로필 이미지 등록 및 수정
+    // 11.프로필 이미지 등록 및 수정
     public String postProfileImage(String loginId,UserProfileImgDto dto){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
         MultipartFile image = dto.getImage();
@@ -231,7 +232,7 @@ public class UserService {
         return s3Url;
     }
 
-    //11. 상대프로필 조회
+    //12. 상대프로필 조회
     public UserProfileInfoDto yourProfile(Long id){
         User user = userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         return user.profileInfoDtoFromEntity();

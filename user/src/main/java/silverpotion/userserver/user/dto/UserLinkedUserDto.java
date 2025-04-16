@@ -15,4 +15,5 @@ public class UserLinkedUserDto {
     private Long userId;
     private String name;
     private String profileImg;
+    private String loginId;
 }

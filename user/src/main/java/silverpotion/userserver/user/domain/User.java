@@ -202,7 +202,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
                 .build();
     }
     public UserLinkedUserDto toLinkUserDtoFromEntity(){
-        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).build();
+        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).loginId(this.loginId).build();
     }
 
     public List<String> findNameFromDependentList(){
@@ -234,7 +234,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
     public UserProfileInfoDto profileInfoDtoFromEntity(){
         return UserProfileInfoDto.builder().userId(this.id).address(this.address)
-                .nickname(this.nickName).profileImage(this.profileImage).build();
+                .nickname(this.nickName).profileImage(this.profileImage).birthday(this.birthday).build();
     }
 
 

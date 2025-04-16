@@ -35,6 +35,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
@@ -80,11 +81,9 @@ public class UserService {
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
        }
        String jwtToken = jwtTokenProvider.createToken(
-               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName());
+               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName());
        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
-
-       redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
-
+        redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
        Map<String, Object> loginInfo = new HashMap<>();
 
        loginInfo.put("userId",user.getId());
@@ -116,7 +115,7 @@ public class UserService {
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
 
-        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString());
+        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString());
         loginInfo.put("token", token);
         return loginInfo;
     }
@@ -209,7 +208,7 @@ public class UserService {
         return userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(()-> new EntityNotFoundException("not found user"));
     }
 
-    // 10.프로필 이미지 등록 및 수정
+    // 11.프로필 이미지 등록 및 수정
     public String postProfileImage(String loginId,UserProfileImgDto dto){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
         MultipartFile image = dto.getImage();
@@ -233,7 +232,7 @@ public class UserService {
         return s3Url;
     }
 
-    //11. 상대프로필 조회
+    //12. 상대프로필 조회
     public UserProfileInfoDto yourProfile(Long id){
         User user = userRepository.findByIdAndDelYN(id,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         return user.profileInfoDtoFromEntity();
@@ -266,6 +265,12 @@ public class UserService {
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         List<CashItem> payments = user.getMyPaymentList();
         return payments.stream().map(c->c.ListDtoFromEntity()).toList();
+    }
+
+    //15. 내 보유한 힐링포션 조회
+    public int getMyPotion(String loginId){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        return user.howManyPotion();
     }
 
     //    게시물 조회시, 작성자 프로필 조회

@@ -4,30 +4,24 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.comment.domain.Comment;
 import silverpotion.postserver.comment.dtos.CommentListResDto;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
+import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.post.UserClient.UserClient;
-import silverpotion.postserver.post.domain.Post;
-import silverpotion.postserver.post.domain.PostFile;
-import silverpotion.postserver.post.domain.PostLike;
-import silverpotion.postserver.post.domain.PostStatus;
+import silverpotion.postserver.post.domain.*;
 import silverpotion.postserver.post.dtos.*;
-import silverpotion.postserver.post.repository.PostFileRepository;
-import silverpotion.postserver.post.repository.PostLikeRepository;
-import silverpotion.postserver.post.repository.PostRepository;
+import silverpotion.postserver.post.repository.*;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
@@ -52,6 +46,8 @@ public class PostService {
     private final CommentLikeRepository commentLikeRepository;
     private final GatheringPeopleRepository gatheringPeopleRepository;
     private final ObjectMapper objectMapper;
+    private final VoteRepository voteRepository;
+    private final PostQueryRepository postQueryRepository;
 //    private final NotificationService notificationService;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -59,7 +55,7 @@ public class PostService {
     @Value("${cloud.aws.region.static}")
     private String region;
 
-    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper) {
+    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper, VoteRepository voteRepository, PostQueryRepository postQueryRepository) {
         this.postRepository = postRepository;
         this.gatheringRepository = gatheringRepository;
         this.postFileRepository = postFileRepository;
@@ -70,20 +66,43 @@ public class PostService {
         this.commentLikeRepository = commentLikeRepository;
         this.gatheringPeopleRepository = gatheringPeopleRepository;
         this.objectMapper = objectMapper;
+        this.voteRepository = voteRepository;
+        this.postQueryRepository = postQueryRepository;
     }
 
     //    1. 게시물 생성시, 카테고리 유형 저장(임시저장)
     public Long createDraftPost(PostInitDto dto){
         Gathering gathering = gatheringRepository.findById(dto.getGatheringId()).orElseThrow(()-> new EntityNotFoundException("gathering is not found"));
 
-        Post draftPost = Post.builder()
-                .gathering(gathering)
-                .postCategory(dto.getPostCategory())
-                .postStatus(PostStatus.draft)
-                .viewCount(0)
-                .build();
-        return postRepository.save(draftPost).getId();
+        if (dto.getPostCategory() == PostCategory.free){
+            Post draftPost = Post.builder()
+                    .gathering(gathering)
+                    .postCategory(dto.getPostCategory())
+                    .postStatus(PostStatus.draft)
+                    .viewCount(0)
+                    .build();
+            return postRepository.save(draftPost).getId();
+        }
+        else if (dto.getPostCategory() == PostCategory.notice) {
+            Post draftPost = Post.builder()
+                    .gathering(gathering)
+                    .postCategory(dto.getPostCategory())
+                    .postStatus(PostStatus.draft)
+                    .viewCount(0)
+                    .build();
+            return postRepository.save(draftPost).getId();
 
+        } else if (dto.getPostCategory() == PostCategory.vote) {
+            Vote draftVote = Vote.builder()
+                    .gathering(gathering)
+                    .postCategory(dto.getPostCategory())
+                    .postStatus(PostStatus.draft)
+                    .build();
+            return voteRepository.save(draftVote).getVoteId();
+        }
+        else {
+            throw new EntityNotFoundException("post is not found");
+        }
     }
 
     //  2. 게시물 최종 저장(카테고리 분기)
@@ -95,29 +114,30 @@ public class PostService {
         switch (post.getPostCategory()) {
             case free:
                 FreePostUpdateDto freeDto = (FreePostUpdateDto) dto;
-                saveCommonPost(post, userId, (FreePostUpdateDto) dto);
+                saveFreePost(post, userId, (FreePostUpdateDto) dto);
                 return freeDto;
 
-//            case notice:
-//                NoticePostUpdateDto noticeDto = (NoticePostUpdateDto) dto;
-//                saveCommonPost(post, userId, (NoticePostUpdateDto) noticeDto);
-//                notificationService.sendToAllMembers(
-//                        "새로운 공지사항", dto.getTitle(), "/post/" + post.getId()
-//                );
-//                return noticeDto;
+            case notice:
+                NoticePostUpdateDto noticeDto = (NoticePostUpdateDto) dto;
+                saveNoticePost(post, userId, noticeDto);
+                return noticeDto;
 
-            case vote:
-                VotePostUpdateDto voteDto = (VotePostUpdateDto) dto;
-                saveVotePost(post, userId, voteDto);
-                return voteDto;
             default:
                 throw new UnsupportedOperationException("지원하지 않는 게시물 유형");
         }
 
     }
 
-    // 3. 공통 저장 로직 (자유글/공지글 공통)
-    private void saveCommonPost(Post post, Long userId, FreePostUpdateDto dto) {
+//    투표 저장
+    public VotePostUpdateDto saveVote(Long voteId, String loginId, VotePostUpdateDto dto){
+        Vote vote = voteRepository.findVoteByVoteId(voteId).orElseThrow(()->new EntityNotFoundException("투표가 없습니다."));
+        Long userId = userClient.getUserIdByLoginId(loginId);
+        saveVotePost(vote,userId,dto);
+        return dto;
+    }
+
+    // 3. 자유글 저장
+    private void saveFreePost(Post post, Long userId, FreePostUpdateDto dto) {
         post.update(dto.getTitle(), dto.getContent());
         post.changeStatus(PostStatus.fin);
         post.assignWriter(userId); // 작성자를 한번만 지정할 수 있도록 제약
@@ -129,12 +149,26 @@ public class PostService {
         }
     }
 
-    // 4. 투표 게시물 저장
-    private void saveVotePost(Post post, Long userId, VotePostUpdateDto dto) {
-        post.update(dto.getTitle(), dto.getDescription()); // 예시
+//    공지글 저장
+    private void saveNoticePost(Post post, Long userId, NoticePostUpdateDto dto) {
+        post.update(dto.getTitle(), dto.getContent());
         post.changeStatus(PostStatus.fin);
         post.assignWriter(userId); // 작성자를 한번만 지정할 수 있도록 제약
         postRepository.save(post);
+
+        if (dto.getPostImg() != null) {
+            for (MultipartFile file : dto.getPostImg()) {
+                String fileUrl = uploadImage(file);
+                postFileRepository.save(new PostFile(post, fileUrl));
+            }
+        }
+    }
+
+    // 4. 투표 게시물 저장
+    private void saveVotePost(Vote vote, Long userId, VotePostUpdateDto dto) {
+        vote.update(userId,dto); // 예시
+        vote.changeStatus(PostStatus.fin);
+        voteRepository.save(vote);
         // 투표 항목 저장 등 로직 추가 필요
     }
 
@@ -166,20 +200,57 @@ public class PostService {
         postRepository.delete(post);
     }
 
-    //    7. 게시물 조회
-    @Transactional(readOnly = true)
-    public Page<PostListResDto> getList(Integer page, Integer size, String loginId){
+//    //    7. 게시물 조회
+    public Page<PostVoteResDTO> getPostAndVoteList(int page, int size) {
+        int safePage = (page <= 0) ? 0 : page;
+        int offset = (safePage == 0) ? 0 : (safePage - 1) * size;
+        List<PostVoteUnionDto> rawList = postQueryRepository.findAllPostAndVote(size, offset);
+        System.out.println("rawList" + rawList);
+        long totalCount = postQueryRepository.countPostAndVote();
+        System.out.println("totalCount" + totalCount);
+
+        List<PostVoteResDTO> dtoList = rawList.stream()
+                .map(this::convertToDto)
+                .collect(Collectors.toList());
+
+        System.out.println("dtoList"+dtoList);
+
+        Pageable pageable = PageRequest.of(safePage, size);
+        return new PageImpl<>(dtoList, pageable, totalCount);
+    }
+
+    private PostVoteResDTO convertToDto(PostVoteUnionDto dto) {
+        List<String> voteOptions = null;
+
+        if (dto.getVoteOptions() instanceof List) {
+            voteOptions = dto.getVoteOptions();
+        }
+
+        return PostVoteResDTO.builder()
+                .id(dto.getId())
+                .title(dto.getTitle())
+                .content(dto.getContent())
+                .createdAt(dto.getCreatedAt())
+                .type(dto.getType())
+                .viewCount(dto.getViewCount())
+                .multipleChoice(dto.getMultiChoice())
+                .voteOptions(voteOptions)
+                .build();
+    }
+
+//    자유글 조회
+    public Page<PostListResDto> getFreeList(int page, int size, String loginId) {
         Long userId = userClient.getUserIdByLoginId(loginId);
-        List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId);
+        List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
         System.out.println("gatheringIds"+gatheringUserIds);
 
-        List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);
+        List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
         accessibleUserIds.addAll(gatheringUserIds);
         accessibleUserIds.add(userId);
-
-        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime")); // 최신순 정렬
-
         System.out.println("accessibleUserIds : " + accessibleUserIds);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
+
         // 작성자 프로필 정보 조회
         CommonDto profileInfoDtoMap = userClient.PostProfileInfo(accessibleUserIds);
         Object result = profileInfoDtoMap.getResult();
@@ -190,19 +261,90 @@ public class PostService {
         }
         Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
 
+//        해당 유저들의 자유글만 조회(페이징)
+        Page<Post> freeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(gatheringUserIds,PostCategory.free,
+                DelYN.N,PostStatus.fin,pageable);
+        return freeList.map(post ->
+            {
+                Long likeCount = postRepository.countPostLikes(post.getId());
+                Long commentCount = postRepository.countPostComments(post.getId());
+                UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+                boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
+                String isLike = isLiked ? "Y" : "N";
 
-        // 해당 유저들의 게시물만 조회
-        return postRepository.findByWriterIdIn(new ArrayList<>(accessibleUserIds), pageable)
-                .map(post -> {
-                    Long likeCount = postRepository.countPostLikes(post.getId());
-                    Long commentCount = postRepository.countPostComments(post.getId());
-                    UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+                return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo);
+            });
+    }
 
-                    boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
-                    String isLike = isLiked ? "Y" : "N";
+    // 공지글 조회
+    public Page<PostListResDto> getNoticeList(int page, int size, String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+        List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
+        System.out.println("gatheringIds"+gatheringUserIds);
 
-                    return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, writerInfo);
-                });
+        List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
+        accessibleUserIds.add(userId);
+        System.out.println("accessibleUserIds : " + accessibleUserIds);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
+
+        // 작성자 프로필 정보 조회
+        CommonDto profileInfoDtoMap = userClient.PostProfileInfo(accessibleUserIds);
+        Object result = profileInfoDtoMap.getResult();
+
+        if (result == null) {
+            System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+            result = List.of(); // 빈 리스트 처리
+        }
+        Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
+
+//        해당 유저들의 공지글만 조회(페이징)
+        Page<Post> noticeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds,PostCategory.notice,
+                DelYN.N,PostStatus.fin,pageable);
+        return noticeList.map(post ->
+        {
+            Long likeCount = postRepository.countPostLikes(post.getId());
+            Long commentCount = postRepository.countPostComments(post.getId());
+            UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+            boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
+            String isLike = isLiked ? "Y" : "N";
+
+            return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo);
+        });
+    }
+
+//    투표조회
+    public Page<VoteResListDto> getVoteList(int page, int size, String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
+        System.out.println("gatheringIds"+gatheringUserIds);
+
+        List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
+        accessibleUserIds.add(userId);
+        System.out.println("accessibleUserIds : " + accessibleUserIds);
+
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
+
+        // 작성자 프로필 정보 조회
+        CommonDto profileInfoDtoMap = userClient.PostProfileInfo(accessibleUserIds);
+        Object result = profileInfoDtoMap.getResult();
+
+        if (result == null) {
+            System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+            result = List.of(); // 빈 리스트 처리
+        }
+        Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
+
+        //        해당 유저들의 공지글만 조회(페이징)
+        Page<Vote> voteList = voteRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds,PostCategory.vote,
+                DelYN.N,PostStatus.fin,pageable);
+        return voteList.map(vote ->
+        {
+            UserProfileInfoDto writerInfo = profileList.get(vote.getWriterId());
+
+            return VoteResListDto.fromEntity(vote,writerInfo);
+        });
     }
 
 //    게시물 상세조회

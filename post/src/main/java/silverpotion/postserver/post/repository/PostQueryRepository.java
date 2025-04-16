@@ -1,0 +1,54 @@
+package silverpotion.postserver.post.repository;
+
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+import silverpotion.postserver.post.domain.Post;
+import silverpotion.postserver.post.dtos.PostVoteUnionDto;
+
+import java.util.List;
+
+@Repository
+public interface PostQueryRepository extends JpaRepository<Post, Long> {
+    @Query(value = """
+        (SELECT 
+            p.id AS id,
+            p.title AS title,
+            p.content AS content,
+            p.created_time AS createdAt,
+            'POST' AS type,
+            p.view_count AS viewCount,
+            NULL AS multipleChoice,
+            NULL AS voteOptions
+         FROM post p
+         WHERE p.del_yn = 'N' AND p.post_status = 'fin')
+
+        UNION ALL
+
+        (SELECT 
+            v.vote_id AS id,
+            v.title AS title,
+            v.description AS content, 
+            v.created_time AS createdAt,
+            'VOTE' AS type,
+            NULL AS viewCount,
+            v.multiple_choice AS multipleChoice,
+            CAST(v.vote_options AS CHAR) AS voteOptions
+         FROM vote v
+         WHERE v.del_yn = 'N' AND v.post_status = 'fin')
+
+        ORDER BY createdAt DESC
+        LIMIT :limit OFFSET :offset
+        """, nativeQuery = true)
+    List<PostVoteUnionDto> findAllPostAndVote(@Param("limit") int limit, @Param("offset") int offset);
+
+    @Query(value = """
+    SELECT (
+        (SELECT COUNT(*) FROM post p WHERE p.del_yn = 'N' AND p.post_status = 'normal')
+        +
+        (SELECT COUNT(*) FROM vote v WHERE v.del_yn = 'N' AND v.post_status = 'normal')
+    )
+    """, nativeQuery = true)
+    long countPostAndVote();
+}

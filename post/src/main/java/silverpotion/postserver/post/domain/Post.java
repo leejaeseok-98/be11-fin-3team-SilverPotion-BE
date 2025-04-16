@@ -37,7 +37,7 @@ public class Post extends BaseTimeEntity {
     //삭제여부
     @Enumerated(EnumType.STRING)
     @Builder.Default
-    private DelYN delYN=DelYN.N;
+    private DelYN delYn=DelYN.N;
     //조회수
     private Integer viewCount = 0;
     //좋아요 수

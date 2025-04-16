@@ -95,6 +95,8 @@ public class GatheringService {
 
         Gathering gathering = gatheringRepository.save(dto.toEntity(gatheringCategory, leaderId));
 
+        dto.setGatheringId(gathering.getId());
+
         // 선택한 GatheringCategoryDetail을 기반으로 GatheringDetail 생성
         List<GatheringDetail> gatheringDetails = new ArrayList<>();
         for (Long gatheringCategoryDetailId : gatheringCategoryDetailIds) {
@@ -215,20 +217,24 @@ public class GatheringService {
     }
 
     // 모임 검색
-    public List<GatheringInfoDto> searchGatherings(String category, String gatheringName) {
+    public List<GatheringInfoDto> searchGatherings(String category, String gatheringName, String region) {
         List<Gathering> gatherings;
 
-        if (category != null && gatheringName != null) {
-            // 카테고리와 모임명 모두 검색
+        if (category != null && gatheringName != null && region != null) {
+            gatherings = gatheringRepository.findByGatheringCategoryNameAndGatheringNameContainingAndRegionContaining(category, gatheringName, region);
+        } else if (category != null && gatheringName != null) {
             gatherings = gatheringRepository.findByGatheringCategoryNameAndGatheringNameContaining(category, gatheringName);
+        } else if (category != null && region != null) {
+            gatherings = gatheringRepository.findByGatheringCategoryNameAndRegionContaining(category, region);
+        } else if (gatheringName != null && region != null) {
+            gatherings = gatheringRepository.findByGatheringNameContainingAndRegionContaining(gatheringName, region);
         } else if (category != null) {
-            // 카테고리명만 검색
             gatherings = gatheringRepository.findByGatheringCategoryName(category);
         } else if (gatheringName != null) {
-            // 모임명만 검색
             gatherings = gatheringRepository.findByGatheringNameContaining(gatheringName);
+        } else if (region != null) {
+            gatherings = gatheringRepository.findByRegionContaining(region);
         } else {
-            // 검색 조건 없으면 전체 목록 조회
             gatherings = gatheringRepository.findAll();
         }
 

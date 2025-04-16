@@ -18,6 +18,7 @@ import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -162,7 +163,14 @@ public class MeetingService {
     public List<MeetingInfoDto> getMeetingsByGatheringId(Long gatheringId) {
         List<Meeting> meetings = meetingRepository.findByGatheringId(gatheringId);
 
-        return meetings.stream().map(meeting -> {
+        LocalDateTime now = LocalDateTime.now();
+
+        return meetings.stream()
+                .filter(meeting -> {
+                    LocalDateTime meetingDateTime = LocalDateTime.of(meeting.getMeetingDate(), meeting.getMeetingTime());
+                    return meetingDateTime.isAfter(now);
+                })
+                .map(meeting -> {
             // 해당 미팅의 모든 참가자 가져오기
             List<MeetingParticipant> participants = meetingParticipantRepository.findByMeetingId(meeting.getId());
 

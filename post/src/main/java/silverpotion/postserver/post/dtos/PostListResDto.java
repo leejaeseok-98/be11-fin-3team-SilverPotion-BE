@@ -26,6 +26,7 @@ public class PostListResDto {
     private LocalDateTime createdTime;
     private String isLike;
     private String isUpdate;
+    private List<String> imageUrls;
 
     public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,UserProfileInfoDto writerInfo){
         return PostListResDto.builder()
@@ -41,6 +42,7 @@ public class PostListResDto {
                 .createdTime(post.getCreatedTime())
                 .isUpdate(determineUpdateStatus(post))
                 .isLike(isLike)
+                .imageUrls(post.getFileUrls().stream().toList())
                 .build();
     }
 

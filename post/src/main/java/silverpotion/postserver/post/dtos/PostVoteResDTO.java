@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import silverpotion.postserver.post.domain.PostFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,6 +19,9 @@ public class PostVoteResDTO {
     private String content;
     private LocalDateTime createdAt;
     private String type;
+    private String nickname;
+    private String profileImage;
+    private List<String> imageUrls;
 
     private Integer viewCount;       // POST 전용
     private Boolean multipleChoice;  // VOTE 전용

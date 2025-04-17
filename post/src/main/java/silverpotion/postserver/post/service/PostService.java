@@ -226,6 +226,9 @@ public class PostService {
             voteOptions = dto.getVoteOptions();
         }
 
+        List<String> imageUrls = postFileRepository.findByPostId(dto.getId()).stream()
+                .map(PostFile::getFileUrl).collect(Collectors.toList());
+
         return PostVoteResDTO.builder()
                 .id(dto.getId())
                 .title(dto.getTitle())
@@ -235,6 +238,9 @@ public class PostService {
                 .viewCount(dto.getViewCount())
                 .multipleChoice(dto.getMultiChoice())
                 .voteOptions(voteOptions)
+                .nickname(dto.getNickname())
+                .profileImage(dto.getProfileImage())
+                .imageUrls(imageUrls)
                 .build();
     }
 

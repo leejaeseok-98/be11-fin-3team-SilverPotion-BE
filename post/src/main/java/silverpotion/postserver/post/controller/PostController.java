@@ -82,7 +82,7 @@ public class PostController {
     }
 
     //    6.게시물 전체 조회
-    @GetMapping("list")
+    @GetMapping("/list")
     public ResponseEntity<?> getPostList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size) {
         Page<PostVoteResDTO> postListResDtos = postService.getPostAndVoteList(page, size);
@@ -120,6 +120,7 @@ public class PostController {
         PostDetailResDto postDetailResDto = postService.getDetail(postId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시줄 조회 완료",postDetailResDto),HttpStatus.OK);
     }
+
 
 //    8. 게시물 좋아요 완료
     @PostMapping("/like/{postId}")

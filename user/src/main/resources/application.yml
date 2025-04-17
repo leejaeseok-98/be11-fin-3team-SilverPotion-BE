@@ -13,8 +13,8 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
-      ddl-auto: validate
-#      ddl-auto: create
+#      ddl-auto: validate
+      ddl-auto: create
     show_sql: true
   application:
     name: user-service

@@ -16,4 +16,5 @@ public class GatheringInfoDto {
     private String category;
     private String introduce;
     private Long peopleCount;
+    private Long leaderId;
 }

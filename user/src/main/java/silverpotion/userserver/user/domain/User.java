@@ -98,6 +98,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private BanYN banYN = BanYN.N;
+    //활동 지역
+    @Column(nullable = false)
+    private String region;
 
 //    정지 만료일 (이 날짜 전까지 정지 상태)
     private LocalDateTime banUntil;
@@ -131,6 +134,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         }
         if(dto.getDetailAddress() != null){
             this.detailAddress = dto.getDetailAddress();
+        }
+        if(dto.getRegion() != null){
+            this.region = dto.getRegion();
         }
     }
 
@@ -175,6 +181,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         this.healingPotion += a;
     }
 
+    // 내가 보유한 힐링포션 개수 조회
+    public int howManyPotion(){
+        return this.healingPotion;
+    }
 
     //    회원탈퇴 메서드
     public void withdraw(){
@@ -192,13 +202,13 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return UserMyPageDto.builder().nickName(this.nickName).name(this.name).email(this.email)
                 .sex(this.sex.toString()).phoneNumber(this.phoneNumber).birthday(this.birthday)
                 .address(this.address).zipcode(this.zipcode).detailAddress(this.detailAddress)
-                .healingPotion(this.healingPotion).id(this.id)
+                .healingPotion(this.healingPotion).id(this.id).region(this.region)
                 .dependentName(dependentNames)
                 .protectorName(protectorNames)
                 .build();
     }
     public UserLinkedUserDto toLinkUserDtoFromEntity(){
-        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).build();
+        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).loginId(this.loginId).build();
     }
 
     public List<String> findNameFromDependentList(){
@@ -230,7 +240,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
     public UserProfileInfoDto profileInfoDtoFromEntity(){
         return UserProfileInfoDto.builder().userId(this.id).address(this.address)
-                .nickname(this.nickName).profileImage(this.profileImage).build();
+                .nickname(this.nickName).profileImage(this.profileImage).birthday(this.birthday).build();
     }
 
 

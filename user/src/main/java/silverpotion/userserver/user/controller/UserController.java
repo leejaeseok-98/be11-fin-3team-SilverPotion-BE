@@ -1,6 +1,7 @@
 package silverpotion.userserver.user.controller;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+@Slf4j
 @RestController
 @RequestMapping("silverpotion/user")
 public class    UserController {
@@ -147,7 +149,7 @@ public class    UserController {
 
    // 12. 상대프로필 조회
     @GetMapping("/yourProfile/{id}" )
-    public ResponseEntity<?> yourProfile(@PathVariable Long id){
+    public ResponseEntity<?> yourProfile(@PathVariable("id") Long id){
                   UserProfileInfoDto dto = userService.yourProfile(id);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"user's profile is uploaded successfully",dto),HttpStatus.OK);
     }
@@ -164,6 +166,13 @@ public class    UserController {
     public ResponseEntity<?> getMyPayments(@RequestHeader("X-User-LoginId")String loginId){
                  List<CashItemOfPaymentListDto> list = userService.getMyPayments(loginId);
                  return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",list),HttpStatus.OK);
+    }
+
+    //15. 내가 보유한 힐링포션 갯수 조회하기
+    @GetMapping("/myownpotion")
+    public ResponseEntity<?> getMyPotion(@RequestHeader("X-User-LoginId")String loginId){
+           int potions = userService.getMyPotion(loginId);
+           return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",potions),HttpStatus.OK);
     }
 
 //    게시물 조회시, 작성자 프로필 조회
@@ -204,10 +213,13 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName());
+
+
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
+            loginInfo.put("name",originalUser.getName());
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }
@@ -232,10 +244,12 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName());
+
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
+            loginInfo.put("name", originalUser.getName());
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
         }
     }

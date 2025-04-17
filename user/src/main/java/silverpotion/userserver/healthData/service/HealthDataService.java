@@ -218,6 +218,7 @@ public class HealthDataService {
         //사용자가 조회하려는 건강데이터의 주인이 나 혹은 나의 피보호자인지 확인하는 boolean
         boolean isMyId = dto.getLoginId().equals(loginId);
         boolean isMyDependent = dependentUsers.stream().anyMatch(u->u.getLoginId().equals(dto.getLoginId())); //anyMatch는 조건을 만족하는 항목이 하나라도 있으면 true를 반환
+        System.out.println(dto.getLoginId());
 
         if(!isMyId && !isMyDependent){
             throw new IllegalArgumentException("잘못된 입력입니다");
@@ -232,6 +233,7 @@ public class HealthDataService {
 
         LocalDate selectedDate =LocalDate.parse(dto.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         DataType selectedType = DataType.valueOf(dto.getType());
+        System.out.println(selectedDate);
 
         HealthData selectedData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(selectedUser.getId(), selectedDate,selectedType).orElseThrow(()->new EntityNotFoundException("해당 데이터가 존재하지 않습니다"));
         return selectedData.toListDtoFromEntity();

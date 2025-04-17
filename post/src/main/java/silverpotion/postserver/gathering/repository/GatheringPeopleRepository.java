@@ -20,7 +20,8 @@ public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople
     List<GatheringPeople> findByUserId(Long userId);
     @Query("SELECT COUNT(gp) FROM GatheringPeople gp WHERE gp.gathering.id = :gatheringId AND gp.status = 'ACTIVATE'")
     Long countByGatheringIdAndStatusActivate(@Param("gatheringId") Long gatheringId);
-    List<GatheringPeople> findByGatheringIdAndStatus(Long gatheringId, Status status);
+//    List<GatheringPeople> findByGatheringIdAndStatus(Long gatheringId, Status status);
+    List<GatheringPeople> findByGatheringId(Long gatheringId);
     Optional<GatheringPeople> findByGatheringIdAndUserId(Long gatheringId, Long userId);
     boolean existsByGatheringIdAndUserIdAndStatus(Long gatheringId, Long userId, Status status);
     List<GatheringPeople> findAllByGatheringId(Long gatheringId);

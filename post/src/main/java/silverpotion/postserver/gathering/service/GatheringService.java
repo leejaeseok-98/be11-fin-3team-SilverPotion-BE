@@ -260,13 +260,15 @@ public class GatheringService {
 
     // 모임별 userList
     public List<GatheringPeopleDto> getGatheringUserList(Long gatheringId) {
-        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringIdAndStatus(gatheringId, Status.ACTIVATE);
+//        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringIdAndStatus(gatheringId, Status.ACTIVATE);
+        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringId(gatheringId);
 
         return gatheringPeopleList.stream().map(gatheringPeople -> {
             // User 정보 조회
             UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(gatheringPeople.getUserId());
 
             return new GatheringPeopleDto(
+                    gatheringPeople.getId(),
                     gatheringPeople.getGathering().getId(),
                     gatheringPeople.getUserId(),
                     profileInfo.getNickname(),

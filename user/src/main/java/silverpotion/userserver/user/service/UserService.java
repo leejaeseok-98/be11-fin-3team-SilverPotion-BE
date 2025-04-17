@@ -90,6 +90,7 @@ public class UserService {
        loginInfo.put("role",user.getRole());
        loginInfo.put("profileUrl",user.getProfileImage());
        loginInfo.put("nickName",user.getNickName());
+       loginInfo.put("name",user.getName());
        loginInfo.put("id", user.getLoginId());
        loginInfo.put("token", jwtToken);
        loginInfo.put("refreshToken", refreshToken);
@@ -271,6 +272,17 @@ public class UserService {
     public int getMyPotion(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         return user.howManyPotion();
+    }
+
+    //16. 로그인 아이디 받으면 해당 아이디를 가진 유저의 이름과 닉네임반환(화상채팅 화면용 api)
+    public List<String> getMyNames(String loginId, UserReturnNameInfoDto dto){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        User Opponent = userRepository.findByLoginIdAndDelYN(dto.getOpponentId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        List<String> nameInfo = new ArrayList<>();
+        nameInfo.add(Opponent.getName());
+        nameInfo.add(Opponent.getNickName());
+        return nameInfo;
+
     }
 
     //    게시물 조회시, 작성자 프로필 조회

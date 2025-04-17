@@ -28,6 +28,7 @@ public class SignalingHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished(WebSocketSession session) throws Exception {
        String loginId = getUserId(session);
+        System.out.println("세션연결" + loginId);
        if(userSessions.containsKey(loginId)){
            WebSocketSession oldSession = userSessions.get(loginId);
            if(oldSession != null && oldSession.isOpen()){
@@ -68,6 +69,7 @@ public class SignalingHandler extends TextWebSocketHandler {
     // 클라이언트에서 웹소켓 연결을 요청했을 시 아이디를 뽑아내기 위한 메서드(ex. "ws://localhost:8080/signal?userId=abc123)처럼 요청을 보내게 설계
     private String getUserId(WebSocketSession session){
         String query = session.getUri().getQuery(); // 웹소켓 연결 요청URI에서 ?뒤에 붙은 쿼리 파라미터 전체를 문자열로 가져옴
+        System.out.println(query);
         if(query != null){
             String[] params = query.split("&"); //파라미터가 여러개일 경우 대비
 

@@ -10,7 +10,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Data
 public class GatheringPeopleDto {
-
+    private Long gatheringPeopleId;
     private Long gatheringId;
     private Long userId;
     private String nickname;

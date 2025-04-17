@@ -44,7 +44,7 @@ public class GatheringController {
             @PathVariable Long gatheringId,
             @ModelAttribute GatheringUpdateDto dto) {
         gatheringService.updateGathering(loginId, gatheringId, dto);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 정보가 수정되었습니다.", dto), HttpStatus.OK);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 정보가 수정되었습니다.", gatheringId), HttpStatus.OK);
     }
 
     // 내 모임 조회

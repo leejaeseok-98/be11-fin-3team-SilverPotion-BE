@@ -78,7 +78,7 @@
 //            boolQuery.filter(QueryBuilders.termQuery("categoryId", request.getCategoryId()));
 //        }
 //
-//        boolQuery.filter(QueryBuilders.termQuery("delYN.keyword", "N"));
+//        boolQuery.filter(QueryBuilders.termQuery("delYN", "N"));
 //
 //        SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
 //        sourceBuilder.query(boolQuery);

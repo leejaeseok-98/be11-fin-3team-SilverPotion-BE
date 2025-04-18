@@ -235,7 +235,7 @@ public class GatheringService {
         }
 
         // Step 2: 조건별로 Gathering 가져오기
-        gatherings = gatheringRepository.findAll().stream()
+        gatherings = gatheringRepository.findByDelYN(DelYN.N).stream()
                 .filter(g -> (category == null || g.getGatheringCategory().getName().equals(category)) &&
                         (gatheringName == null || g.getGatheringName().contains(gatheringName)) &&
                         (region == null || g.getRegion().contains(region)) &&

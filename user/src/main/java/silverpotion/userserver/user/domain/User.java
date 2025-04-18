@@ -203,6 +203,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
                 .sex(this.sex.toString()).phoneNumber(this.phoneNumber).birthday(this.birthday)
                 .address(this.address).zipcode(this.zipcode).detailAddress(this.detailAddress)
                 .healingPotion(this.healingPotion).id(this.id).region(this.region)
+                .profileImage(this.profileImage)
                 .dependentName(dependentNames)
                 .protectorName(protectorNames)
                 .build();

@@ -13,7 +13,7 @@ import silverpotion.userserver.user.domain.User;
 @Data
 @Builder
 public class CareRelationCreateDto {
-//    상대방(피보호자)의 휴대폰번호
+//    상대방의 휴대폰번호
     private String phoneNumber;
 //    아래 로그인 아이디와 이름은 의미없다. 제거
     private String loginId;

@@ -212,15 +212,18 @@ public class HealthDataService {
 
     public HealthDataListDto allInOne(String loginId,SelectAllInOneReqDto dto){
         User loginUser = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
-        //로그인한 유저의 피보호자 리스트 꺼내기
+        //로그인한 유저의 피보호자 리스트 꺼내기 //보호자 리스트 꺼내기
         List<CareRelation> dependentsOfUser = loginUser.getAsProtectors().stream().filter(c->c.getLinkStatus()==LinkStatus.CONNECTED).toList();
         List<User> dependentUsers = dependentsOfUser.stream().map(c->c.getDependent()).toList();
+        List<CareRelation> protectorsOfUsers = loginUser.getAsDependents().stream().filter(c->c.getLinkStatus()==LinkStatus.CONNECTED).toList();
+        List<User> protectorUsers = protectorsOfUsers.stream().map(c->c.getProtector()).toList();
         //사용자가 조회하려는 건강데이터의 주인이 나 혹은 나의 피보호자인지 확인하는 boolean
         boolean isMyId = dto.getLoginId().equals(loginId);
         boolean isMyDependent = dependentUsers.stream().anyMatch(u->u.getLoginId().equals(dto.getLoginId())); //anyMatch는 조건을 만족하는 항목이 하나라도 있으면 true를 반환
-        System.out.println(dto.getLoginId());
+        boolean isMyProtector = protectorUsers.stream().anyMatch(u->u.getLoginId().equals(dto.getLoginId()));
 
-        if(!isMyId && !isMyDependent){
+        //즉 프론트에서 헬스데이터를 조회하려는 아이디가 내꺼거나 혹은 내피보호자,보호자로 연결되어있는 사람이 아니라면 볼 수 없게 막아놓은 것
+        if(!isMyId && !isMyDependent && !isMyProtector){
             throw new IllegalArgumentException("잘못된 입력입니다");
         }
 

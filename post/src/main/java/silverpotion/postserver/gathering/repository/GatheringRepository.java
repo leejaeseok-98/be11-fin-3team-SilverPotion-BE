@@ -22,5 +22,6 @@ public interface GatheringRepository extends JpaRepository<Gathering,Long> {
     List<Gathering> findByGatheringNameContainingAndRegionContaining(String gatheringName, String region);
     List<Gathering> findByRegionContaining(String region);
     long countByLeaderIdAndDelYN(Long leaderId, DelYN delYN);
+    List<Gathering> findByDelYN(DelYN delYN);
 
 }

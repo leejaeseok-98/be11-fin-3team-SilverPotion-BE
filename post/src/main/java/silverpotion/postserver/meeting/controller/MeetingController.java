@@ -29,7 +29,8 @@ public class MeetingController {
             @ModelAttribute MeetingCreateDto dto) {
 
         meetingService.createMeeting(loginId, dto);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "정모가 성공적으로 생성되었습니다.", dto), HttpStatus.OK);
+        String name = dto.getName();
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "정모가 성공적으로 생성되었습니다.", name), HttpStatus.OK);
     }
 
     // 정모 수정
@@ -40,7 +41,7 @@ public class MeetingController {
             @ModelAttribute MeetingUpdateDto dto) {
 
         meetingService.updateMeeting(loginId, meetingId, dto);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "정모가 수정되었습니다.", dto), HttpStatus.OK);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "정모가 수정되었습니다.", meetingId), HttpStatus.OK);
     }
 
     // 모임별 정모 조회
@@ -68,5 +69,19 @@ public class MeetingController {
 
         meetingService.cancelAttendance(loginId, dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "정모 참석이 취소되었습니다.", dto), HttpStatus.OK);
+    }
+
+    // 정모 상세 조회
+    @GetMapping("/{meetingId}")
+    public ResponseEntity<?> getMeetingById(@PathVariable Long meetingId) {
+        MeetingInfoDto meetingInfoDto = meetingService.getMeetingById(meetingId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "해당 모임의 상세정보가 조회되었습니다.", meetingInfoDto), HttpStatus.OK);
+    }
+
+    // 다가오는 정모 조회
+    @GetMapping("/upcoming")
+    public ResponseEntity<?> getMeetingsWithinAWeek() {
+        List<MeetingInfoDto> dtos = meetingService.getMeetingsWithinAWeek();
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "이번 주 예정된 정모들이 조회되었습니다.", dtos), HttpStatus.OK);
     }
 }

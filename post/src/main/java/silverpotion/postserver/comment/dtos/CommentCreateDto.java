@@ -9,5 +9,6 @@ import lombok.NoArgsConstructor;
 @Data
 public class CommentCreateDto {
     private Long postId;
+    private Long voteId;
     private String content;
 }

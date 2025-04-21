@@ -200,8 +200,8 @@ public class    UserController {
         GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
-        System.out.println(googleProfileDto.getSub());
-        System.out.println(originalUser);
+        System.out.println("소셜 아이디"+googleProfileDto.getSub());
+        System.out.println("유저" + originalUser);
         if(originalUser == null){
             SocialSignUpDto signUpDto = new SocialSignUpDto(
                     googleProfileDto.getSub(),

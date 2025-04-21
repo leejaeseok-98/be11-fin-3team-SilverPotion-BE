@@ -1,5 +1,6 @@
 package silverpotion.postserver.post.dtos;
 
+import silverpotion.postserver.post.domain.PostCategory;
 import silverpotion.postserver.post.domain.PostFile;
 
 import java.time.LocalDateTime;

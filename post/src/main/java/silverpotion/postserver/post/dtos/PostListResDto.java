@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import silverpotion.postserver.post.domain.Post;
+import silverpotion.postserver.post.domain.PostCategory;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -18,7 +19,6 @@ public class PostListResDto {
     private String nickname;
     private String profileImage;
     private Long postId;
-    private List<String> imageList;
     private String title;
     private String content;
     private Long likeCount;
@@ -26,6 +26,7 @@ public class PostListResDto {
     private LocalDateTime createdTime;
     private String isLike;
     private String isUpdate;
+    private PostCategory postCategory;
     private List<String> imageUrls;
 
     public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,UserProfileInfoDto writerInfo){
@@ -35,7 +36,6 @@ public class PostListResDto {
                 .title(post.getTitle())
                 .profileImage(writerInfo.getProfileImage())
                 .postId(post.getId())
-                .imageList(post.getFileUrls())
                 .content(post.getContent())
                 .likeCount(likeCount)
                 .commentCount(commentCount)
@@ -43,6 +43,7 @@ public class PostListResDto {
                 .isUpdate(determineUpdateStatus(post))
                 .isLike(isLike)
                 .imageUrls(post.getFileUrls().stream().toList())
+                .postCategory(post.getPostCategory())
                 .build();
     }
 

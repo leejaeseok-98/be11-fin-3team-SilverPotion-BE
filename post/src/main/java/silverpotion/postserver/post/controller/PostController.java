@@ -82,7 +82,7 @@ public class PostController {
     }
 
     //    6.게시물 전체 조회
-    @GetMapping("list")
+    @GetMapping("/list")
     public ResponseEntity<?> getPostList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size) {
         Page<PostVoteResDTO> postListResDtos = postService.getPostAndVoteList(page, size);
@@ -111,7 +111,14 @@ public class PostController {
                                            @RequestParam(name = "size", defaultValue = "5") Integer size,
                                            @RequestHeader("X-User-LoginId") String loginId){
         Page<VoteResListDto> voteList = postService.getVoteList(page,size,loginId);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"공지글 리스트 불러오기 완료",voteList),HttpStatus.OK);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표글 리스트 불러오기 완료",voteList),HttpStatus.OK);
+    }
+
+//    투표 상세조회
+    @GetMapping("/vote/detail/{voteId}")
+    public ResponseEntity<?> getVoteDetail(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
+        VoteDetailResDto voteDetailResDto = postService.getVoteDetail(voteId,loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "투표 상세조회",HttpStatus.OK),HttpStatus.OK);
     }
 
     // 7. 상세게시물 조회
@@ -121,11 +128,19 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시줄 조회 완료",postDetailResDto),HttpStatus.OK);
     }
 
+
 //    8. 게시물 좋아요 완료
     @PostMapping("/like/{postId}")
     public ResponseEntity<?> postLike(@PathVariable Long postId,@RequestHeader("X-User-LoginId") String loginId){
         PostLikeResDto likeInfo = PostLikeService.togglePostLike(postId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 좋아요 완료",likeInfo),HttpStatus.OK);
+    }
+
+//    투표 좋아요 완료
+    @PostMapping("/vote/like/{voteId}")
+    public ResponseEntity<?> voteLike(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
+        PostLikeResDto likeInfo = PostLikeService.toggleVoteLike(voteId,loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표 게시물 좋아요 완료",likeInfo),HttpStatus.OK);
     }
 
 

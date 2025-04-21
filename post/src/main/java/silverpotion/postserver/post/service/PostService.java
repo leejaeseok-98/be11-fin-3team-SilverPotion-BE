@@ -3,6 +3,7 @@ package silverpotion.postserver.post.service;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
+import org.apache.catalina.User;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
@@ -48,6 +49,9 @@ public class PostService {
     private final ObjectMapper objectMapper;
     private final VoteRepository voteRepository;
     private final PostQueryRepository postQueryRepository;
+    private final VoteLikeRepository voteLikeRepository;
+    private final VoteAnswerRepository voteAnswerRepository;
+    private final VoteOptionsRepository voteOptionsRepository;
 //    private final NotificationService notificationService;
 
     @Value("${cloud.aws.s3.bucket}")
@@ -55,7 +59,7 @@ public class PostService {
     @Value("${cloud.aws.region.static}")
     private String region;
 
-    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper, VoteRepository voteRepository, PostQueryRepository postQueryRepository) {
+    public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper, VoteRepository voteRepository, PostQueryRepository postQueryRepository, VoteLikeRepository voteLikeRepository, VoteAnswerRepository voteAnswerRepository, VoteOptionsRepository voteOptionsRepository) {
         this.postRepository = postRepository;
         this.gatheringRepository = gatheringRepository;
         this.postFileRepository = postFileRepository;
@@ -68,6 +72,9 @@ public class PostService {
         this.objectMapper = objectMapper;
         this.voteRepository = voteRepository;
         this.postQueryRepository = postQueryRepository;
+        this.voteLikeRepository = voteLikeRepository;
+        this.voteAnswerRepository = voteAnswerRepository;
+        this.voteOptionsRepository = voteOptionsRepository;
     }
 
     //    1. 게시물 생성시, 카테고리 유형 저장(임시저장)
@@ -166,11 +173,20 @@ public class PostService {
 
     // 4. 투표 게시물 저장
     private void saveVotePost(Vote vote, Long userId, VotePostUpdateDto dto) {
-        vote.update(userId,dto); // 예시
+        List<String> optionsList = dto.getVoteOptions(); //dto에서 옵션 문자열 리스트 추출
+
+//        voteoptions 객체 리스트 생성
+        List<VoteOptions> voteOptionsList = optionsList.stream().map(text -> VoteOptions.builder()
+                        .optionText(text)
+                        .vote(vote)
+                        .build())
+                .collect(Collectors.toList());
+        vote.update(userId,dto,voteOptionsList); // 예시
         vote.changeStatus(PostStatus.fin);
         voteRepository.save(vote);
         // 투표 항목 저장 등 로직 추가 필요
     }
+
 
     //  5. S3에 이미지저장
     public String uploadImage(MultipartFile file) {
@@ -221,20 +237,45 @@ public class PostService {
 
     private PostVoteResDTO convertToDto(PostVoteUnionDto dto) {
         List<String> voteOptions = null;
+        System.out.println("복수여부" +dto.getMultiChoice());
+        System.out.println("타입"+ dto.getType());
 
         if (dto.getVoteOptions() instanceof List) {
             voteOptions = dto.getVoteOptions();
         }
 
+        Long likeCount = 0L;
+        Long commentCount = 0L;
+
+        if (dto.getType().equals("FREE")) {
+            likeCount = postLikeRepository.countPostLikes(dto.getId());
+            commentCount = commentRepository.countPostComments(dto.getId());
+        } else if (dto.getType().equals("NOTICE")) {
+            likeCount = postLikeRepository.countPostLikes(dto.getId());
+            commentCount = commentRepository.countPostComments(dto.getId());
+        } else if (dto.getType().equals("VOTE")) {
+            likeCount = postLikeRepository.countPostLikes(dto.getId());
+            commentCount = commentRepository.countPostComments(dto.getId());
+        }
+
+        List<String> imageUrls = postFileRepository.findByPostId(dto.getId()).stream()
+                .map(PostFile::getFileUrl).collect(Collectors.toList());
+
+
         return PostVoteResDTO.builder()
                 .id(dto.getId())
                 .title(dto.getTitle())
                 .content(dto.getContent())
+                .likeCount(likeCount)
+                .commentCount(commentCount)
                 .createdAt(dto.getCreatedAt())
                 .type(dto.getType())
                 .viewCount(dto.getViewCount())
                 .multipleChoice(dto.getMultiChoice())
                 .voteOptions(voteOptions)
+                .nickname(dto.getNickname())
+                .profileImage(dto.getProfileImage())
+                .imageUrls(imageUrls)
                 .build();
     }
 
@@ -341,10 +382,28 @@ public class PostService {
                 DelYN.N,PostStatus.fin,pageable);
         return voteList.map(vote ->
         {
-            UserProfileInfoDto writerInfo = profileList.get(vote.getWriterId());
 
-            return VoteResListDto.fromEntity(vote,writerInfo);
+            UserProfileInfoDto writerInfo = profileList.get(vote.getWriterId());
+            boolean isParticipants = voteAnswerRepository.existsByUserIdAndVoteId(userId, vote.getVoteId());
+
+            return VoteResListDto.fromEntity(vote,writerInfo,isParticipants);
         });
+    }
+
+//    투표상세조회
+    public VoteDetailResDto getVoteDetail(Long voteId,String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+        Vote vote = voteRepository.findById(voteId).orElseThrow(()-> new EntityNotFoundException("Vote not found"));
+        Long writerId = vote.getWriterId();
+        UserProfileInfoDto userProfileInfoDto = userClient.getUserProfileInfo(writerId);
+        Long participantsCount = voteAnswerRepository.countDistinctUserByVoteId(voteId);
+        Long voteLikeCount = voteLikeRepository.countByVote(vote);
+        Long commentCount = voteRepository.countVoteComments(vote.getVoteId());
+        boolean isLiked = voteLikeRepository.existsByVoteAndUserId(vote,userId);
+        String isLike = isLiked ? "Y" : "N";
+
+
+        return VoteDetailResDto.fromEntity(vote,voteLikeCount,commentCount,isLike,participantsCount,userProfileInfoDto);
     }
 
 //    게시물 상세조회
@@ -362,16 +421,34 @@ public class PostService {
         // 게시물 좋아요 개수 조회
         Long postLikeCount = postRepository.countPostLikes(postId);
 
+//        부모 댓글만 조회(parent == null)
+        List<Comment> parentComments = commentRepository.findByPostAndParentIsNull(post);
+
+//        각 부모 댓글과 그 자식 댓글(대댓글)을 계층적으로 구성
         // 댓글 목록 조회
-        List<Comment> comments = commentRepository.findByPost(post);
-        List<CommentListResDto> commentList = comments.stream()
-                .map(comment -> {
-                    Long commentLikeCount = commentRepository.countCommentLikes(comment.getId());
-                    boolean isCommentLiked = commentLikeRepository.existsByCommentIdAndUserId(comment.getId(), userId);
-                    String isCommentLike = isCommentLiked ? "Y" : "N";
-                    return CommentListResDto.fromEntity(comment, commentLikeCount, isCommentLike, writerProfile);
+        List<CommentListResDto> commentList = parentComments.stream()
+                .map(parent -> {
+                    Long parentLikeCount = commentRepository.countCommentLikes(parent.getId());
+                    boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
+                    String isParentLike = isParentLiked ? "Y" : "N";
+
+//                    대댓글 리스트 구성
+                    List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
+                        Long childLikeCount = commentRepository.countCommentLikes(child.getId());
+                        boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
+                        String isChildLike = isChildLiked ? "Y" : "N";
+
+                        return CommentListResDto.fromEntity(child,childLikeCount,isChildLike,writerProfile);
+                    }).collect(Collectors.toList());
+
+//              부모 댓글 DTO생성 후 대댓글 추가
+                    CommentListResDto parentDto = CommentListResDto.fromEntity(parent,parentLikeCount,isParentLike,writerProfile);
+                    parentDto.setReplies(childDtos);
+                    return parentDto;
                 })
                 .collect(Collectors.toList());
+
+
 
         // 사용자의 좋아요 여부 확인
         boolean isLiked = postLikeRepository.existsByPostIdAndUserId(postId,userId);

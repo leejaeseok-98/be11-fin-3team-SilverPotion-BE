@@ -43,6 +43,17 @@ public class CareRelationService {
         CareRelation careRelation = careRelationRepository.save(dto.toEntityFromCreateDto(protector,dependent));
     }
 
+//    1-2.관계요청 보내기(이때 로그인 아이디는 피보호자가 될 유저)
+    public void sendCareLinkFromDependent(CareRelationCreateDto dto, String loginId){
+        User dependent = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        User protector = userRepository.findByPhoneNumberAndDelYN(dto.getPhoneNumber(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다2"));
+        if(dependent.getHealingPotion()<1){
+            throw new IllegalArgumentException("연결을 위해서는 힐링포션 1개가 필요합니다");
+        }
+        dependent.updateMyHealingPotion(-1);
+        CareRelation careRelation = careRelationRepository.save(dto.toEntityFromCreateDto(protector,dependent));
+    }
+
 //    2.내게 온 연결 요청 조회(이때 로그인 아이디는 피보호자가 될 유저)
     public List<CareRelationListDto> checkLink(String loginId){
        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));

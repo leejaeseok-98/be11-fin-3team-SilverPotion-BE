@@ -24,7 +24,7 @@ public class ChatController {
         this.userFeign = userFeign;
     }
 
-    // ✅ 1. 채팅방 생성
+    // ✅ 1.1 채팅방 생성 - 1:1
     @PostMapping("/room")
     public ResponseEntity<ChatRoomDto> createRoom(
             @RequestBody CreateChatRoomRequest request,
@@ -33,8 +33,18 @@ public class ChatController {
         ChatRoomDto room = chatRoomService.createRoom(request, httpRequest);
         return ResponseEntity.ok(room);
     }
+
+    // ✅ 1.2 채팅방 생성 - 그룹
+//    @PostMapping("/room/group")
+//    public ResponseEntity<ChatRoomDto> createGroupRoom(
+//            @RequestBody CreateChatRoomRequest request,
+//            HttpServletRequest httpRequest
+//    ) {
+//        ChatRoomDto room = chatRoomService.createGroupRoom(request, httpRequest);
+//        return ResponseEntity.ok(room);
+//    }
     // ✅ 2. 메시지 읽음 처리
-    @PatchMapping("/chat/room/{roomId}/read")
+    @PatchMapping("/room/{roomId}/read")
     public ResponseEntity<Void> updateLastReadMessage(
             @PathVariable Long roomId,
             @RequestParam Long userId,

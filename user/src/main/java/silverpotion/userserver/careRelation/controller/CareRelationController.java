@@ -23,12 +23,19 @@ public class CareRelationController {
         this.careRelationService = careRelationService;
     }
 
-    // 1.연결 요청 보내기
+    // 1.연결 요청 보내기(보호자가 피보호자에게)
 //    이때 로그인 아이디는 연결을 보내는 사람이니까 보호자가 될 유저.
     @PostMapping("/send")
     public ResponseEntity<?> sendCareLink(@RequestBody CareRelationCreateDto dto, @RequestHeader("X-User-LoginId")String loginId){
         careRelationService.sendCareLink(dto,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.CREATED.value(), "sending success","success"),HttpStatus.CREATED);
+    }
+
+    //1-2. 연결 요청 보내기(피보호자가 보호자에게)
+    @PostMapping("/sendFromDependent")
+    public ResponseEntity<?> sendCareLinkFromDependent(@RequestBody CareRelationCreateDto dto, @RequestHeader("X-User-LoginId")String loginId){
+        careRelationService.sendCareLinkFromDependent(dto,loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.CREATED.value(), "sendign success","success"),HttpStatus.CREATED);
     }
 
     // 2.내가 받은 연결 요청 조회

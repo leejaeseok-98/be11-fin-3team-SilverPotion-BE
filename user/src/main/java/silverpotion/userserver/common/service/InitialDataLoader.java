@@ -40,10 +40,10 @@ public class InitialDataLoader implements CommandLineRunner {
                     .loginId("user")
                     .password(passwordEncoder.encode("12341234"))
                     .nickName("홍홍홍")
-                    .email("riri")
-                    .address("010")
-                    .zipcode("010")
-                    .detailAddress("010")
+                    .email("trot@naver.com")
+                    .address("서울시 동작구 신대방동 101로")
+                    .zipcode("01010")
+                    .detailAddress("현대아파트 101호")
                     .region("서울시 동작구")
                     .build();
 
@@ -53,17 +53,17 @@ public class InitialDataLoader implements CommandLineRunner {
             User admin = User.builder()
                     .sex(Sex.FEMALE)
                     .role(Role.ADMIN)
-                    .phoneNumber("01055881234")
-                    .name("신림00년생여자")
+                    .phoneNumber("01012345678")
+                    .name("이재석")
                     .birthday("19990102")
                     .loginId("admin")
                     .password(passwordEncoder.encode("12341234"))
-                    .nickName("홍홍홍")
-                    .email("riri")
-                    .address("010")
-                    .zipcode("010")
-                    .detailAddress("010")
-                    .region("서울시 동작구")
+                    .nickName("재스기")
+                    .email("mcu@naver.com")
+                    .address("서울시 노원구 노원동 101로")
+                    .zipcode("011123")
+                    .detailAddress("삼성아파트 101호")
+                    .region("서울시 노원구")
                     .build();
 
             userRepository.save(admin);
@@ -72,19 +72,38 @@ public class InitialDataLoader implements CommandLineRunner {
             User user1 = User.builder()
                     .sex(Sex.FEMALE)
                     .role(Role.USER)
-                    .phoneNumber("01095551234")
-                    .name("고등학생")
+                    .phoneNumber("01022345678")
+                    .name("경수혁")
                     .birthday("20000401")
                     .loginId("user1")
                     .password(passwordEncoder.encode("12341234"))
-                    .nickName("보딩고지")
-                    .email("qwer")
-                    .address("010")
-                    .zipcode("010")
-                    .detailAddress("010")
-                    .region("서울시 동작구")
+                    .nickName("캡틴경")
+                    .email("captain@naver.com")
+                    .address("서울시 관악구 신림동 신림로 ")
+                    .zipcode("01011")
+                    .detailAddress("레미안 101호")
+                    .region("서울시 관악구")
                     .build();
             userRepository.save(user1);
+        }
+
+        if(!userRepository.findByLoginIdAndDelYN("user2",DelYN.N).isPresent()){
+            User user2 = User.builder()
+                    .sex(Sex.FEMALE)
+                    .role(Role.USER)
+                    .phoneNumber("01022335678")
+                    .name("최영일")
+                    .birthday("20000401")
+                    .loginId("user2")
+                    .password(passwordEncoder.encode("12341234"))
+                    .nickName("01쨔응")
+                    .email("0101@naver")
+                    .address("경기도 안양시 안양1번가 ")
+                    .zipcode("01012")
+                    .detailAddress("자이 101호")
+                    .region("경기도 안양시")
+                    .build();
+            userRepository.save(user2);
         }
 
 

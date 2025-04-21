@@ -235,7 +235,7 @@ public class GatheringService {
         }
 
         // Step 2: 조건별로 Gathering 가져오기
-        gatherings = gatheringRepository.findAll().stream()
+        gatherings = gatheringRepository.findByDelYN(DelYN.N).stream()
                 .filter(g -> (category == null || g.getGatheringCategory().getName().equals(category)) &&
                         (gatheringName == null || g.getGatheringName().contains(gatheringName)) &&
                         (region == null || g.getRegion().contains(region)) &&
@@ -260,13 +260,15 @@ public class GatheringService {
 
     // 모임별 userList
     public List<GatheringPeopleDto> getGatheringUserList(Long gatheringId) {
-        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringIdAndStatus(gatheringId, Status.ACTIVATE);
+//        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringIdAndStatus(gatheringId, Status.ACTIVATE);
+        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringId(gatheringId);
 
         return gatheringPeopleList.stream().map(gatheringPeople -> {
             // User 정보 조회
             UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(gatheringPeople.getUserId());
 
             return new GatheringPeopleDto(
+                    gatheringPeople.getId(),
                     gatheringPeople.getGathering().getId(),
                     gatheringPeople.getUserId(),
                     profileInfo.getNickname(),

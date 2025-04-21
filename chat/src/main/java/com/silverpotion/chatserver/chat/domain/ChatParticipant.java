@@ -23,6 +23,12 @@ public class ChatParticipant  extends BaseTimeEntity {
 
     private Long userId;
 
+    @Column(nullable = false)
+    private String loginId;
+
+    @Column(nullable = false)
+    private String nickname;
+
     private boolean isConnected;
 
     private Long lastReadMessageId;

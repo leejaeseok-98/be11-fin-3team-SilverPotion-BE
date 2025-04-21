@@ -175,6 +175,13 @@ public class    UserController {
            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",potions),HttpStatus.OK);
     }
 
+    //16. 로그인 아이디 받으면 해당 아이디를 가진 유저의 이름과 닉네임반환(화상채팅 화면용 api)
+    @PostMapping("/whatisyourname")
+    public ResponseEntity<?> getMyNames(@RequestHeader("X-User-LoginId")String loginId,@RequestBody UserReturnNameInfoDto dto){
+        List<String>nameInfo = userService.getMyNames(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",nameInfo),HttpStatus.OK);
+    }
+
 //    게시물 조회시, 작성자 프로필 조회
     @PostMapping("/post/profileInfo")
     public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){

@@ -84,4 +84,13 @@ public class MeetingController {
         List<MeetingInfoDto> dtos = meetingService.getMeetingsWithinAWeek();
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "이번 주 예정된 정모들이 조회되었습니다.", dtos), HttpStatus.OK);
     }
+
+    // 정모 삭제
+    @PatchMapping("/delete/{meetingId}")
+    public ResponseEntity<?> deleteMeeting(
+            @PathVariable Long meetingId,
+            @RequestHeader("X-User-LoginId") String loginId) {
+        meetingService.deleteMeeting(meetingId, loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "정모가 삭제되었습니다.", meetingId), HttpStatus.OK);
+    }
 }

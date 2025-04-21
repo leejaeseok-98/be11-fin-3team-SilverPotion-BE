@@ -27,5 +27,9 @@ public class ChatRoom  extends BaseTimeEntity {
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
     private List<ChatParticipant> chatParticipants = new ArrayList<>();
 
+    @Column(name = "last_message_content")
+    private String lastMessageContent;
 
+    @Column(name = "last_message_time")
+    private LocalDateTime lastMessageTime;
 }

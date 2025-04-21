@@ -45,7 +45,7 @@ public class HealthReportController {
     //4. 헬스리포트 올인원 조회
     @PostMapping("/allInOneReport")
     public ResponseEntity<?> AllInOneReport(@RequestHeader("X-User-LoginId")String loginId, @RequestBody HealthReportSelectReqDto dto){
-        HealthReportDto content = healthReportService.AllInOneReport(loginId);
+        HealthReportDto content = healthReportService.AllInOneReport(loginId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "healthReport is uploaded very well",content),HttpStatus.OK);
 
     }

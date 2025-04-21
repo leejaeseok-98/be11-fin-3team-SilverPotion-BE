@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import silverpotion.userserver.careRelation.domain.CareRelation;
+import silverpotion.userserver.careRelation.domain.LinkStatus;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
@@ -21,6 +22,7 @@ import silverpotion.userserver.user.dto.UserPromptDto;
 import silverpotion.userserver.user.repository.UserRepository;
 
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -258,9 +260,40 @@ public class HealthReportService {
     }
 
 //    4.헬스데이터 올인원 조회
-//    public HealthReportDto AllInOneReport(String loginId, HealthReportSelectReqDto dto){
-//
-//    }
+    public HealthReportDto AllInOneReport(String loginId, HealthReportSelectReqDto dto){
+      User loginUser = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException());
+      //내 피보호자 뽑기
+      List<CareRelation> dependentsList = loginUser.getAsDependents().stream().filter(c->c.getLinkStatus()== LinkStatus.CONNECTED).toList();
+      List<User> dependentUsers = dependentsList.stream().map(c->c.getDependent()).toList();
+      //내 보호자 뽑기
+      List<CareRelation> protectorList = loginUser.getAsProtectors().stream().filter(c->c.getLinkStatus()==LinkStatus.CONNECTED).toList();
+      List<User> protectorUsers = protectorList.stream().map(c->c.getProtector()).toList();
+
+      boolean isMyId = loginId.equals(dto.getLoginId());
+      boolean isMyDependent = dependentUsers.stream().anyMatch(u->u.equals(dto.getLoginId()));
+      boolean isMyProtector = protectorUsers.stream().anyMatch(u->u.equals(dto.getLoginId()));
+      //조회하려는 헬스리포트가 내것 또는 내 피보호자 또는 내 보호자의 리포트가 아니라면 조회할 수 없게 막아놓은 것
+      if(!isMyId && !isMyDependent && !isMyProtector){
+          throw new IllegalArgumentException("잘못된 입력입니다");
+      }
+
+        User selectedUser = null;
+        if(isMyId){
+            selectedUser = loginUser;
+        } else{
+            selectedUser = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        }
+        //클라이언트가 선택한 데이터 타입. ex.일간 리포트라면 일간 헬스리포트에서 가지고 왔을거니까
+        DataType selectedType = DataType.valueOf(dto.getType());
+        //사용자가 선택한 날짜는 그날의 데이터에 대한 건강 리포트(그러면 그 다음날 만들어진 리포트를 가지고 와야함)
+        LocalDate selectedDate = LocalDate.parse(dto.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+        HealthData selectedHealthData = selectedUser.getMyHealthData().stream().filter(h->h.getDataType().equals(selectedType)).filter(h->h.getCreatedDate().equals(selectedDate)).findFirst().orElseThrow(()->new EntityNotFoundException("당일 헬스 데이터가 없습니다"));
+        LocalDate makingReportDay = selectedDate.plusDays(1);
+        HealthReport selectedReport = healthReportRepository.findByHealthDataIdAndCreatedDate(selectedHealthData.getId(),makingReportDay).orElseThrow(()->new EntityNotFoundException("없는 데이터입니다"));
+        return selectedReport.toReportDtoFromEntity();
+
+
+    }
 
 
 

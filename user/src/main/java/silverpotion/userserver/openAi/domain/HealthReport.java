@@ -24,6 +24,8 @@ public class HealthReport extends BaseTimeEntity {
     @Column(columnDefinition = "TEXT")
     private String text;
     private LocalDate createdDate;
+    @Enumerated(EnumType.STRING)
+    private DataType dataType;
     @OneToOne
     @JoinColumn(name = "healthdata_id")
     private HealthData healthData;

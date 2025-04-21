@@ -5,8 +5,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import reactor.core.publisher.Mono;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.openAi.dto.HealtReportOfDepReqDto;
 import silverpotion.userserver.openAi.dto.HealthReportDto;
+import silverpotion.userserver.openAi.dto.HealthReportSelectReqDto;
 import silverpotion.userserver.openAi.service.HealthReportService;
 
 import java.time.LocalDate;
@@ -38,7 +40,13 @@ public class HealthReportController {
     public ResponseEntity<?> pastReportOfDep(@RequestHeader("X-User-LoginId")String loginId, @RequestBody HealtReportOfDepReqDto reqDto){
         HealthReportDto dto = healthReportService.pastReportOfDep(loginId,reqDto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"healthReport of your dependent is uploaded successfully",dto),HttpStatus.OK);
+    }
 
+    //4. 헬스리포트 올인원 조회
+    @PostMapping("/allInOneReport")
+    public ResponseEntity<?> AllInOneReport(@RequestHeader("X-User-LoginId")String loginId, @RequestBody HealthReportSelectReqDto dto){
+        HealthReportDto content = healthReportService.AllInOneReport(loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "healthReport is uploaded very well",content),HttpStatus.OK);
 
     }
 

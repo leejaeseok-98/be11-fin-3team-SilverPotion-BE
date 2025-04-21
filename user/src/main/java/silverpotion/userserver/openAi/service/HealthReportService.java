@@ -13,6 +13,7 @@ import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
 import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.openAi.dto.HealtReportOfDepReqDto;
 import silverpotion.userserver.openAi.dto.HealthReportDto;
+import silverpotion.userserver.openAi.dto.HealthReportSelectReqDto;
 import silverpotion.userserver.openAi.repository.HealthReportRepository;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
@@ -86,7 +87,7 @@ public class HealthReportService {
                 });
     }
     //1-1.<일간>헬스리포트 생성
-    public Mono<String> dailyReportMake(String loginId) {
+    public Mono<HealthReport> dailyReportMake(String loginId) {
         User user = userRepository.findByLoginIdAndDelYN(loginId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
         UserPromptDto promtInfo = user.healthPromptForDay();
 
@@ -100,8 +101,8 @@ public class HealthReportService {
                                         "  \"심박수\": \"평균 심박수는 79bpm으로 안정적인 상태입니다.\",\n" +
                                         "  \"소모칼로리\": \"하루 평균 소모 칼로리는 500kcal로 목표에 도달하지 못했습니다. 가벼운 유산소 운동을 늘려보세요.\",\n" +
                                         "  \"수면\": \"평균 수면 시간은 6시간으로 부족합니다. 최소 7시간 이상 수면을 취해보세요.\",\n" +
-                                        "  \"종합조언\": \"건강 지표는 전반적으로 양호하지만 수면 개선과 운동량 증가가 필요합니다.\"\n" +
-                                        "}\n"
+                                        "  \"전반적인 요약\": \"건강 지표는 전반적으로 양호하지만 수면 개선과 운동량 증가가 필요합니다.\"\n" +
+                                        "}\n"+
                                 "각 카테고리마다 나의 데이터를 나와 비슷한 연령대와 성별을 가진 사람들과 비교해서 상태를 말해주고 또 구체적으로 어떻게 해야 좋을 지, 어제 건강데이터는 이러니까 오늘은 어떻게 하는 걸 추천하는지와 관련해서 답해줘."),
                         Map.of("role", "user", "content", promtInfo.getPrompt())
                 },
@@ -131,7 +132,7 @@ public class HealthReportService {
 
                     healthReportRepository.save(healthReport);
 
-                    return content;
+                    return healthReport;
                 });
     }
 
@@ -222,20 +223,6 @@ public class HealthReportService {
                 });
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 //    2.지난 헬스리포트 조회
     public HealthReportDto pastReport(String loginId, String date){
         LocalDate selectedData = LocalDate.parse(date);
@@ -254,9 +241,6 @@ public class HealthReportService {
         System.out.println(protector.getName());
         List<CareRelation> relation = protector.getAsProtectors();
         //내 관계 중 프론트에서 입력받은 피보호자 id를 가지고 있는 관계를 찾고
-        System.out.println(relation.size());
-        System.out.println(protector.getAsProtectors().get(0).getDependent().getName());
-        System.out.println(protector.getAsProtectors().get(0).getDependent().getId());
 
         System.out.println("요청 받은 dependentId = " + dto.getDependentId());
 
@@ -273,7 +257,19 @@ public class HealthReportService {
         return healthReport.toReportDtoFromEntity();
     }
 
+//    4.헬스데이터 올인원 조회
+//    public HealthReportDto AllInOneReport(String loginId, HealthReportSelectReqDto dto){
 //
+//    }
+
+
+
+
+
+
+
+
+// 프롬프트 뽑아내는 메서드2
 
     public UserPromptDto createWeekPrompt(User user) {
         LocalDate today = LocalDate.now();

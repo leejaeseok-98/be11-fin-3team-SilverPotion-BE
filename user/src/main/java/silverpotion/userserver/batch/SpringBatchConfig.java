@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import silverpotion.userserver.batch.daily.DailyHealthReportProcessor;
+import silverpotion.userserver.batch.daily.DailyHealthReportReader;
+import silverpotion.userserver.batch.daily.DailyHealthReportWriter;
 import silverpotion.userserver.batch.monthly.MonthlyHealthDataProcessor;
 import silverpotion.userserver.batch.monthly.MonthlyHealthDataReader;
 import silverpotion.userserver.batch.monthly.MonthlyHealthDataWriter;
@@ -26,6 +29,9 @@ public class SpringBatchConfig {
 
     private final JobRepository jobRepository; //배치 작업의 실행이력을 db에 저장하는 역할.job이 언제 실행되었는지, 성공했는지 실패했는지 등
     private final PlatformTransactionManager transactionManager; //배치는 db작업을 묶어서 실행하는 경우가 많음. 이걸 트랜잭션 단위로 관리하기 위해 필요한 객체. 얘가 있어야 작업도중 실패하면 롤백이 가능
+    private final DailyHealthReportReader dailyHealthReportReader;
+    private final DailyHealthReportProcessor dailyHealthReportProcessor;
+    private final DailyHealthReportWriter dailyHealthReportWriter;
     private final WeeklyHealthDataReader weeklyHealthDataReader;
     private final WeeklyHealthDataProcessor weeklyHealthDataProcessor;
     private final WeeklyHealthDataWriter weeklyHealthDataWriter;
@@ -35,9 +41,12 @@ public class SpringBatchConfig {
     private final MonthlyHealthDataWriter monthlyHealthDataWriter;
     private final MonthlyHealthReportTasklet monthlyHealthReportTasklet;
 
-    public SpringBatchConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager, WeeklyHealthDataReader weeklyHealthDataReader, WeeklyHealthDataProcessor weeklyHealthDataProcessor, WeeklyHealthDataWriter weeklyHealthDataWriter, WeeklyHealthReportTasklet weeklyHealthReportTasklet, MonthlyHealthDataReader monthlyHealthDataReader, MonthlyHealthDataProcessor monthlyHealthDataProcessor, MonthlyHealthDataWriter monthlyHealthDataWriter, MonthlyHealthReportTasklet monthlyHealthReportTasklet) {
+    public SpringBatchConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager, DailyHealthReportReader dailyHealthReportReader, DailyHealthReportProcessor dailyHealthReportProcessor, DailyHealthReportWriter dailyHealthReportWriter, WeeklyHealthDataReader weeklyHealthDataReader, WeeklyHealthDataProcessor weeklyHealthDataProcessor, WeeklyHealthDataWriter weeklyHealthDataWriter, WeeklyHealthReportTasklet weeklyHealthReportTasklet, MonthlyHealthDataReader monthlyHealthDataReader, MonthlyHealthDataProcessor monthlyHealthDataProcessor, MonthlyHealthDataWriter monthlyHealthDataWriter, MonthlyHealthReportTasklet monthlyHealthReportTasklet) {
         this.jobRepository = jobRepository;
         this.transactionManager = transactionManager;
+        this.dailyHealthReportReader = dailyHealthReportReader;
+        this.dailyHealthReportProcessor = dailyHealthReportProcessor;
+        this.dailyHealthReportWriter = dailyHealthReportWriter;
         this.weeklyHealthDataReader = weeklyHealthDataReader;
         this.weeklyHealthDataProcessor = weeklyHealthDataProcessor;
         this.weeklyHealthDataWriter = weeklyHealthDataWriter;
@@ -65,11 +74,6 @@ public class SpringBatchConfig {
                 .writer(dailyHealthReportWriter)
                 .build();
     }
-
-
-
-
-
 
 
 //    위클리 잡-----------------------------------------------------------------------------------------------------------------------

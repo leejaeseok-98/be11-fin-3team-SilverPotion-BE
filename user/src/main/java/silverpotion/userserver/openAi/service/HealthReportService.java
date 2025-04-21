@@ -85,6 +85,56 @@ public class HealthReportService {
                     return content;
                 });
     }
+    //1-1.<일간>헬스리포트 생성
+    public Mono<String> dailyReportMake(String loginId) {
+        User user = userRepository.findByLoginIdAndDelYN(loginId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
+        UserPromptDto promtInfo = user.healthPromptForDay();
+
+        // GPT에 보낼 요청 본문 구성
+        Map<String, Object> requestBody = Map.of(
+                "model", "gpt-4o",
+                "messages", new Object[]{
+                        Map.of("role", "system", "content", "너는 내 나이와 성별을 고려해서 어제 건강데이터에 대한 설명을 해줘야 해. 전반적인 요약 , 걸음 수, 심박수, 소모칼로리, 수면에 대해 답을 하고" +
+                                "답은  다음 형식의 json 문자열로 응답해줘. 각 카테고리는 반드시 포함되어야 하고 그 외에는 아무 말도 하지마. " + "{\n" +
+                                        "  \"걸음\": \"이번 주 평균 걸음 수는 8000보입니다. 적당한 활동량입니다.\",\n" +
+                                        "  \"심박수\": \"평균 심박수는 79bpm으로 안정적인 상태입니다.\",\n" +
+                                        "  \"소모칼로리\": \"하루 평균 소모 칼로리는 500kcal로 목표에 도달하지 못했습니다. 가벼운 유산소 운동을 늘려보세요.\",\n" +
+                                        "  \"수면\": \"평균 수면 시간은 6시간으로 부족합니다. 최소 7시간 이상 수면을 취해보세요.\",\n" +
+                                        "  \"종합조언\": \"건강 지표는 전반적으로 양호하지만 수면 개선과 운동량 증가가 필요합니다.\"\n" +
+                                        "}\n"
+                                "각 카테고리마다 나의 데이터를 나와 비슷한 연령대와 성별을 가진 사람들과 비교해서 상태를 말해주고 또 구체적으로 어떻게 해야 좋을 지, 어제 건강데이터는 이러니까 오늘은 어떻게 하는 걸 추천하는지와 관련해서 답해줘."),
+                        Map.of("role", "user", "content", promtInfo.getPrompt())
+                },
+                "temperature", 0.7 //temperature은 답변의 창의성 정도
+        );
+
+        return openAiWebClient.post()
+                .uri("/chat/completions")//GPT에게 포스트 요청 보내는데
+                .bodyValue(requestBody)//요청 본문에 위에서 구성한 requestBody담고 요청
+                .retrieve()//요청에 대한 비동기 응답을 받고
+                .bodyToMono(Map.class)//GPT의 JSON응답구조를 Map으로 파싱하는데 비동기적으로 Mono로 감싼다.
+                .map(response -> {
+                    var choices = (List<Map<String, Object>>) response.get("choices"); // 응답에서 "choices" 배열 꺼내기
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message"); // 첫 번째 choice 안의 "message" 꺼내기
+                    String content = (String) message.get("content"); // 그 안에서 content꺼내서 리턴(content가 GPT가 생성한 답변 문장)
+                    // 헬스리포트 생성해서 저장
+
+                    LocalDate today = LocalDate.now();
+                    HealthData healthData = promtInfo.getHealthData();
+
+                    HealthReport healthReport = HealthReport.builder()
+                            .text(content)
+                            .healthData(healthData)
+                            .createdDate(today)
+                            .dataType(silverpotion.userserver.openAi.domain.DataType.DAY)
+                            .build();
+
+                    healthReportRepository.save(healthReport);
+
+                    return content;
+                });
+    }
+
 
     // 1-2.<주간>헬스리포트 생성
     public Mono<String> weeklyReportMake(String loginId) {

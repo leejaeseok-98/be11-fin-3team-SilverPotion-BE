@@ -9,7 +9,16 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import silverpotion.userserver.batch.monthly.MonthlyHealthDataProcessor;
+import silverpotion.userserver.batch.monthly.MonthlyHealthDataReader;
+import silverpotion.userserver.batch.monthly.MonthlyHealthDataWriter;
+import silverpotion.userserver.batch.monthly.MonthlyHealthReportTasklet;
+import silverpotion.userserver.batch.weekly.WeeklyHealthDataProcessor;
+import silverpotion.userserver.batch.weekly.WeeklyHealthDataReader;
+import silverpotion.userserver.batch.weekly.WeeklyHealthDataWriter;
+import silverpotion.userserver.batch.weekly.WeeklyHealthReportTasklet;
 import silverpotion.userserver.healthData.domain.HealthData;
+import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.user.domain.User;
 
 @Configuration
@@ -38,7 +47,32 @@ public class SpringBatchConfig {
         this.monthlyHealthDataWriter = monthlyHealthDataWriter;
         this.monthlyHealthReportTasklet = monthlyHealthReportTasklet;
     }
+//    데일리 잡--------------------------------------------------------------------------------------------------------------------------
+    @Bean
+    @Qualifier("dailyMakingReport")
+    public Job dailyMakingReport(){
+        return new JobBuilder("dailyMakingReport",jobRepository)
+                .start(dailyReportStep())
+                .build();
+    }
 
+    @Bean
+    public Step dailyReportStep(){
+        return new StepBuilder("dailyReportStep",jobRepository)
+                .<User, HealthReport>chunk(100,transactionManager)
+                .reader(dailyHealthReportReader)
+                .processor(dailyHealthReportProcessor)
+                .writer(dailyHealthReportWriter)
+                .build();
+    }
+
+
+
+
+
+
+
+//    위클리 잡-----------------------------------------------------------------------------------------------------------------------
 
     @Bean
     @Qualifier("weeklyAverageHealthJob")
@@ -77,7 +111,7 @@ public class SpringBatchConfig {
                 .build();
     }
 
-
+    //    먼슬리 잡-----------------------------------------------------------------------------------------------------------------------
     @Bean
     @Qualifier("monthlyAverageHealthJob")
     public Job monthlyAverageHealthJob(){

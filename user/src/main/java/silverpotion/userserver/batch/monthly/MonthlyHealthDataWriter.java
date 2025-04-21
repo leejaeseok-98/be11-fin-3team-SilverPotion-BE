@@ -1,4 +1,4 @@
-package silverpotion.userserver.batch;
+package silverpotion.userserver.batch.monthly;
 
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;
@@ -7,11 +7,11 @@ import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
 
 @Component
-public class WeeklyHealthDataWriter implements ItemWriter<HealthData> {
+public class MonthlyHealthDataWriter implements ItemWriter<HealthData> {
 
     private final HealthDataRepository healthDataRepository;
 
-    public WeeklyHealthDataWriter(HealthDataRepository healthDataRepository) {
+    public MonthlyHealthDataWriter(HealthDataRepository healthDataRepository) {
         this.healthDataRepository = healthDataRepository;
     }
 
@@ -21,6 +21,5 @@ public class WeeklyHealthDataWriter implements ItemWriter<HealthData> {
 
     public void write(Chunk<? extends HealthData> chunk) throws Exception {
             healthDataRepository.saveAll(chunk);
-            healthDataRepository.flush(); // 현재 전체 job에서 이 주간데이터가 다 만들어져도 db에는 바로 저장이 안되서 주간데이터를 기반으로 주간리포트를 만드는 다음 스탭에서 에러가 남. 따라서 flush 는 db로 즉시 쿼리를 날리게 함
     }
 }

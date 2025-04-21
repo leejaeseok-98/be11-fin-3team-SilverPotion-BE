@@ -23,10 +23,10 @@ public class StompController {
     @MessageMapping("/room/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId, Message<?> message) {
         // 1. STOMP 세션에서 loginId 꺼냄
+
         System.out.println("✅ [StompController] sendMessage() 호출됨");
         StompHeaderAccessor accessor = StompHeaderAccessor.wrap(message);
         Long userId = (Long) accessor.getSessionAttributes().get("id");
-        System.out.println(userId);
         if (userId == null) {
             System.out.println("❌ loginId 세션 없음");
             return;

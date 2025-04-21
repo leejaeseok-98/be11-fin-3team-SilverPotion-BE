@@ -64,7 +64,7 @@ public class ChatRoomService {
 
         if (existingRoomOpt.isPresent()) {
             ChatRoom room = existingRoomOpt.get();
-            return new ChatRoomDto(room.getId(), room.getTitle(), room.getType(), room.getCreatedAt());
+            return new ChatRoomDto(room.getId(), room.getTitle(), room.getType(), room.getCreatedAt(),room.getLastMessageContent(), room.getLastMessageTime());
         } else {
             // 닉네임 조회
             String otherNickName = userFeign.getNicknameByUserId(otherUserId);
@@ -82,6 +82,8 @@ public class ChatRoomService {
             for (Long userId : request.getUserIds()) {
                 ChatParticipant participant = new ChatParticipant();
                 participant.setUserId(userId);
+                participant.setLoginId(userFeign.getLoginIdByUserId(userId));
+                participant.setNickname(userFeign.getNicknameByUserId(userId));
                 participant.setChatRoom(room);
                 participant.setJoinedAt(LocalDateTime.now());
                 participant.setConnected(false);
@@ -90,49 +92,56 @@ public class ChatRoomService {
 
             chatParticipantRepository.saveAll(participants);
 
-            return new ChatRoomDto(room.getId(), room.getTitle(), room.getType(), room.getCreatedAt());
+            return new ChatRoomDto(room.getId(), room.getTitle(), room.getType(), room.getCreatedAt(),room.getLastMessageContent(), room.getLastMessageTime());
         }
     }
 
+    //나의 채팅방 조회
     public List<ChatRoomDto> getRoomsByUserId(Long userId) {
         List<ChatParticipant> list = chatParticipantRepository.findByUserId(userId);
         return list.stream()
                 .map(cp -> {
                     ChatRoom r = cp.getChatRoom();
-                    return new ChatRoomDto(r.getId(), r.getTitle(), r.getType(), r.getCreatedAt());
+                    return new ChatRoomDto(r.getId(), r.getTitle(), r.getType(), r.getCreatedAt(),r.getLastMessageContent(), r.getLastMessageTime());
                 })
                 .collect(Collectors.toList());
     }
 
-    //메시지 발생시 DB저장 및 kafka로 메시지 발행(chat-topic)
-    public ChatMessageDto saveAndPublish(Long roomId, ChatMessageDto dto) {
-        // 1. 채팅방 존재 확인
-        ChatRoom room = chatRoomRepository.findById(roomId)
-                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
-
-        // 2. DB에 저장
-        ChatMessage message = new ChatMessage();
-        message.setChatRoom(room);
-        message.setSenderId(dto.getSenderId());
-        message.setType(dto.getType());
-        message.setContent(dto.getContent());
-        message.setCreatedAt(LocalDateTime.now());
-
-        chatMessageRepository.save(message);
-
-        // 3. Kafka에 발행
-        try {
-            String json = objectMapper.writeValueAsString(dto);
-            kafkaTemplate.send("chat-topic", json);
-        } catch (JsonProcessingException e) {
-            e.printStackTrace(); // 실제 운영에선 로깅 또는 알림
-        }
-
-        // 4. 저장된 메시지 정보 반환
-        dto.setId(message.getId());
-        dto.setCreatedAt(message.getCreatedAt());
-        return dto;
-    }
+//    //메시지 발생시 DB저장 및 kafka로 메시지 발행(chat-topic)
+//    public ChatMessageDto saveAndPublish(Long roomId, ChatMessageDto dto) {
+//        // 1. 채팅방 존재 확인
+//        ChatRoom room = chatRoomRepository.findById(roomId)
+//                .orElseThrow(() -> new IllegalArgumentException("채팅방이 존재하지 않습니다."));
+//
+//        // 2. DB에 저장
+//        ChatMessage message = new ChatMessage();
+//        message.setChatRoom(room);
+//        message.setSenderId(dto.getSenderId());
+//        message.setType(dto.getType());
+//        message.setContent(dto.getContent());
+//        message.setCreatedAt(LocalDateTime.now());
+//        chatMessageRepository.save(message);
+//        // 저장된 메시지 반환
+//        dto.setId(message.getId());
+//        dto.setCreatedAt(message.getCreatedAt());
+//        dto.setSenderId(message.getSenderId());
+//        dto.setRoomId(message.getChatRoom().getId());
+//        System.out.println("🔥 Kafka 직전 DTO = " + dto);
+//        // Kafka에 발행
+//        try {
+//            String json = objectMapper.writeValueAsString(dto);
+//            System.out.println("📤 Kafka 발행 JSON = " + json);
+//            kafkaTemplate.send("chat-topic", json);
+//        } catch (JsonProcessingException e) {
+//            e.printStackTrace(); // 실제 운영에선 로깅 또는 알림
+//        }
+//        // 마지막 메시지 갱신
+//        room.setLastMessageContent(dto.getContent());
+//        room.setLastMessageTime(message.getCreatedAt());
+//        chatRoomRepository.save(room);
+//
+//        return dto;
+//    }
 
     // 메시지 조회용
     public Page<ChatMessageDto> getMessages(Long roomId, int page, int size) {
@@ -182,6 +191,7 @@ public class ChatRoomService {
     public List<ChatRoomDto> getAllRooms(Long userId) {
         // 유저가 포함된 SINGLE, GROUP 타입 모두 조회
         List<ChatRoom> rooms = chatRoomRepository.findAllByUserId(userId);
+
         return rooms.stream()
                 .map(ChatRoomDto::fromEntity)
                 .collect(Collectors.toList());

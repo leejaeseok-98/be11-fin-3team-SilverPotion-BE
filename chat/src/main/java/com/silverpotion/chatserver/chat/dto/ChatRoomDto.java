@@ -16,12 +16,17 @@ public class ChatRoomDto {
     private String title;
     private ChatRoomType type;
     private LocalDateTime createdAt;
+    private String lastMessageContent;
+    private LocalDateTime lastMessageTime;
     public static ChatRoomDto fromEntity(ChatRoom chatRoom) {
         return new ChatRoomDto(
                 chatRoom.getId(),
                 chatRoom.getTitle(),
                 chatRoom.getType(),
-                chatRoom.getCreatedAt()
+                chatRoom.getCreatedAt(),
+                chatRoom.getLastMessageContent(),
+                chatRoom.getLastMessageTime()
         );
     }
+
 }

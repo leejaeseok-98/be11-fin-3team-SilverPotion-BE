@@ -18,6 +18,7 @@ public class UserUpdateDto {
     private String address;
     private String zipcode;
     private String detailAddress;
+    private String region;
 
 
 

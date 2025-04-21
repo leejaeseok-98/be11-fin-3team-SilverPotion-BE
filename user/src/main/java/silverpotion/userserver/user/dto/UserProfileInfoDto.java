@@ -14,6 +14,7 @@ public class  UserProfileInfoDto {
     private String nickname;
     private String address; // ex.도봉구
     private String profileImage;
+    private String birthday;
 
     public static UserProfileInfoDto userProfileInfoDto(Long userId, String nickname,String profileImage,String address){
         return UserProfileInfoDto.builder()

@@ -87,13 +87,15 @@ public class GatheringService {
 
         Long leaderId = userClient.getUserIdByLoginId(loginId);
 
-        // 사용자가 생성한 모임 개수 조회
-        long gatheringCount = gatheringRepository.countByLeaderId(leaderId);
+        // 사용자가 생성한 모임 개수 조회 (삭제되지 않은 모임만)
+        long gatheringCount = gatheringRepository.countByLeaderIdAndDelYN(leaderId, DelYN.N);
         if (gatheringCount >= 8) {
             throw new IllegalArgumentException("하나의 사용자가 생성할 수 있는 최대 모임 개수(8개)를 초과하였습니다.");
         }
 
         Gathering gathering = gatheringRepository.save(dto.toEntity(gatheringCategory, leaderId));
+
+        dto.setGatheringId(gathering.getId());
 
         // 선택한 GatheringCategoryDetail을 기반으로 GatheringDetail 생성
         List<GatheringDetail> gatheringDetails = new ArrayList<>();
@@ -152,7 +154,7 @@ public class GatheringService {
         Long userId = userClient.getUserIdByLoginId(loginId);
 
         // GatheringPeople 테이블에서 사용자가 가입한 gatheringId 가져오기
-        List<Long> gatheringIds = gatheringPeopleRepository.findByUserId(userId)
+        List<Long> gatheringIds = gatheringPeopleRepository.findByUserIdAndStatus(userId, Status.ACTIVATE)
                 .stream()
                 .map(gp -> gp.getGathering().getId())
                 .collect(Collectors.toList());
@@ -177,7 +179,8 @@ public class GatheringService {
                             gathering.getMaxPeople(),
                             category,
                             gathering.getIntroduce(),
-                            peopleCount
+                            peopleCount,
+                            gathering.getLeaderId()
                     );
                 })
                 .collect(Collectors.toList());
@@ -210,28 +213,36 @@ public class GatheringService {
                 gathering.getMaxPeople(),
                 category,
                 gathering.getIntroduce(),
-                peopleCount
+                peopleCount,
+                gathering.getLeaderId()
         );
     }
 
     // 모임 검색
-    public List<GatheringInfoDto> searchGatherings(String category, String gatheringName) {
+    public List<GatheringInfoDto> searchGatherings(String category, String gatheringName, String region, String categoryDetail) {
         List<Gathering> gatherings;
 
-        if (category != null && gatheringName != null) {
-            // 카테고리와 모임명 모두 검색
-            gatherings = gatheringRepository.findByGatheringCategoryNameAndGatheringNameContaining(category, gatheringName);
-        } else if (category != null) {
-            // 카테고리명만 검색
-            gatherings = gatheringRepository.findByGatheringCategoryName(category);
-        } else if (gatheringName != null) {
-            // 모임명만 검색
-            gatherings = gatheringRepository.findByGatheringNameContaining(gatheringName);
+        // Step 1: categoryDetailName으로 gatheringId 리스트 추출
+        List<Long> gatheringIdsWithDetail;
+        if (categoryDetail != null && !categoryDetail.isBlank()) {
+            gatheringIdsWithDetail = gatheringDetailRepository.findByGatheringCategoryDetail_NameContaining(categoryDetail)
+                    .stream()
+                    .map(gd -> gd.getGathering().getId())
+                    .distinct()
+                    .toList();
         } else {
-            // 검색 조건 없으면 전체 목록 조회
-            gatherings = gatheringRepository.findAll();
+            gatheringIdsWithDetail = null;
         }
 
+        // Step 2: 조건별로 Gathering 가져오기
+        gatherings = gatheringRepository.findByDelYN(DelYN.N).stream()
+                .filter(g -> (category == null || g.getGatheringCategory().getName().equals(category)) &&
+                        (gatheringName == null || g.getGatheringName().contains(gatheringName)) &&
+                        (region == null || g.getRegion().contains(region)) &&
+                        (categoryDetail == null || gatheringIdsWithDetail.contains(g.getId())))
+                .toList();
+
+        // Step 3: DTO로 변환
         return gatherings.stream()
                 .map(gathering -> new GatheringInfoDto(
                         gathering.getId(),
@@ -241,13 +252,15 @@ public class GatheringService {
                         gathering.getMaxPeople(),
                         gathering.getGatheringCategory() != null ? gathering.getGatheringCategory().getName() : "미분류",
                         gathering.getIntroduce(),
-                        gatheringPeopleRepository.countByGatheringIdAndStatusActivate(gathering.getId())
+                        gatheringPeopleRepository.countByGatheringIdAndStatusActivate(gathering.getId()),
+                        gathering.getLeaderId()
                 ))
                 .collect(Collectors.toList());
     }
 
     // 모임별 userList
     public List<GatheringPeopleDto> getGatheringUserList(Long gatheringId) {
+//        List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringIdAndStatus(gatheringId, Status.ACTIVATE);
         List<GatheringPeople> gatheringPeopleList = gatheringPeopleRepository.findByGatheringId(gatheringId);
 
         return gatheringPeopleList.stream().map(gatheringPeople -> {
@@ -255,6 +268,7 @@ public class GatheringService {
             UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(gatheringPeople.getUserId());
 
             return new GatheringPeopleDto(
+                    gatheringPeople.getId(),
                     gatheringPeople.getGathering().getId(),
                     gatheringPeople.getUserId(),
                     profileInfo.getNickname(),

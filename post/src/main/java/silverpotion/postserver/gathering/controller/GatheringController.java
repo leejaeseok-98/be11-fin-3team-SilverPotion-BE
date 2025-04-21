@@ -44,7 +44,7 @@ public class GatheringController {
             @PathVariable Long gatheringId,
             @ModelAttribute GatheringUpdateDto dto) {
         gatheringService.updateGathering(loginId, gatheringId, dto);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 정보가 수정되었습니다.", dto), HttpStatus.OK);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 정보가 수정되었습니다.", gatheringId), HttpStatus.OK);
     }
 
     // 내 모임 조회
@@ -72,8 +72,10 @@ public class GatheringController {
     @GetMapping("/search")
     public ResponseEntity<?> searchGatherings(
             @RequestParam(required = false) String category,
-            @RequestParam(required = false) String gatheringName) {
-        List<GatheringInfoDto> result = gatheringService.searchGatherings(category, gatheringName);
+            @RequestParam(required = false) String gatheringName,
+            @RequestParam(required = false) String region,
+            @RequestParam(required = false) String categoryDetail) {
+        List<GatheringInfoDto> result = gatheringService.searchGatherings(category, gatheringName, region, categoryDetail);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 검색되었습니다.", result), HttpStatus.OK);
     }
 

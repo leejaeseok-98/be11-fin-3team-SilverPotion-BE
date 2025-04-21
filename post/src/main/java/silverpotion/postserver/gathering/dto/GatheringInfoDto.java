@@ -14,6 +14,7 @@ public class GatheringInfoDto {
     private String region;
     private Long maxPeople;
     private String category;
-    private String greetingMessage;
+    private String introduce;
     private Long peopleCount;
+    private Long leaderId;
 }

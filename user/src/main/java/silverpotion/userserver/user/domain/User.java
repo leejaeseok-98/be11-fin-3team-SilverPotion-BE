@@ -7,6 +7,7 @@ import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
+import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
 
@@ -98,6 +99,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     @Builder.Default
     private BanYN banYN = BanYN.N;
+    //활동 지역
+    @Column(nullable = false)
+    private String region;
 
 //    정지 만료일 (이 날짜 전까지 정지 상태)
     private LocalDateTime banUntil;
@@ -132,6 +136,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         if(dto.getDetailAddress() != null){
             this.detailAddress = dto.getDetailAddress();
         }
+        if(dto.getRegion() != null){
+            this.region = dto.getRegion();
+        }
     }
 
     //   이미지 등록 메서드
@@ -145,6 +152,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         LocalDate birthday = LocalDate.parse(this.birthday,formatter);
         LocalDate today = LocalDate.now();
         return Period.between(birthday,today).getYears();
+    }
+
+    public String mySex(){
+        return this.sex.toString();
     }
 
     // 실시간 건강프롬프트 생성 메서드
@@ -165,6 +176,48 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
     }
 
+    // 주간 건강프롬프트 생성 메서드
+//    public UserPromptDto healthPromptForWeek(){
+//        LocalDate today = LocalDate.now();
+//        System.out.println("주간 건강프롬프트 생성 메서드에서 today" + today);
+//        //전주에 대한 건강데이터는 매주 월요일에 생성되고, 그 건강데이터를 기반으로 건강리포트가 만들어짐.따라서 이 메서드는 매주 월요일에 호출될 것이니 월요일 기준 오늘만들어진 Week타입 건강데이터를 들고 오면 됨
+//        HealthData weekData = this.myHealthData.stream().filter(h->h.getDataType()==DataType.WEEKAVG).filter(h->h.getCreatedDate().equals(today))
+//                .findFirst().orElseThrow(()->new EntityNotFoundException("리포트가 생성되지 않았습니다"));
+//        //여기서부터 프롬프트
+//        String promt ="나이 : " + this.myAge() +", 성별 : " + this.sex.toString() +
+//                ", 이번 주 평균 걸음 횟수 " + weekData.getStep() + "이번 주 평균 심박수 :" + weekData.getHeartbeat()
+//                +", 이번 주 평균 걸은 거리 : " + weekData.getDistance() + "이번 주 평균 소모 칼로리 : " + weekData.getCalory()
+//                +", 이번 주  평균 총 수면시간(분) : " + weekData.getTotalSleepMinutes() + "이번 주 평균 깊은 수면시간(분) : " +weekData.getDeepSleepMinutes()
+//                +", 이번 주 평균 렘 수면시간(분) : " + weekData.getRemSleepMinutes() + "이번주 평균 얉은 수면시간(분) : " + weekData.getLightSleepMinutes();
+//
+//        return UserPromptDto.builder().healthData(weekData).prompt(promt).build();
+//
+//    }
+
+    // 월간 건강프롬프트 생성 메서드
+    public UserPromptDto healthPromptForMonth(){
+
+                LocalDate today = LocalDate.now();
+        HealthData monthData = this.myHealthData.stream().filter(h->h.getDataType()==DataType.MONTHAVG).filter(h->h.getCreatedDate().equals(today))
+                .findFirst().orElseThrow(()->new EntityNotFoundException("리포트가 생성되지 않았습니다"));
+        //여기서부터 프롬프트
+        String promt ="나이 : " + this.myAge() +", 성별 : " + this.sex.toString() +
+                ", 이번 달 평균 걸음 횟수 " + monthData.getStep() + "이번 달 평균 심박수 :" + monthData.getHeartbeat()
+                +", 이번 달 평균 걸은 거리 : " + monthData.getDistance() + "이번 달 평균 소모 칼로리 : " + monthData.getCalory()
+                +", 이번 달  평균 총 수면시간(분) : " + monthData.getTotalSleepMinutes() + "이번 달 평균 깊은 수면시간(분) : " +monthData.getDeepSleepMinutes()
+                +", 이번 달 평균 렘 수면시간(분) : " + monthData.getRemSleepMinutes() + "이번 달 평균 얕은 수면시간(분) : " + monthData.getLightSleepMinutes();
+
+        return UserPromptDto.builder().healthData(monthData).prompt(promt).build();
+
+    }
+
+
+
+
+
+
+
+
     //파이어베이스 토큰 저장 메서드
     public void getFireBaseToken(TokenRequest tokenRequest){
         this.fireBaseToken = tokenRequest.getToken();
@@ -175,6 +228,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         this.healingPotion += a;
     }
 
+    // 내가 보유한 힐링포션 개수 조회
+    public int howManyPotion(){
+        return this.healingPotion;
+    }
 
     //    회원탈퇴 메서드
     public void withdraw(){
@@ -192,13 +249,14 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return UserMyPageDto.builder().nickName(this.nickName).name(this.name).email(this.email)
                 .sex(this.sex.toString()).phoneNumber(this.phoneNumber).birthday(this.birthday)
                 .address(this.address).zipcode(this.zipcode).detailAddress(this.detailAddress)
-                .healingPotion(this.healingPotion).id(this.id)
+                .healingPotion(this.healingPotion).id(this.id).region(this.region)
+                .profileImage(this.profileImage)
                 .dependentName(dependentNames)
                 .protectorName(protectorNames)
                 .build();
     }
     public UserLinkedUserDto toLinkUserDtoFromEntity(){
-        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).build();
+        return UserLinkedUserDto.builder().userId(this.id).name(this.name).profileImg(this.profileImage).loginId(this.loginId).build();
     }
 
     public List<String> findNameFromDependentList(){
@@ -230,7 +288,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
     public UserProfileInfoDto profileInfoDtoFromEntity(){
         return UserProfileInfoDto.builder().userId(this.id).address(this.address)
-                .nickname(this.nickName).profileImage(this.profileImage).build();
+                .nickname(this.nickName).profileImage(this.profileImage).birthday(this.birthday).build();
     }
 
 

@@ -13,11 +13,18 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 #      ddl-auto: create
     show_sql: true
   application:
     name: user-service
+#    enabled: false를 붙임으로써 잡충돌을 막았음(스케줄러로 수동으로 하니 적합한 설정)
+#    스프링 배치 관련 테이블 자동 생성(배포,운영단계에서는 never로 변경)
+  batch:
+    job:
+      enabled: false
+    initialize-schema: never
+
 #  kafka:
 #    bootstrap-servers: localhost:9092
 #    group-id: my-consumer-group

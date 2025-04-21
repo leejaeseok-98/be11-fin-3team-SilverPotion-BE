@@ -31,17 +31,29 @@ public class ReportService {
 
     public Report reportCreate(ReportCreateResDto reportCreateResDto,String loginId){
         User user = userRepository.findByLoginId(loginId).orElseThrow(()-> new EntityNotFoundException("User Not Found"));
+
         Long reporterId = user.getId(); //신고자 id
+
+        Long reportedId = reportCreateResDto.getReportedId();
+
         if (reporterId == reportCreateResDto.getReportedId()){
             throw new EntityNotFoundException("Self Report");
         }
 
-        User reportedUser = userRepository.findById(reportCreateResDto.getReportedId()).orElseThrow(()-> new EntityNotFoundException("User Not Found"));
-//        중복신고 방지(신고자id, 신고당한 유저id, 신고유형,신고 id where 조건 걸어서 필터링)
-        if (reportRepository.existsByReporterAndReportedIdAndReportBigCategoryAndReferenceId(user,reportedUser
-                ,reportCreateResDto.getReportBigCategory(),reportCreateResDto.getReferenceId())){
+        // 신고 대상 유저가 존재할 경우에만 조회
+        User reportedUser = null;
+        if (reportedId != null) {
+            reportedUser = userRepository.findById(reportedId).orElse(null);
+        }
+
+        // 중복 신고 방지 (reportedUser가 있을 경우에만 체크)
+        boolean isDuplicate = reportRepository.existsByReporterAndReportedIdAndReportBigCategoryAndReferenceId(
+                user, reportedUser, reportCreateResDto.getReportBigCategory(), reportCreateResDto.getReferenceId());
+
+        if (isDuplicate) {
             throw new EntityNotFoundException("Duplicate Report");
         }
+
         Report report = Report.builder()
                 .reporter(user)
                 .reportedId(reportedUser)

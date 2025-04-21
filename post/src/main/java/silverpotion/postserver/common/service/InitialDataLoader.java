@@ -32,7 +32,6 @@ public class InitialDataLoader implements CommandLineRunner {
             GatheringCategory sports = gatheringCategoryRepository.save(GatheringCategory.builder().name("운동/스포츠").build());
             GatheringCategory book = gatheringCategoryRepository.save(GatheringCategory.builder().name("책/글").build());
             GatheringCategory craft = gatheringCategoryRepository.save(GatheringCategory.builder().name("공예").build());
-            GatheringCategory volunteer = gatheringCategoryRepository.save(GatheringCategory.builder().name("봉사활동").build());
             GatheringCategory watching = gatheringCategoryRepository.save(GatheringCategory.builder().name("스포츠관람").build());
             GatheringCategory pet = gatheringCategoryRepository.save(GatheringCategory.builder().name("반려동물").build());
             GatheringCategory music = gatheringCategoryRepository.save(GatheringCategory.builder().name("음악/악기").build());
@@ -72,14 +71,6 @@ public class InitialDataLoader implements CommandLineRunner {
                     GatheringCategoryDetail.builder().name("천연비누/화장품").gatheringCategory(craft).build(),
                     GatheringCategoryDetail.builder().name("캔들/디퓨저").gatheringCategory(craft).build(),
                     GatheringCategoryDetail.builder().name("플라워아트").gatheringCategory(craft).build(),
-
-
-                    GatheringCategoryDetail.builder().name("교육/재능나눔").gatheringCategory(volunteer).build(),
-                    GatheringCategoryDetail.builder().name("보육원").gatheringCategory(volunteer).build(),
-                    GatheringCategoryDetail.builder().name("사회봉사").gatheringCategory(volunteer).build(),
-                    GatheringCategoryDetail.builder().name("양로원").gatheringCategory(volunteer).build(),
-                    GatheringCategoryDetail.builder().name("유기동물보호").gatheringCategory(volunteer).build(),
-                    GatheringCategoryDetail.builder().name("환경봉사").gatheringCategory(volunteer).build(),
 
                     GatheringCategoryDetail.builder().name("농구KBL").gatheringCategory(watching).build(),
                     GatheringCategoryDetail.builder().name("배구V리그").gatheringCategory(watching).build(),

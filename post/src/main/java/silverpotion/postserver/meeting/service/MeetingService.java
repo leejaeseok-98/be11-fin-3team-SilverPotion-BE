@@ -1,10 +1,18 @@
 package silverpotion.postserver.meeting.service;
 
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
+import silverpotion.postserver.common.domain.DelYN;
+import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.common.service.ImageService;
 import silverpotion.postserver.gathering.domain.Gathering;
+import silverpotion.postserver.gathering.dto.GatheringInfoDto;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.meeting.domain.MeetingParticipant;
@@ -18,6 +26,7 @@ import silverpotion.postserver.post.UserClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -162,7 +171,14 @@ public class MeetingService {
     public List<MeetingInfoDto> getMeetingsByGatheringId(Long gatheringId) {
         List<Meeting> meetings = meetingRepository.findByGatheringId(gatheringId);
 
-        return meetings.stream().map(meeting -> {
+        LocalDateTime now = LocalDateTime.now();
+
+        return meetings.stream()
+                .filter(meeting -> {
+                    LocalDateTime meetingDateTime = LocalDateTime.of(meeting.getMeetingDate(), meeting.getMeetingTime());
+                    return meetingDateTime.isAfter(now);
+                })
+                .map(meeting -> {
             // 해당 미팅의 모든 참가자 가져오기
             List<MeetingParticipant> participants = meetingParticipantRepository.findByMeetingId(meeting.getId());
 
@@ -223,6 +239,70 @@ public class MeetingService {
                 .orElseThrow(() -> new IllegalArgumentException("해당 정모에 참석하지 않았습니다."));
 
         meetingParticipantRepository.delete(participant);
+    }
+
+    // 정모 상세 조회
+    public MeetingInfoDto getMeetingById(Long meetingId) {
+        Meeting meeting = meetingRepository.findByIdAndDelYN(meetingId, DelYN.N)
+                .orElseThrow(() -> new EntityNotFoundException("해당 정모를 찾을 수 없습니다."));
+
+        // 해당 미팅의 모든 참가자 가져오기
+        List<MeetingParticipant> participants = meetingParticipantRepository.findByMeetingId(meeting.getId());
+
+        // 참가자 정보를 AttendeeDto 리스트로 변환
+        List<AttendeeDto> attendees = participants.stream().map(participant -> {
+            UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(participant.getUserId());
+            return new AttendeeDto(participant.getUserId(), profileInfo.getNickname(), profileInfo.getProfileImage());
+        }).collect(Collectors.toList());
+
+        return new MeetingInfoDto(
+                meeting.getId(),
+                meeting.getGathering().getId(),
+                meeting.getName(),
+                meeting.getMeetingDate(),
+                meeting.getMeetingTime(),
+                meeting.getPlace(),
+                meeting.getImageUrl(),
+                meeting.getCost(),
+                meeting.getMaxPeople(),
+                attendees
+        );
+    }
+
+    // 다가오는 정모 조회
+    public List<MeetingInfoDto> getMeetingsWithinAWeek() {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime oneWeekLater = now.plusDays(7);
+
+        List<Meeting> meetings = meetingRepository.findAll();
+
+        return meetings.stream()
+                .filter(meeting -> {
+                    LocalDateTime meetingDateTime = LocalDateTime.of(meeting.getMeetingDate(), meeting.getMeetingTime());
+                    return !meetingDateTime.isBefore(now) && !meetingDateTime.isAfter(oneWeekLater);
+                })
+                .map(meeting -> {
+                    List<MeetingParticipant> participants = meetingParticipantRepository.findByMeetingId(meeting.getId());
+
+                    List<AttendeeDto> attendees = participants.stream().map(participant -> {
+                        UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(participant.getUserId());
+                        return new AttendeeDto(participant.getUserId(), profileInfo.getNickname(), profileInfo.getProfileImage());
+                    }).collect(Collectors.toList());
+
+                    return new MeetingInfoDto(
+                            meeting.getId(),
+                            meeting.getGathering().getId(),
+                            meeting.getName(),
+                            meeting.getMeetingDate(),
+                            meeting.getMeetingTime(),
+                            meeting.getPlace(),
+                            meeting.getImageUrl(),
+                            meeting.getCost(),
+                            meeting.getMaxPeople(),
+                            attendees
+                    );
+                })
+                .collect(Collectors.toList());
     }
 
 //    // opensearch

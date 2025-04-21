@@ -9,6 +9,7 @@ import reactor.core.publisher.Mono;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
+import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
 import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.openAi.dto.HealtReportOfDepReqDto;
 import silverpotion.userserver.openAi.dto.HealthReportDto;
@@ -28,11 +29,13 @@ import java.util.Optional;
 public class HealthReportService {
     private final WebClient openAiWebClient;
     private final UserRepository userRepository;
+    private final HealthDataRepository healthDataRepository;
     private final HealthReportRepository healthReportRepository;
 
-    public HealthReportService(@Qualifier("openAi") WebClient openAiWebClient, UserRepository userRepository, HealthReportRepository healthReportRepository) {
+    public HealthReportService(@Qualifier("openAi") WebClient openAiWebClient, UserRepository userRepository, HealthDataRepository healthDataRepository, HealthReportRepository healthReportRepository) {
         this.openAiWebClient = openAiWebClient;
         this.userRepository = userRepository;
+        this.healthDataRepository = healthDataRepository;
         this.healthReportRepository = healthReportRepository;
     }
 
@@ -70,6 +73,7 @@ public class HealthReportService {
                             .text(content)
                             .healthData(healthData)
                             .createdDate(today)
+                            .dataType(silverpotion.userserver.openAi.domain.DataType.DAY)
                             .build();
 
                     if(healthReportOG.isPresent()){ // 이미 오늘자 전 ai리포트 있으면
@@ -81,6 +85,106 @@ public class HealthReportService {
                     return content;
                 });
     }
+
+    // 1-2.<주간>헬스리포트 생성
+    public Mono<String> weeklyReportMake(String loginId) {
+        User user = userRepository.findByLoginIdAndDelYN(loginId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
+        UserPromptDto promtInfo = this.createWeekPrompt(user);
+
+        // GPT에 보낼 요청 본문 구성
+        Map<String, Object> requestBody = Map.of(
+                "model", "gpt-4o",
+                "messages", new Object[]{
+                        Map.of("role", "system", "content", "너는 사용자의 나이와 성별을 고려해서 이번 주 평균 심박수,이번 주 평균 걸음수, 이번 주 평균 걸은 거리, 이번 주 평균 소모칼로리,이번 주 평균 수면기록 에대해 문단별로 각 항목마다 어떤 의미인지 알려주고 그리고 조언도 해주고, 마지막 문단에는 이번 주 평균 건강기록을 기반으로 다음주에 생활 양식 혹은 건강,먹거리 등 조언을 해주며 건강관련한 종합적인 인사이트를 줬으면 좋겠어. "),
+                        Map.of("role", "user", "content", promtInfo.getPrompt())
+                },
+                "temperature", 0.7 //temperature은 답변의 창의성 정도
+        );
+
+        return openAiWebClient.post()
+                .uri("/chat/completions")//GPT에게 포스트 요청 보내는데
+                .bodyValue(requestBody)//요청 본문에 위에서 구성한 requestBody담고 요청
+                .retrieve()//요청에 대한 비동기 응답을 받고
+                .bodyToMono(Map.class)//GPT의 JSON응답구조를 Map으로 파싱하는데 비동기적으로 Mono로 감싼다.
+                .map(response -> {
+                    var choices = (List<Map<String, Object>>) response.get("choices"); // 응답에서 "choices" 배열 꺼내기
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message"); // 첫 번째 choice 안의 "message" 꺼내기
+                    String content = (String) message.get("content"); // 그 안에서 content꺼내서 리턴(content가 GPT가 생성한 답변 문장)
+                    // 헬스리포트 생성해서 저장
+
+                    LocalDate today = LocalDate.now();
+                    HealthData healthData = promtInfo.getHealthData();
+
+                    HealthReport healthReport = HealthReport.builder()
+                            .text(content)
+                            .healthData(healthData)
+                            .createdDate(today)
+                            .dataType(silverpotion.userserver.openAi.domain.DataType.WEEKAVG)
+                            .build();
+
+                    healthReportRepository.save(healthReport);
+
+                    return content;
+                });
+    }
+
+
+
+    // 1-3.<월간>헬스리포트 생성
+    public Mono<String> monthlyReportMake(String loginId) {
+        User user = userRepository.findByLoginIdAndDelYN(loginId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 유저입니다"));
+        UserPromptDto promtInfo = user.healthPromptForMonth();
+
+        // GPT에 보낼 요청 본문 구성
+        Map<String, Object> requestBody = Map.of(
+                "model", "gpt-4o",
+                "messages", new Object[]{
+                        Map.of("role", "system", "content", "너는 사용자의 나이와 성별을 고려해서 이번 달 평균 심박수,이번 달 평균 걸음수, 이번 달 평균 걸은 거리, 이번 달 평균 소모칼로리,이번 달 평균 수면기록 에대해 문단별로 각 항목마다 종합적인 진단을 내려줘 그리고 조언도 해주고, 마지막 문단에는 이번 달 평균 건강기록을 기반으로 다음 달에 생활 양식 혹은 건강,먹거리 등 조언을 해주며 건강관련한 종합적인 인사이트를 줬으면 좋겠어. "),
+                        Map.of("role", "user", "content", promtInfo.getPrompt())
+                },
+                "temperature", 0.7 //temperature은 답변의 창의성 정도
+        );
+
+        return openAiWebClient.post()
+                .uri("/chat/completions")//GPT에게 포스트 요청 보내는데
+                .bodyValue(requestBody)//요청 본문에 위에서 구성한 requestBody담고 요청
+                .retrieve()//요청에 대한 비동기 응답을 받고
+                .bodyToMono(Map.class)//GPT의 JSON응답구조를 Map으로 파싱하는데 비동기적으로 Mono로 감싼다.
+                .map(response -> {
+                    var choices = (List<Map<String, Object>>) response.get("choices"); // 응답에서 "choices" 배열 꺼내기
+                    Map<String, Object> message = (Map<String, Object>) choices.get(0).get("message"); // 첫 번째 choice 안의 "message" 꺼내기
+                    String content = (String) message.get("content"); // 그 안에서 content꺼내서 리턴(content가 GPT가 생성한 답변 문장)
+                    // 헬스리포트 생성해서 저장
+
+                    LocalDate today = LocalDate.now();
+                    HealthData healthData = promtInfo.getHealthData();
+
+                    HealthReport healthReport = HealthReport.builder()
+                            .text(content)
+                            .healthData(healthData)
+                            .createdDate(today)
+                            .dataType(silverpotion.userserver.openAi.domain.DataType.MONTHAVG)
+                            .build();
+
+                    healthReportRepository.save(healthReport);
+
+                    return content;
+                });
+    }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 //    2.지난 헬스리포트 조회
     public HealthReportDto pastReport(String loginId, String date){
@@ -117,6 +221,23 @@ public class HealthReportService {
         HealthData healthData = dependent.getMyHealthData().stream().filter(h->h.getCreatedDate().equals(selectedDate)&&h.getDataType()==DataType.DAY).findFirst().orElseThrow(()->new EntityNotFoundException("당일 건강기록 없습니다"));
         HealthReport healthReport = healthReportRepository.findByHealthDataIdAndCreatedDate(healthData.getId(),selectedDate).orElseThrow(()->new EntityNotFoundException("당일 ai리포트 기록이 없습니다"));
         return healthReport.toReportDtoFromEntity();
+    }
+
+//
+
+    public UserPromptDto createWeekPrompt(User user) {
+        LocalDate today = LocalDate.now();
+        HealthData weekData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(
+                user.getId(), today, DataType.WEEKAVG
+        ).orElseThrow(() -> new EntityNotFoundException("주간 헬스데이터가 없습니다."));
+
+        String promt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+
+                ", 이번 주 평균 걸음 횟수 " + weekData.getStep() + "이번 주 평균 심박수 :" + weekData.getHeartbeat()
+                +", 이번 주 평균 걸은 거리 : " + weekData.getDistance() + "이번 주 평균 소모 칼로리 : " + weekData.getCalory()
+                +", 이번 주  평균 총 수면시간(분) : " + weekData.getTotalSleepMinutes() + "이번 주 평균 깊은 수면시간(분) : " +weekData.getDeepSleepMinutes()
+                +", 이번 주 평균 렘 수면시간(분) : " + weekData.getRemSleepMinutes() + "이번주 평균 얉은 수면시간(분) : " + weekData.getLightSleepMinutes();
+
+        return UserPromptDto.builder().healthData(weekData).prompt(promt).build();
     }
 
 

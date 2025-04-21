@@ -50,20 +50,23 @@ public class ChatMessageService {
                 .isDeleted(false)
                 .build();
         chatMessageRepository.save(message);
-        System.out.println("💾 저장된 메시지: " + message);
-        // 3. Kafka 발행
-        try {
-            dto.setRoomId(roomId); // Kafka에서 사용하기 위해 세팅
-            dto.setId(message.getId());
-            dto.setCreatedAt(message.getCreatedAt());
 
-            String json = objectMapper.writeValueAsString(dto);
+        // 3. 채팅방 마지막 메시지 정보 업데이트
+        room.setLastMessageContent(message.getContent());
+        room.setLastMessageTime(message.getCreatedAt());
+        chatRoomRepository.save(room);
+
+        // 4. Kafka 발행
+        try {
+            ChatMessageDto messageDto = ChatMessageDto.fromEntity(message);
+            String json = objectMapper.writeValueAsString(messageDto);
+            System.out.println("📤 Kafka 발행 JSON = " + json);
             kafkaTemplate.send("chat-topic", json);
+            return messageDto;
         } catch (JsonProcessingException e) {
             e.printStackTrace();
+            throw new RuntimeException("Kafka 메시지 직렬화 실패", e);
         }
-
-        return dto;
     }
 
     /**
@@ -79,4 +82,6 @@ public class ChatMessageService {
     public Long getUserIdByLoginId(String loginId) {
         return userFeign.getUserIdByLoginId(loginId);
     }
+
+
 }

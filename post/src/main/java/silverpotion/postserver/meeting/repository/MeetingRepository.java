@@ -3,6 +3,7 @@ package silverpotion.postserver.meeting.repository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 import silverpotion.postserver.common.domain.DelYN;
+import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.meeting.domain.Meeting;
 
 import java.time.LocalDate;
@@ -13,5 +14,6 @@ import java.util.Optional;
 @Repository
 public interface MeetingRepository extends JpaRepository<Meeting,Long> {
     Optional<Meeting> findByIdAndDelYN(Long id, DelYN delYN);
-    List<Meeting> findByGatheringId(Long gatheringId);
+    List<Meeting> findByGatheringIdAndDelYN(Long gatheringId, DelYN delYN);
+    List<Meeting> findByDelYN(DelYN delYN);
 }

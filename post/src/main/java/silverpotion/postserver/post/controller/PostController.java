@@ -42,11 +42,12 @@ public class PostController {
 
     //    2. 게시물 작성시, 게시물 유형 먼저 저장(임시 저장)
     @PostMapping("/init")
-    public ResponseEntity<?> initPost(@RequestBody PostInitDto dto) {
-        Long postId = postService.createDraftPost(dto); // postId를 받는 이유는 제목,글 저장할 때 post를 바로 찾아가서 저장할 수 있도록!
+    public ResponseEntity<?> initPost(@RequestBody PostInitDto dto,@RequestHeader("X-User-LoginId")String loginId) {
+        Long postId = postService.createDraftPost(dto,loginId); // postId를 받는 이유는 제목,글 저장할 때 post를 바로 찾아가서 저장할 수 있도록!
         Map<String, Object> response = new HashMap<>();
         response.put("postId", postId);
         response.put("category", dto.getPostCategory()); //게시물 유형마다 페이지가 다르니, 카테고리 데이터도 같이 넘김
+        response.put("writerId", loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "임시 저장완료", response), HttpStatus.OK);
     }
 
@@ -84,8 +85,10 @@ public class PostController {
     //    6.게시물 전체 조회
     @GetMapping("/list")
     public ResponseEntity<?> getPostList(@RequestParam(name = "page", defaultValue = "0") Integer page,
-                                         @RequestParam(name = "size", defaultValue = "5") Integer size) {
-        Page<PostVoteResDTO> postListResDtos = postService.getPostAndVoteList(page, size);
+                                         @RequestParam(name = "size", defaultValue = "5") Integer size,
+                                         @RequestHeader("X-User-LoginId") String loginId
+                                         ) {
+        Page<PostVoteResDTO> postListResDtos = postService.getPostAndVoteList(page, size,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시물 리스트 불러오기 완료", postListResDtos), HttpStatus.OK);
     }
 
@@ -118,7 +121,7 @@ public class PostController {
     @GetMapping("/vote/detail/{voteId}")
     public ResponseEntity<?> getVoteDetail(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
         VoteDetailResDto voteDetailResDto = postService.getVoteDetail(voteId,loginId);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "투표 상세조회",HttpStatus.OK),HttpStatus.OK);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "투표 상세조회",voteDetailResDto),HttpStatus.OK);
     }
 
     // 7. 상세게시물 조회

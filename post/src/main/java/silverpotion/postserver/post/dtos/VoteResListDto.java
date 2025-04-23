@@ -26,6 +26,7 @@ public class VoteResListDto {
     private LocalDateTime closeTime;
     private boolean isParticipating;//참여 여부
     private PostCategory postCategory;
+    private Long likeCount;
 
     public static VoteResListDto fromEntity(Vote vote,UserProfileInfoDto writerInfo,boolean isParticipating) {
         return VoteResListDto.builder()
@@ -33,9 +34,13 @@ public class VoteResListDto {
                 .title(vote.getTitle())
                 .description(vote.getDescription())
                 .nickname(writerInfo.getNickname())
+                .postCategory(vote.getPostCategory())
                 .profileImage(writerInfo.getProfileImage())
                 .writerId(vote.getWriterId())
                 .isParticipating(isParticipating)
+                .createTime(vote.getCreatedTime())
+                .closeTime(vote.getCloseTime())
+                .likeCount(vote.getLikeCount())
                 .build();
     }
 }

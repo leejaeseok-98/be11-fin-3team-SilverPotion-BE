@@ -13,8 +13,11 @@ import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
 import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
+import silverpotion.postserver.post.domain.Vote;
+import silverpotion.postserver.post.dtos.UserListDto;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 import silverpotion.postserver.post.repository.PostRepository;
+import silverpotion.postserver.post.repository.VoteRepository;
 
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
@@ -32,28 +35,41 @@ public class CommentService {
     private final RabbitTemplate rabbitTemplate;
     @Qualifier("commentLikeRedisTemplate")
     private final RedisTemplate<String, Object> commentLikeRedisTemplate;
+    private final VoteRepository voteRepository;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserClient userClient, CommentLikeRepository commentLikeRepository, RabbitTemplate rabbitTemplate, @Qualifier("commentLikeRedisTemplate") RedisTemplate<String, Object> commentLikeRedisTemplate) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserClient userClient, CommentLikeRepository commentLikeRepository, RabbitTemplate rabbitTemplate, @Qualifier("commentLikeRedisTemplate") RedisTemplate<String, Object> commentLikeRedisTemplate, VoteRepository voteRepository) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userClient = userClient;
         this.commentLikeRepository = commentLikeRepository;
         this.rabbitTemplate = rabbitTemplate;
         this.commentLikeRedisTemplate = commentLikeRedisTemplate;
+        this.voteRepository = voteRepository;
     }
 
     public Long commentCreate(String loginId, CommentCreateDto commentCreateDto){
         UserProfileInfoDto userProfileInfoDto = userClient.getUserProfileInfo(loginId);
-        Post post = postRepository.findById(commentCreateDto.getPostId()).orElseThrow(()->new EntityNotFoundException("게시물이 없습니다."));
+        Post post = null;
+        Vote vote = null;
+        if (commentCreateDto.getPostId() != null) {
+            post = postRepository.findById(commentCreateDto.getPostId()).orElseThrow(()->new EntityNotFoundException("Post not found"));
+        } else if (commentCreateDto.getVoteId() != null) {
+            vote = voteRepository.findById(commentCreateDto.getVoteId()).orElseThrow(()->new EntityNotFoundException("Vote not found"));
+        }
+        else {
+            throw new IllegalArgumentException("PostId and VoteId cannot be null");
+        }
         Comment comment = Comment.builder()
                 .userId(userProfileInfoDto.getUserId())
                 .post(post)
+                .vote(vote)
                 .content(commentCreateDto.getContent())
                 .build();
 
         commentRepository.save(comment);
 
-        return commentCreateDto.getPostId();
+        // PostId가 null일 수 있으니 반환도 조정 필요
+        return (post != null) ? post.getId() : vote.getVoteId();
     }
 
     public Long commentUpdate(String loginId, CommentUpdateDto commentUpdateDto) {

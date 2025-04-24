@@ -17,10 +17,10 @@ public interface PostQueryRepository extends JpaRepository<Post, Long> {
             p.title AS title,
             p.content AS content,
             p.created_time AS createdAt,
-            'POST' AS type,
             p.view_count AS viewCount,
             NULL AS multipleChoice,
-            NULL AS voteOptions
+            NULL AS voteOptions,
+            p.post_category AS postCategory
          FROM post p
          WHERE p.del_yn = 'N' AND p.post_status = 'fin')
 
@@ -31,10 +31,10 @@ public interface PostQueryRepository extends JpaRepository<Post, Long> {
             v.title AS title,
             v.description AS content, 
             v.created_time AS createdAt,
-            'VOTE' AS type,
             NULL AS viewCount,
             v.multiple_choice AS multipleChoice,
-            CAST(v.vote_options AS CHAR) AS voteOptions
+            CAST(v.vote_options AS CHAR) AS voteOptions,
+            v.post_category AS postCategory
          FROM vote v
          WHERE v.del_yn = 'N' AND v.post_status = 'fin')
 

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.post.domain.Post;
+import silverpotion.postserver.post.domain.Vote;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,8 +24,12 @@ public class Comment extends BaseTimeEntity {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "post_id", nullable = false)
+    @JoinColumn(name = "post_id")
     private Post post;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "vote_id")
+    private Vote vote;
 
     private Long userId;
 
@@ -41,14 +46,14 @@ public class Comment extends BaseTimeEntity {
     private List<CommentLike> commentLike = new ArrayList<>();
 
     @Builder.Default
-    private DelYN delYN = DelYN.N;
+    private DelYN delYn = DelYN.N;
 
     public void updateContent(String content){
         this.content = content;
     }
     public void delete() {
         this.content = "삭제된 댓글입니다.";
-        this.delYN= DelYN.Y;
+        this.delYn= DelYN.Y;
     }
     public void addChild(Comment comment) {
         this.child.add(comment);

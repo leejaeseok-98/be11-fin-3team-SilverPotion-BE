@@ -33,7 +33,7 @@ public class GatheringController {
     @PostMapping("/create")
     public ResponseEntity<?> gatheringCreate(@RequestBody GatheringCreateDto dto, @RequestHeader("X-User-LoginId") String loginId) {
         List<Long> gatheringCategoryDetailIds = dto.getGatheringCategoryDetailIds();
-        gatheringService.gatheringCreate(dto, loginId, gatheringCategoryDetailIds);
+        gatheringService.gatheringCreateWithChat(dto, loginId, gatheringCategoryDetailIds);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임이 생성되었습니다.", dto), HttpStatus.OK);
     }
 

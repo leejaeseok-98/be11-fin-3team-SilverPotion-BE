@@ -1,15 +1,17 @@
 package silverpotion.postserver.gathering.service;
 
-import jakarta.annotation.PostConstruct;
+import feign.FeignException;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 //import org.opensearch.client.RestHighLevelClient;
 //import org.opensearch.client.RestHighLevelClient;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.common.service.ImageService;
+import silverpotion.postserver.gathering.chatDto.AddChatParticipantRequest;
+import silverpotion.postserver.gathering.chatDto.ChatRoomCreateRequest;
+import silverpotion.postserver.gathering.chatDto.ChatRoomResponse;
 import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.domain.GatheringPeople;
 import silverpotion.postserver.gathering.domain.Status;
@@ -22,11 +24,9 @@ import silverpotion.postserver.gatheringCategory.repository.GatheringCategoryRep
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.repository.GatheringDetailRepository;
-import silverpotion.postserver.opensearch.*;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -44,14 +44,15 @@ public class GatheringService {
     private final GatheringDetailRepository gatheringDetailRepository;
     private final GatheringPeopleRepository gatheringPeopleRepository;
     private final ImageService imageService;
+    private final ChatFeignClient chatFeignClient;
 //    private final OpenSearchService openSearchService;
 //    @Autowired
 //    private RestHighLevelClient client;
 
 
-    public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService
+    public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService,
 //            , OpenSearchService openSearchService
-    ) {
+                            ChatFeignClient chatFeignClient) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
@@ -60,6 +61,7 @@ public class GatheringService {
         this.gatheringPeopleRepository = gatheringPeopleRepository;
         this.imageService = imageService;
 //        this.openSearchService = openSearchService;
+        this.chatFeignClient = chatFeignClient;
     }
 
 //    @PostConstruct
@@ -77,8 +79,8 @@ public class GatheringService {
 
 
     // 모임 생성
-    public Long gatheringCreate(GatheringCreateDto dto, String loginId, List<Long> gatheringCategoryDetailIds) {
-        if(gatheringRepository.findByGatheringNameAndDelYN(dto.getGatheringName(), DelYN.N).isPresent()){
+    public Long gatheringCreateWithChat(GatheringCreateDto dto, String loginId, List<Long> gatheringCategoryDetailIds) {
+        if (gatheringRepository.findByGatheringNameAndDelYN(dto.getGatheringName(), DelYN.N).isPresent()) {
             throw new IllegalArgumentException("이미 사용중인 모임명입니다");
         }
 
@@ -87,31 +89,38 @@ public class GatheringService {
 
         Long leaderId = userClient.getUserIdByLoginId(loginId);
 
-        // 사용자가 생성한 모임 개수 조회 (삭제되지 않은 모임만)
-        long gatheringCount = gatheringRepository.countByLeaderIdAndDelYN(leaderId, DelYN.N);
-        if (gatheringCount >= 8) {
-            throw new IllegalArgumentException("하나의 사용자가 생성할 수 있는 최대 모임 개수(8개)를 초과하였습니다.");
+        if (gatheringRepository.countByLeaderIdAndDelYN(leaderId, DelYN.N) >= 8) {
+            throw new IllegalArgumentException("최대 모임 개수를 초과했습니다.");
         }
 
-        Gathering gathering = gatheringRepository.save(dto.toEntity(gatheringCategory, leaderId));
+        // 🔹 1. 채팅방 생성 or 재사용
+        ChatRoomResponse chatRoom;
+        try {
+            chatRoom = chatFeignClient.findExistingGroupRoom(dto.getGatheringName(), leaderId);
+        } catch (FeignException.NotFound e) {
+            ChatRoomCreateRequest chatRequest = new ChatRoomCreateRequest();
+            chatRequest.setTitle(dto.getGatheringName());
+            chatRequest.setUserIds(List.of(leaderId));
+            chatRequest.setType("GROUP");
+
+            chatRoom = chatFeignClient.createGroupRoom(chatRequest);
+        }
+
+        // 🔹 2. 모임 저장
+
+        Gathering gathering = dto.toEntity(gatheringCategory, leaderId);
+        gathering.setChatRoomId(chatRoom.getId());
+        gatheringRepository.save(gathering);
 
         dto.setGatheringId(gathering.getId());
 
-        // 선택한 GatheringCategoryDetail을 기반으로 GatheringDetail 생성
-        List<GatheringDetail> gatheringDetails = new ArrayList<>();
-        for (Long gatheringCategoryDetailId : gatheringCategoryDetailIds) {
-            GatheringCategoryDetail gatheringCategoryDetail = gatheringCategoryDetailRepository.findById(gatheringCategoryDetailId)
-                    .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 GatheringCategoryDetail ID입니다."));
+        // 🔹 3. 디테일 저장
+        List<GatheringDetail> details = gatheringCategoryDetailIds.stream()
+                .map(id -> new GatheringDetail(gathering, gatheringCategoryDetailRepository.findById(id)
+                        .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 세부카테고리 ID입니다."))))
+                .collect(Collectors.toList());
 
-            GatheringDetail gatheringDetail = new GatheringDetail(gathering, gatheringCategoryDetail);
-            gatheringDetails.add(gatheringDetail);
-        }
-
-        // GatheringDetail 저장
-        gatheringDetailRepository.saveAll(gatheringDetails);
-
-        // OpenSearch index 저장
-//        openSearchService.indexGathering(gathering);
+        gatheringDetailRepository.saveAll(details);
 
         return gathering.getId();
     }
@@ -317,6 +326,7 @@ public class GatheringService {
                 .build();
 
         gatheringPeopleRepository.save(gatheringPeople);
+
     }
 
     // 모임원 상태 변경
@@ -338,6 +348,19 @@ public class GatheringService {
         // 상태 변경
         gatheringPeople.updateStatus(dto.getStatus());
 
+        // 상태로 인한 그룹채팅 참가유무 세팅
+        if (gatheringPeople.getStatus() == Status.ACTIVATE) {
+            // 그룹 채팅 참여자 추가
+            AddChatParticipantRequest request = new AddChatParticipantRequest();
+            request.setChatRoomId(gathering.getChatRoomId());
+            request.setUserId(gatheringPeople.getUserId());
+
+            chatFeignClient.addParticipant(request);
+
+        } else if (gatheringPeople.getStatus() == Status.BAN) {
+            // 그룹 채팅 참여자 제거
+            chatFeignClient.removeParticipant(gathering.getChatRoomId(), gatheringPeople.getUserId());
+        }
         // 저장
         gatheringPeopleRepository.save(gatheringPeople);
     }
@@ -396,13 +419,15 @@ public class GatheringService {
         gathering.setDelYN(DelYN.Y);
         gathering.setUpdatedTime(LocalDateTime.now());
 
+        // 그룹 채팅방 삭제 요청 (Del.Y 처리)
+        chatFeignClient.deleteChatRoom(gathering.getChatRoomId());
+
         // 해당 모임의 모든 참가자 상태 DEACTIVATE 처리
         List<GatheringPeople> peopleList = gatheringPeopleRepository.findAllByGatheringId(gatheringId);
         for (GatheringPeople person : peopleList) {
             person.setStatus(Status.DEACTIVATE);
             person.setUpdatedTime(LocalDateTime.now());
         }
-
         // OpenSearch Index 저장
 //        openSearchService.indexGathering(gathering);
     }

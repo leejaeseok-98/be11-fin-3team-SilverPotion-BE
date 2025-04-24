@@ -1,6 +1,7 @@
 package com.silverpotion.chatserver.chat.controller;
 
 
+import com.silverpotion.chatserver.chat.dto.AddChatParticipantRequest;
 import com.silverpotion.chatserver.chat.dto.ChatRoomDto;
 import com.silverpotion.chatserver.chat.dto.CreateChatRoomRequest;
 import com.silverpotion.chatserver.chat.service.ChatRoomService;
@@ -34,15 +35,7 @@ public class ChatController {
         return ResponseEntity.ok(room);
     }
 
-    // ✅ 1.2 채팅방 생성 - 그룹
-//    @PostMapping("/room/group")
-//    public ResponseEntity<ChatRoomDto> createGroupRoom(
-//            @RequestBody CreateChatRoomRequest request,
-//            HttpServletRequest httpRequest
-//    ) {
-//        ChatRoomDto room = chatRoomService.createGroupRoom(request, httpRequest);
-//        return ResponseEntity.ok(room);
-//    }
+
     // ✅ 2. 메시지 읽음 처리
     @PatchMapping("/room/{roomId}/read")
     public ResponseEntity<Void> updateLastReadMessage(
@@ -68,4 +61,45 @@ public class ChatController {
         List<ChatRoomDto> rooms = chatRoomService.getAllRooms(userId);
         return ResponseEntity.ok(rooms);
     }
+    // ✅ 5. 그룹 채팅방 생성 및 조회
+    @PostMapping("/room/group")
+    public ResponseEntity<ChatRoomDto> createGroupRoom(@RequestBody CreateChatRoomRequest request) {
+        ChatRoomDto room = chatRoomService.createGroupRoom(request);
+        return ResponseEntity.ok(room);
+    }
+
+    // ✅ 6. 그룹 채팅방 회원 추가
+    @PostMapping("/room/participant")
+    public ResponseEntity<Void> addParticipant(@RequestBody AddChatParticipantRequest request) {
+        chatRoomService.addParticipantToRoom(request);
+        return ResponseEntity.ok().build();
+    }
+
+    // ✅ 7. 그룹채팅방 생성 및 조회시 중복 확인.
+    @GetMapping("/room/group/existing")
+    public ResponseEntity<ChatRoomDto> findExistingGroupRoom(
+            @RequestParam String title,
+            @RequestParam Long userId
+    ) {
+        ChatRoomDto room = chatRoomService.findExistingGroupRoom(title, userId);
+        return ResponseEntity.ok(room);
+    }
+
+    // ✅ 8. 그룹 채팅방 참여자 제거
+    @DeleteMapping("/del/room/{roomId}/participant")
+    public ResponseEntity<Void> removeParticipant(
+            @PathVariable Long roomId,
+            @RequestParam Long userId
+    ) {
+        chatRoomService.removeParticipantFromRoom(roomId, userId);
+        return ResponseEntity.ok().build();
+    }
+
+    // ✅ 9. 그룹 채팅방 삭제
+    @PostMapping("/del/room/{roomId}")
+    public ResponseEntity<Void> deleteChatRoom(@PathVariable Long roomId) {
+        chatRoomService.deleteChatRoom(roomId);
+        return ResponseEntity.ok().build();
+    }
+
 }

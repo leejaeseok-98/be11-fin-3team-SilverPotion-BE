@@ -69,6 +69,8 @@ public class Gathering extends BaseTimeEntity {
     @Builder.Default
     private List<GatheringPeople> gatheringPeople = new ArrayList<>();
 
+    private Long chatRoomId; // 💡 채팅방 ID만 저장 (연결용)
+
     public void addLeaderToGatheringPeople(Long userId) {
         GatheringPeople leader = GatheringPeople.builder()
                 .gathering(this)

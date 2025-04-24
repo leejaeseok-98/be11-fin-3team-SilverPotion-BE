@@ -1,4 +1,4 @@
-    package silverpotion.postserver.post.service;
+package silverpotion.postserver.post.service;
 
     import com.fasterxml.jackson.core.type.TypeReference;
     import com.fasterxml.jackson.databind.ObjectMapper;

@@ -37,7 +37,7 @@ spring:
           predicates:
             - Path=/chat-service/**
           filters:
-            - StripPrefix=1
+            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
           uri: lb://chat-service
 #          챗 서비스 웹소켓
         - id: chat-service-ws

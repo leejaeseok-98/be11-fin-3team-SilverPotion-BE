@@ -2,27 +2,19 @@ package silverpotion.postserver.meeting.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
-import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.common.service.ImageService;
 import silverpotion.postserver.gathering.domain.Gathering;
-import silverpotion.postserver.gathering.dto.GatheringInfoDto;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.meeting.domain.MeetingParticipant;
 import silverpotion.postserver.meeting.dto.*;
 import silverpotion.postserver.meeting.repository.MeetingParticipantRepository;
 import silverpotion.postserver.meeting.repository.MeetingRepository;
-import silverpotion.postserver.opensearch.MeetingSearchRequest;
-import silverpotion.postserver.opensearch.MeetingSearchResultDto;
 //import silverpotion.postserver.opensearch.OpenSearchService;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.time.LocalDate;

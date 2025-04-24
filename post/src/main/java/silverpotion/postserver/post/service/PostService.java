@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.comment.domain.Comment;
 import silverpotion.postserver.comment.dtos.CommentListResDto;
@@ -18,7 +17,7 @@ import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.domain.*;
 import silverpotion.postserver.post.dtos.*;
 import silverpotion.postserver.post.repository.*;
@@ -28,8 +27,6 @@ import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 

@@ -7,6 +7,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.simp.SimpMessageHeaderAccessor;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.stereotype.Controller;
@@ -19,6 +20,7 @@ public class StompController {
 
     private final SimpMessageSendingOperations messagingTemplate;
     private final ChatMessageService chatMessageService;
+    private final ObjectMapper objectMapper;
 
     @MessageMapping("/room/{roomId}")
     public void sendMessage(@DestinationVariable Long roomId, Message<?> message) {
@@ -55,7 +57,7 @@ public class StompController {
             }
 
             System.out.println("📨 수신된 raw payload = " + payload);
-            return new ObjectMapper().readValue(payload, ChatMessageDto.class);
+            return objectMapper.readValue(payload, ChatMessageDto.class);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("❌ 메시지 파싱 실패", e);

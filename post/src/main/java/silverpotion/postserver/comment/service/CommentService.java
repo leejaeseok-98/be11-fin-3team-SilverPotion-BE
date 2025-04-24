@@ -3,9 +3,6 @@ package silverpotion.postserver.comment.service;
 import jakarta.persistence.EntityNotFoundException;
 import org.springframework.amqp.rabbit.core.RabbitTemplate;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,16 +11,13 @@ import silverpotion.postserver.comment.domain.CommentLike;
 import silverpotion.postserver.comment.dtos.*;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
-import silverpotion.postserver.post.dtos.UserListDto;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 import silverpotion.postserver.post.repository.PostRepository;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
-import java.util.stream.Collectors;
 
 import static silverpotion.postserver.common.config.RabbitMQConfig.BACKUP_QUEUE_COMMENT_AL;
 import static silverpotion.postserver.common.config.RabbitMQConfig.BACKUP_QUEUE_COMMENT_ML;

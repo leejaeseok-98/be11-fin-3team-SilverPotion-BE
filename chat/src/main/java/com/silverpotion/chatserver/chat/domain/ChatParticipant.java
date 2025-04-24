@@ -29,6 +29,8 @@ public class ChatParticipant  extends BaseTimeEntity {
     @Column(nullable = false)
     private String nickname;
 
+    private String otherNickname;
+
     private boolean isConnected;
 
     private Long lastReadMessageId;

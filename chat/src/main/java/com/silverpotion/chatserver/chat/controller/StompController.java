@@ -42,9 +42,7 @@ public class StompController {
         System.out.println("message : "+message.getPayload());
         // 3. 저장
         ChatMessageDto saved = chatMessageService.saveAndPublish(roomId, dto);
-        // 4. Kafka 발행
-        kafkaSseService.publishToSseTopic(saved); // 꼭 저장된 메시지를 보내야 함
-        // 5. 브로드캐스트
+        // 4. 브로드캐스트
         messagingTemplate.convertAndSend("/sub/room/" + roomId, saved);
     }
 

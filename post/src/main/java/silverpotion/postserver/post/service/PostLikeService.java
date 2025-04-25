@@ -6,8 +6,7 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-import silverpotion.postserver.common.config.RabbitMQConfig;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.PostLike;
 import silverpotion.postserver.post.domain.Vote;
@@ -111,14 +110,14 @@ public class PostLikeService {
             voteLikeRedisTemplate.opsForValue().set(redisKey, likeCount, 10, TimeUnit.MINUTES);
         }
 
-        Optional<VoteLike> postLikeOpt = voteLikeRepository.findByVoteAndUserId(vote,userId);
+        Optional<VoteLike> voteLikeOpt = voteLikeRepository.findByVoteAndUserId(vote,userId);
         boolean isLike;
 
-        if (postLikeOpt.isPresent()){
-            voteLikeRepository.delete(postLikeOpt.get());
+        if (voteLikeOpt.isPresent()){
+            voteLikeRepository.delete(voteLikeOpt.get());
             isLike = false;
             rabbitTemplate.convertAndSend(BACKUP_QUEUE_ML, voteId);
-            likeCount--;
+            vote.decreaseLikeCount();
         } else {
             VoteLike newLike = VoteLike.builder()
                     .vote(vote)
@@ -127,11 +126,12 @@ public class PostLikeService {
             voteLikeRepository.save(newLike);
             isLike = true;
             rabbitTemplate.convertAndSend(BACKUP_QUEUE_AL, voteId);
-            likeCount++;
+            vote.increaseLikeCount();
         }
-        postLikeRedisTemplate.opsForValue().set(redisKey, likeCount,10, TimeUnit.MINUTES);
+        voteLikeRedisTemplate.opsForValue().set(redisKey, likeCount,10, TimeUnit.MINUTES);
+        voteRepository.save(vote);
 
-        return new PostLikeResDto(likeCount,isLike);
+        return new PostLikeResDto(vote.getLikeCount(),isLike);
     }
 
 

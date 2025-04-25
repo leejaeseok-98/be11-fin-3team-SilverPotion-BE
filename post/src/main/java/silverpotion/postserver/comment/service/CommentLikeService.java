@@ -8,7 +8,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.common.dto.CommonDto;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserListDto;
 
 import java.util.List;

@@ -11,6 +11,7 @@ import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.post.dtos.VotePostUpdateDto;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -47,12 +48,18 @@ public class Vote extends BaseTimeEntity {
     @OneToMany(mappedBy = "vote", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<VoteLike> voteLikes = new ArrayList<>();
 
+    @Column(name = "like_count",nullable = false)
+    private Long likeCount =0L;
+
     @OneToMany(mappedBy = "vote", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
 
     @Builder.Default
     @Enumerated(EnumType.STRING)
     private PostStatus postStatus = PostStatus.draft;
+
+    @Column(name = "close_time")
+    private LocalDateTime closeTime;
 
     //소모임 아이디(이 게시글이 속하는 소모임의 아이디)
     @ManyToOne(fetch = FetchType.EAGER)
@@ -78,5 +85,23 @@ public class Vote extends BaseTimeEntity {
 
     public void changeStatus(PostStatus status) {
         this.postStatus = status;
+    }
+
+    public void setCloseTime() {
+        this.closeTime = LocalDateTime.now().plusDays(2);
+    }
+    // --- 좋아요 수 증가 ---
+    public void increaseLikeCount() {
+        if (this.likeCount == null) this.likeCount = 0L;
+        this.likeCount++;
+    }
+
+    // --- 좋아요 수 감소 ---
+    public void decreaseLikeCount() {
+        if (this.likeCount == null || this.likeCount <= 0) {
+            this.likeCount = 0L;
+        } else {
+            this.likeCount--;
+        }
     }
 }

@@ -2,27 +2,19 @@ package silverpotion.postserver.meeting.service;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
-import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.common.service.ImageService;
 import silverpotion.postserver.gathering.domain.Gathering;
-import silverpotion.postserver.gathering.dto.GatheringInfoDto;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.meeting.domain.MeetingParticipant;
 import silverpotion.postserver.meeting.dto.*;
 import silverpotion.postserver.meeting.repository.MeetingParticipantRepository;
 import silverpotion.postserver.meeting.repository.MeetingRepository;
-import silverpotion.postserver.opensearch.MeetingSearchRequest;
-import silverpotion.postserver.opensearch.MeetingSearchResultDto;
 //import silverpotion.postserver.opensearch.OpenSearchService;
-import silverpotion.postserver.post.UserClient.UserClient;
+import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.time.LocalDate;
@@ -169,7 +161,7 @@ public class MeetingService {
 
     // 모임별 정모 조회
     public List<MeetingInfoDto> getMeetingsByGatheringId(Long gatheringId) {
-        List<Meeting> meetings = meetingRepository.findByGatheringId(gatheringId);
+        List<Meeting> meetings = meetingRepository.findByGatheringIdAndDelYN(gatheringId, DelYN.N);
 
         LocalDateTime now = LocalDateTime.now();
 
@@ -274,7 +266,7 @@ public class MeetingService {
         LocalDateTime now = LocalDateTime.now();
         LocalDateTime oneWeekLater = now.plusDays(7);
 
-        List<Meeting> meetings = meetingRepository.findAll();
+        List<Meeting> meetings = meetingRepository.findByDelYN(DelYN.N);
 
         return meetings.stream()
                 .filter(meeting -> {
@@ -303,6 +295,32 @@ public class MeetingService {
                     );
                 })
                 .collect(Collectors.toList());
+    }
+
+    public void deleteMeeting(Long meetingId, String loginId) {
+        Long userId = userClient.getUserIdByLoginId(loginId);
+
+        Meeting meeting = meetingRepository.findById(meetingId)
+                .orElseThrow(() -> new IllegalArgumentException("정모가 존재하지 않습니다."));
+
+        // 정모에 연결된 모임의 모임장인지 확인
+        Gathering gathering = meeting.getGathering();
+        if (!gathering.getLeaderId().equals(userId)) {
+            throw new IllegalStateException("해당 정모를 삭제할 권한이 없습니다.");
+        }
+
+        // 정모 삭제 처리
+        meeting.setDelYN(DelYN.Y);
+
+        // 정모 참가자 전체 삭제
+        List<MeetingParticipant> participants = meetingParticipantRepository.findByMeetingId(meetingId);
+        meetingParticipantRepository.deleteAll(participants);
+
+        // 저장
+        meetingRepository.save(meeting);
+
+        // OpenSearch 연동한다면 이 부분에서 삭제 처리 가능
+//        openSearchService.indexMeeting(meeting);
     }
 
 //    // opensearch

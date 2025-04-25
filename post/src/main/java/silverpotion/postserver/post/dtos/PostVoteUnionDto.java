@@ -14,6 +14,7 @@ public interface PostVoteUnionDto {
     String getType(); //post or vote
     String getNickname();
     String getProfileImage();
+    PostCategory getPostCategory();
 
     //선택적  필드
     Integer getViewCount(); //post에서만 존재

@@ -12,6 +12,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
+@Builder
 public class ChatRoom  extends BaseTimeEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -23,6 +24,7 @@ public class ChatRoom  extends BaseTimeEntity {
     private String title;
 
     private LocalDateTime createdAt;
+
     @ToString.Exclude
     @OneToMany(mappedBy = "chatRoom", cascade = CascadeType.REMOVE)
     private List<ChatParticipant> chatParticipants = new ArrayList<>();
@@ -32,4 +34,8 @@ public class ChatRoom  extends BaseTimeEntity {
 
     @Column(name = "last_message_time")
     private LocalDateTime lastMessageTime;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private DelYN delYn=DelYN.N;
 }

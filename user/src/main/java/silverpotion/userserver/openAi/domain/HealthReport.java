@@ -29,11 +29,13 @@ public class HealthReport extends BaseTimeEntity {
     @OneToOne
     @JoinColumn(name = "healthdata_id")
     private HealthData healthData;
+    //어느 날이나 기간에 대한 리포트인지
+    private String period;
 
 
 //  지난 헬스리포트 조회용 dto 리턴 메서드
     public HealthReportDto toReportDtoFromEntity(){
-        return HealthReportDto.builder().text(this.text).date(this.createdDate).build();
+        return HealthReportDto.builder().text(this.text).date(this.createdDate).period(this.period).build();
     }
 
 

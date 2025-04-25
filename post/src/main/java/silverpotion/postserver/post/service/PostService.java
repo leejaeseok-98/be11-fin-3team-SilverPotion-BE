@@ -19,9 +19,9 @@ package silverpotion.postserver.post.service;
     import silverpotion.postserver.gathering.domain.Gathering;
     import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
     import silverpotion.postserver.gathering.repository.GatheringRepository;
-    import silverpotion.postserver.post.UserClient.UserClient;
     import silverpotion.postserver.post.domain.*;
     import silverpotion.postserver.post.dtos.*;
+    import silverpotion.postserver.post.feignClient.UserClient;
     import silverpotion.postserver.post.repository.*;
     import software.amazon.awssdk.core.sync.RequestBody;
     import software.amazon.awssdk.services.s3.S3Client;
@@ -41,7 +41,6 @@ package silverpotion.postserver.post.service;
         private final PostRepository postRepository;
         private final PostFileRepository postFileRepository;
         private final S3Client s3Client;
-        private final UserClient userClient;
         private final GatheringRepository gatheringRepository;
         private final PostLikeRepository postLikeRepository;
         private final CommentRepository commentRepository;
@@ -53,7 +52,8 @@ package silverpotion.postserver.post.service;
         private final VoteLikeRepository voteLikeRepository;
         private final VoteAnswerRepository voteAnswerRepository;
         private final VoteOptionsRepository voteOptionsRepository;
-    //    private final NotificationService notificationService;
+        private final silverpotion.postserver.post.feignClient.UserClient userClient;
+        //    private final NotificationService notificationService;
 
         @Value("${cloud.aws.s3.bucket}")
         private String bucket;
@@ -65,7 +65,6 @@ package silverpotion.postserver.post.service;
             this.gatheringRepository = gatheringRepository;
             this.postFileRepository = postFileRepository;
             this.s3Client = s3Client;
-            this.userClient = userClient;
             this.postLikeRepository = postLikeRepository;
             this.commentRepository = commentRepository;
             this.commentLikeRepository = commentLikeRepository;
@@ -76,6 +75,7 @@ package silverpotion.postserver.post.service;
             this.voteLikeRepository = voteLikeRepository;
             this.voteAnswerRepository = voteAnswerRepository;
             this.voteOptionsRepository = voteOptionsRepository;
+            this.userClient = userClient;
         }
 
         //    1. 게시물 생성시, 카테고리 유형 저장(임시저장)

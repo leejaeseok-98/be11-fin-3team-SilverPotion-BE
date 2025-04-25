@@ -36,7 +36,9 @@ public class MonthlyHealthReportTasklet implements Tasklet {
                 System.out.println("리포트 생략"+ u.getLoginId() + "헬스데이터" + u.getMyHealthData().size());
 
             } catch(Exception e){
-                System.out.println("다른 예외");
+                System.out.println("다른예외");
+                e.printStackTrace();
+                System.out.println(e.getMessage());
             }
         }
         return RepeatStatus.FINISHED; //이 Tasklet은 끝났다는 의미.

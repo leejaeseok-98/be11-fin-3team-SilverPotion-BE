@@ -48,6 +48,8 @@ public class HealthData extends BaseTimeEntity {
     private User user;
     //  생성날짜
     private LocalDate createdDate;
+    // 어느 날짜나 기간에 대한 데이터인지(프론트 화면에 띄우기 위한 용도)
+    private String period;
 
 
 
@@ -73,7 +75,7 @@ public class HealthData extends BaseTimeEntity {
                 .step(this.step).heartbeat(this.heartbeat).calory(this.calory)
                 .activeCalory(this.activeCalory).distance(this.distance)
                 .totalSleepMinutes(this.totalSleepMinutes).deepSleepMinutes(this.deepSleepMinutes)
-                .lightSleepMinutes(this.lightSleepMinutes).remSleepMinutes(this.remSleepMinutes)
+                .lightSleepMinutes(this.lightSleepMinutes).remSleepMinutes(this.remSleepMinutes).period(this.period)
                 .build();
     }
 

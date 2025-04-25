@@ -28,6 +28,8 @@ public class HealthDataListDto {
     private int remSleepMinutes;
     //  오늘 얇은 수면시간
     private int lightSleepMinutes;
+    // 언제에 대한 데이터인지(프론트 화면에 띄우기 위한 용도)
+    private String period;
 
 
 

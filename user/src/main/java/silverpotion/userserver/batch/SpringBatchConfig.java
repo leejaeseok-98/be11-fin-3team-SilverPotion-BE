@@ -84,6 +84,7 @@ public class SpringBatchConfig {
     public Job weeklyAverageHealthJob(){
         return new JobBuilder("weeklyAverageHealthJob", jobRepository) //JobBuilder를 job을 만드는 도구로 인자로 이 job의 이름과 jobRepository를 받음. 여기서 바로 job의 이름을 설정하는 것이기도 함
                 .start(weeklyAverageStep()) // 이 job을 시작 할 때 어떤 step을 실행할 지 지정하는 것
+                .next(weeklyHealthReportStep())
                 .build();
     }
 
@@ -100,13 +101,13 @@ public class SpringBatchConfig {
     }
 
 
-    @Bean
-    @Qualifier("weeklyHealthReportJob")
-    public Job weeklyHealthReportJob() {
-        return new JobBuilder("weeklyHealthReportJob", jobRepository)
-                .start(weeklyHealthReportStep()) // 하나의 step만 있는 job
-                .build();
-    }
+//    @Bean
+//    @Qualifier("weeklyHealthReportJob")
+//    public Job weeklyHealthReportJob() {
+//        return new JobBuilder("weeklyHealthReportJob", jobRepository)
+//                .start(weeklyHealthReportStep()) // 하나의 step만 있는 job
+//                .build();
+//    }
 
     @Bean
     public Step weeklyHealthReportStep(){

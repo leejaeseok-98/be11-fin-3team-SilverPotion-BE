@@ -21,5 +21,6 @@ public class MonthlyHealthDataWriter implements ItemWriter<HealthData> {
 
     public void write(Chunk<? extends HealthData> chunk) throws Exception {
             healthDataRepository.saveAll(chunk);
+            healthDataRepository.flush(); //헬스데이터 만드는 스텝다음에 그 헬스데이터를 기반으로 헬스리포트가 생성되는데 스텝간 순서는 맞을 지라도 jpa가 db에 아직 인서트 하지 않아서 다음 헬스리포트가 생성이 안될 수 있어서 여기서 flush
     }
 }

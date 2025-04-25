@@ -114,15 +114,7 @@ public class ChatRoomService {
                 })
                 .collect(Collectors.toList());
     }
-
-
-    // 메시지 조회용
-    public Page<ChatMessageDto> getMessages(Long roomId, int page, int size) {
-        PageRequest pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
-        return chatMessageRepository.findByChatRoomId(roomId, pageable)
-                .map(ChatMessageDto::fromEntity);
-    }
-
+    // 메시지 읽음처리 하는 메서드
     public void updateLastReadMessage(Long roomId, Long userId, Long messageId) {
         ChatParticipant participant = chatParticipantRepository
                 .findByChatRoomIdAndUserId(roomId, userId)
@@ -132,6 +124,19 @@ public class ChatRoomService {
         if (participant.getLastReadMessageId() == null || participant.getLastReadMessageId() < messageId) {
             participant.updateLastReadMessage(messageId);
         }
+    }
+    // 안 읽은 메시지 카운트
+    public long getUnreadMessageCount(Long roomId, Long userId) {
+        ChatParticipant participant = chatParticipantRepository
+                .findByChatRoomIdAndUserId(roomId, userId)
+                .orElseThrow(() -> new IllegalArgumentException("참여자를 찾을 수 없습니다."));
+
+        Long lastReadId = participant.getLastReadMessageId();
+        if (lastReadId == null) {
+            return chatMessageRepository.countAllMessages(roomId);
+        }
+
+        return chatMessageRepository.countUnreadMessages(roomId, lastReadId);
     }
     public Long getUserIdByLoginId(String loginId) {
         return userFeign.getUserIdByLoginId(loginId);
@@ -148,18 +153,7 @@ public class ChatRoomService {
             }
         }
     }
-    public long getUnreadMessageCount(Long roomId, Long userId) {
-        ChatParticipant participant = chatParticipantRepository
-                .findByChatRoomIdAndUserId(roomId, userId)
-                .orElseThrow(() -> new IllegalArgumentException("참여자를 찾을 수 없습니다."));
 
-        Long lastReadId = participant.getLastReadMessageId();
-        if (lastReadId == null) {
-            return chatMessageRepository.countAllMessages(roomId);
-        }
-
-        return chatMessageRepository.countUnreadMessages(roomId, lastReadId);
-    }
     //채팅방 리스트 조회
     public List<ChatRoomDto> getAllRooms(Long userId) {
         // 유저가 포함된 SINGLE, GROUP 타입 모두 조회

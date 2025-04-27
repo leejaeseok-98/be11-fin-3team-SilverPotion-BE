@@ -16,10 +16,14 @@ public interface ChatMessageRepository extends JpaRepository<ChatMessage, Long> 
     Page<ChatMessage> findByChatRoomId(Long chatRoomId, Pageable pageable);
     @Query("SELECT COUNT(m) FROM ChatMessage m " +
             "WHERE m.chatRoom.id = :roomId " +
-            "AND m.id > :lastReadMessageId")
+            "AND m.id > :lastReadMessageId " +
+            "AND m.isDeleted = false")
     long countUnreadMessages(@Param("roomId") Long roomId, @Param("lastReadMessageId") Long lastReadMessageId);
 
     @Query("SELECT COUNT(m) FROM ChatMessage m " +
-            "WHERE m.chatRoom.id = :roomId")
-    long countAllMessages(@Param("roomId") Long roomId); // lastReadMessageId가 null일 때 전체 메시지 수
+            "WHERE m.chatRoom.id = :roomId " +
+            "AND m.isDeleted = false")
+    long countAllMessages(@Param("roomId") Long roomId);
+
+
 }

@@ -23,6 +23,12 @@ public interface ChatRoomRepository extends JpaRepository<ChatRoom, Long> {
             @Param("userId1") Long userId1,
             @Param("userId2") Long userId2);
 
-    @Query("SELECT cr FROM ChatRoom cr JOIN cr.chatParticipants p WHERE p.userId = :userId")
+    @Query("SELECT cr FROM ChatRoom cr JOIN cr.chatParticipants p WHERE p.userId = :userId ORDER BY cr.lastMessageTime DESC")
     List<ChatRoom> findAllByUserId(@Param("userId") Long userId);
+
+    @Query("SELECT r FROM ChatRoom r JOIN ChatParticipant p ON p.chatRoom = r " +
+            "WHERE r.title = :title AND r.type = com.silverpotion.chatserver.chat.domain.ChatRoomType.GROUP " +
+            "AND p.userId = :userId")
+    Optional<ChatRoom> findGroupRoomByTitleAndUser(@Param("title") String title, @Param("userId") Long userId);
+
 }

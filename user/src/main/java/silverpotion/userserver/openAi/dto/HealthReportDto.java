@@ -15,5 +15,6 @@ public class HealthReportDto {
 
     String text;
     LocalDate date;
+    String period;
 
 }

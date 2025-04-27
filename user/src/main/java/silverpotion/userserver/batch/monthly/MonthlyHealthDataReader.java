@@ -1,4 +1,4 @@
-package silverpotion.userserver.batch;
+package silverpotion.userserver.batch.monthly;
 
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.NonTransientResourceException;
@@ -12,12 +12,12 @@ import java.util.Iterator;
 import java.util.List;
 
 @Component
-public class WeeklyHealthDataReader implements ItemReader<User> { //ItemReader<T> 읽어올 데이터 타입 T를 지정
+public class MonthlyHealthDataReader implements ItemReader<User> { //ItemReader<T> 읽어올 데이터 타입 T를 지정
 
     private final UserRepository userRepository;
     private Iterator<User> userIterator; //Iterator는 리스트 등의 컬렉션에 대해 반복해서 하나씩 꺼낼 수 있게 해주는 도구
 
-    public WeeklyHealthDataReader(UserRepository userRepository) {
+    public MonthlyHealthDataReader(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 

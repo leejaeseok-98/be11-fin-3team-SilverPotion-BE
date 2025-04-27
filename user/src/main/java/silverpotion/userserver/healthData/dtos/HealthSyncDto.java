@@ -10,6 +10,7 @@ import silverpotion.userserver.healthData.domain.HeartRateData;
 import silverpotion.userserver.user.domain.User;
 
 import java.time.LocalDate;
+import java.time.Period;
 import java.util.List;
 
 @AllArgsConstructor
@@ -38,7 +39,7 @@ public class HealthSyncDto {
 
 
 
-    public HealthData toEntityFromSync(int averageHeartbeat, User user, LocalDate createdDate){
+    public HealthData toEntityFromSync(int averageHeartbeat, User user, LocalDate createdDate, String period){
       //Double형타입을 int로 변환할때 만약 null값이면 NullpointerException발생
         return HealthData.builder()
                 .step(this.stepData.get(0)).heartbeat(averageHeartbeat)
@@ -49,6 +50,7 @@ public class HealthSyncDto {
                 .lightSleepMinutes(this.lightSleepMinutes.intValue())
                 .remSleepMinutes(this.remSleepMinutes.intValue())
                 .dataType(DataType.DAY) //일일 HealthDataType.
+                .period(period)
                 .build();
     }
 

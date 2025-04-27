@@ -20,9 +20,9 @@
     import silverpotion.postserver.gathering.domain.Gathering;
     import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
     import silverpotion.postserver.gathering.repository.GatheringRepository;
-    import silverpotion.postserver.post.UserClient.UserClient;
     import silverpotion.postserver.post.domain.*;
     import silverpotion.postserver.post.dtos.*;
+    import silverpotion.postserver.post.feignClient.UserClient;
     import silverpotion.postserver.post.repository.*;
     import software.amazon.awssdk.core.sync.RequestBody;
     import software.amazon.awssdk.services.s3.S3Client;
@@ -54,7 +54,7 @@
         private final VoteLikeRepository voteLikeRepository;
         private final VoteAnswerRepository voteAnswerRepository;
         private final VoteOptionsRepository voteOptionsRepository;
-        //    private final NotificationService notificationService;
+    //    private final NotificationService notificationService;
 
         @Value("${cloud.aws.s3.bucket}")
         private String bucket;
@@ -80,24 +80,27 @@
         }
 
         //    1. 게시물 생성시, 카테고리 유형 저장(임시저장)
-        public Long createDraftPost(PostInitDto dto, String loginId) {
+        public Long createDraftPost(PostInitDto dto,String loginId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
 
             if (dto.getGatheringId() == null) {
                 throw new IllegalArgumentException("GatheringId is null");
             }
-            Gathering gathering = gatheringRepository.findById(dto.getGatheringId()).orElseThrow(() -> new EntityNotFoundException("gathering is not found"));
+            Gathering gathering = gatheringRepository.findById(dto.getGatheringId()).orElseThrow(()-> new EntityNotFoundException("gathering is not found"));
 
-            if (dto.getPostCategory() == PostCategory.free) {
+            if (dto.getPostCategory() == PostCategory.free){
                 Post draftPost = Post.builder()
+                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
                         .viewCount(0)
                         .build();
                 return postRepository.save(draftPost).getId();
-            } else if (dto.getPostCategory() == PostCategory.notice) {
+            }
+            else if (dto.getPostCategory() == PostCategory.notice) {
                 Post draftPost = Post.builder()
+                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -107,19 +110,20 @@
 
             } else if (dto.getPostCategory() == PostCategory.vote) {
                 Vote draftVote = Vote.builder()
+                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
-                        .likeCount(0L)
                         .build();
                 return voteRepository.save(draftVote).getVoteId();
-            } else {
+            }
+            else {
                 throw new EntityNotFoundException("post is not found");
             }
         }
 
         //  2. 게시물 최종 저장(카테고리 분기)
-        public Object updateFinalPost(Long postId, String loginId, PostUpdateDto dto) {
+        public Object updateFinalPost(Long postId, String loginId, PostUpdateDto dto){
             Long userId = userClient.getUserIdByLoginId(loginId);
             Post post = postRepository.findById(postId)
                     .orElseThrow(() -> new IllegalArgumentException("게시물 없음"));
@@ -141,11 +145,11 @@
 
         }
 
-        //    투표 저장
-        public VotePostUpdateDto saveVote(Long voteId, String loginId, VotePostUpdateDto dto) {
-            Vote vote = voteRepository.findVoteByVoteId(voteId).orElseThrow(() -> new EntityNotFoundException("투표가 없습니다."));
+    //    투표 저장
+        public VotePostUpdateDto saveVote(Long voteId, String loginId, VotePostUpdateDto dto){
+            Vote vote = voteRepository.findVoteByVoteId(voteId).orElseThrow(()->new EntityNotFoundException("투표가 없습니다."));
             Long userId = userClient.getUserIdByLoginId(loginId);
-            saveVotePost(vote, userId, dto);
+            saveVotePost(vote,userId,dto);
             return dto;
         }
 
@@ -162,7 +166,7 @@
             }
         }
 
-        //    공지글 저장
+    //    공지글 저장
         private void saveNoticePost(Post post, Long userId, NoticePostUpdateDto dto) {
             post.update(dto.getTitle(), dto.getContent());
             post.changeStatus(PostStatus.fin);
@@ -200,14 +204,15 @@
             vote.update(userId, dto);
             vote.changeStatus(PostStatus.fin);
             vote.setCloseTime();
-
+            System.out.println(vote.getCloseTime());
             voteRepository.save(vote);
+            // 투표 항목 저장 등 로직 추가 필요
         }
 
 
         //  5. S3에 이미지저장
         public String uploadImage(MultipartFile file) {
-            String fileName = "post/" + UUID.randomUUID() + "_" + file.getOriginalFilename();
+            String fileName = "post/"+ UUID.randomUUID() + "_" + file.getOriginalFilename();
 
             try {
                 s3Client.putObject(
@@ -225,27 +230,15 @@
             }
         }
 
-        //    6.일반 게시물 삭제
-        public void delete(Long postId, String loginId) {
+        //    6. 게시물 삭제
+        public void delete(Long postId,String loginId){
             Long userId = userClient.getUserIdByLoginId(loginId);
-            Post post = postRepository.findById(postId).orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-            if (!userId.equals(post.getWriterId())) {
-                return;
-            }
+            Post post = postRepository.findById(postId).orElseThrow(()->new EntityNotFoundException("게시물을 찾을 수 없습니다."));
+            if (!userId.equals(post.getWriterId())){return;}
             postRepository.delete(post);
         }
 
-        //        7. 투표 게시물 삭제
-        public void deleteVote(Long voteId, String loginId) {
-            Long userId = userClient.getUserIdByLoginId(loginId);
-            Vote vote = voteRepository.findById(voteId).orElseThrow(() -> new EntityNotFoundException("게시물을 찾을 수 없습니다."));
-            if (!userId.equals(vote.getWriterId())) {
-                return;
-            }
-            voteRepository.delete(vote);
-        }
-
-        //    //    7. 게시물 조회
+    //    //    7. 게시물 조회
         public Page<PostVoteResDTO> getPostAndVoteList(int page, int size, String loginId) {
             int safePage = (page <= 0) ? 0 : page;
             int offset = (safePage == 0) ? 0 : (safePage - 1) * size;
@@ -254,14 +247,14 @@
 
             Long userId = userClient.getUserIdByLoginId(loginId);
             List<PostVoteResDTO> dtoList = rawList.stream()
-                    .map(dto -> convertToDto(dto, userId))
+                    .map(dto -> convertToDto(dto,userId))
                     .collect(Collectors.toList());
 
             Pageable pageable = PageRequest.of(safePage, size);
             return new PageImpl<>(dtoList, pageable, totalCount);
         }
 
-        private PostVoteResDTO convertToDto(PostVoteUnionDto dto, Long userId) {
+        private PostVoteResDTO convertToDto(PostVoteUnionDto dto,Long userId) {
 
             Vote vote = null;
             Post post = null;
@@ -280,33 +273,33 @@
 
             if (dto.getPostCategory() == PostCategory.free) {
                 System.out.println("postId : " + dto.getId());
-                post = postRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("없는 게시물입니다."));
+                post = postRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 게시물입니다."));
                 Long writerId = post.getWriterId();
                 System.out.println("writerId : " + writerId);
-                if (writerId == null) {
-                    throw new IllegalArgumentException("post writerId가 null입니다. postId:" + post.getId());
+                if (writerId == null){
+                    throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.notice) {
                 System.out.println("postId : " + dto.getId());
-                post = postRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("없는 게시물입니다."));
+                post = postRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 게시물입니다."));
                 Long writerId = post.getWriterId();
                 System.out.println("writerId : " + writerId);
-                if (writerId == null) {
-                    throw new IllegalArgumentException("post writerId가 null입니다. postId:" + post.getId());
+                if (writerId == null){
+                    throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.vote) {
-                System.out.println("voteId : " + dto.getId());
-                vote = voteRepository.findById(dto.getId()).orElseThrow(() -> new EntityNotFoundException("없는 투표게시물입니다"));
+                System.out.println("voteId : "+ dto.getId());
+                vote = voteRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 투표게시물입니다"));
                 Long writerId = vote != null ? vote.getWriterId() : null;
-                System.out.println("writerId : " + writerId);
-                if (writerId == null) {
-                    throw new IllegalArgumentException("vote writerId가 null입니다. voteId:" + vote.getVoteId());
+                System.out.println("writerId : "+ writerId);
+                if (writerId == null){
+                    throw new IllegalArgumentException("vote writerId가 null입니다. voteId:" +  vote.getVoteId());
                 }
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
                 isParticipants = voteAnswerRepository.existsByUserIdAndVoteId(userId, vote.getVoteId());
@@ -340,11 +333,11 @@
                     .build();
         }
 
-        //    자유글 조회
+    //    자유글 조회
         public Page<PostListResDto> getFreeList(int page, int size, String loginId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
             List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
-            System.out.println("gatheringIds" + gatheringUserIds);
+            System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
             accessibleUserIds.addAll(gatheringUserIds);
@@ -361,29 +354,28 @@
                 System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
                 result = List.of(); // 빈 리스트 처리
             }
-            Map<Long, UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long, UserProfileInfoDto>>() {
-            });
+            Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
 
-            //        해당 유저들의 자유글만 조회(페이징)
-            Page<Post> freeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(gatheringUserIds, PostCategory.free,
-                    DelYN.N, PostStatus.fin, pageable);
+    //        해당 유저들의 자유글만 조회(페이징)
+            Page<Post> freeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(gatheringUserIds,PostCategory.free,
+                    DelYN.N,PostStatus.fin,pageable);
             return freeList.map(post ->
-            {
-                Long likeCount = postRepository.countPostLikes(post.getId());
-                Long commentCount = postRepository.countPostComments(post.getId());
-                UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
-                boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
-                String isLike = isLiked ? "Y" : "N";
+                {
+                    Long likeCount = postRepository.countPostLikes(post.getId());
+                    Long commentCount = postRepository.countPostComments(post.getId());
+                    UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+                    boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
+                    String isLike = isLiked ? "Y" : "N";
 
-                return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, writerInfo);
-            });
+                    return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo);
+                });
         }
 
         // 공지글 조회
         public Page<PostListResDto> getNoticeList(int page, int size, String loginId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
             List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
-            System.out.println("gatheringIds" + gatheringUserIds);
+            System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
             accessibleUserIds.add(userId);
@@ -399,12 +391,11 @@
                 System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
                 result = List.of(); // 빈 리스트 처리
             }
-            Map<Long, UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long, UserProfileInfoDto>>() {
-            });
+            Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
 
-            //        해당 유저들의 공지글만 조회(페이징)
-            Page<Post> noticeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds, PostCategory.notice,
-                    DelYN.N, PostStatus.fin, pageable);
+    //        해당 유저들의 공지글만 조회(페이징)
+            Page<Post> noticeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds,PostCategory.notice,
+                    DelYN.N,PostStatus.fin,pageable);
             return noticeList.map(post ->
             {
                 Long likeCount = postRepository.countPostLikes(post.getId());
@@ -413,16 +404,16 @@
                 boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                 String isLike = isLiked ? "Y" : "N";
 
-                return PostListResDto.fromEntity(post, likeCount, commentCount, isLike, writerInfo);
+                return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo);
             });
         }
 
-        //    투표조회
+    //    투표조회
         public Page<VoteResListDto> getVoteList(int page, int size, String loginId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
 
             List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
-            System.out.println("gatheringIds" + gatheringUserIds);
+            System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
             accessibleUserIds.add(userId);

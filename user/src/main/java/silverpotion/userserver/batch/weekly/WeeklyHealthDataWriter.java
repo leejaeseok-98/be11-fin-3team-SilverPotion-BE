@@ -1,4 +1,4 @@
-package silverpotion.userserver.batch;
+package silverpotion.userserver.batch.weekly;
 
 import org.springframework.batch.item.Chunk;
 import org.springframework.batch.item.ItemWriter;

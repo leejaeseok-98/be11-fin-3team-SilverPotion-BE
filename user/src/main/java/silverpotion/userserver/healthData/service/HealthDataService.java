@@ -55,7 +55,9 @@ public class HealthDataService {
         if(todayHealthData.isPresent()){ // 이미 오늘 날짜에 생성된 헬스데이터가 있다면 기존의 것을 지우고 최근 엔티티 객체를 새로 저장
           todayHealthData.get().update(dto,averageBpm);
         } else{ // 오늘날짜에 생성된 헬스데이터가 없다면 바로 저장
-          HealthData data = healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today));
+          DateTimeFormatter formatter =DateTimeFormatter.ofPattern("yyyy년 MM월 dd일");
+          String period = today.format(formatter);
+          HealthData data = healthDataRepository.save(dto.toEntityFromSync(averageBpm,user,today,period));
           user.getMyHealthData().add(data);
 
         }

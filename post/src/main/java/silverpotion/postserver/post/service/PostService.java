@@ -189,11 +189,14 @@
             for (VotePostUpdateDto.VoteOptionDto opt : optionsDtos) {
                 VoteOptions voteOption = VoteOptions.builder()
                         .optionText(opt.getOptionText())
+                        .vote(vote)
                         .build();
                 newOptions.add(voteOption);
             }
 
-            vote.setVoteOptions(newOptions);
+            vote.getVoteOptions().clear();
+            vote.getVoteOptions().addAll(newOptions);
+
             vote.update(userId, dto);
             vote.changeStatus(PostStatus.fin);
             vote.setCloseTime();

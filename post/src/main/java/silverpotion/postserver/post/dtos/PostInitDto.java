@@ -12,13 +12,11 @@ import silverpotion.postserver.post.domain.PostCategory;
 @Data
 @Builder
 public class PostInitDto {
-    private Long userId;
     private PostCategory postCategory;
     private Long gatheringId;
 
     public static PostInitDto fromEntity(Post draftPost) {
         return PostInitDto.builder()
-                .userId(draftPost.getWriterId())
                 .postCategory(draftPost.getPostCategory())
                 .gatheringId(draftPost.getGathering().getId())
                 .build();

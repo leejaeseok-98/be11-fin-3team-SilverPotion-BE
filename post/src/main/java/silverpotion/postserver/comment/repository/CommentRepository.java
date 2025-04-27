@@ -6,6 +6,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import silverpotion.postserver.comment.domain.Comment;
 import silverpotion.postserver.post.domain.Post;
+import silverpotion.postserver.post.domain.Vote;
 
 import java.util.List;
 
@@ -25,10 +26,14 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
     @Query("SELECT c.post FROM Comment c WHERE c.id = :parentId")
     Post findPostByParentId(@Param("parentId") Long parentId);
 
-//    부모 댓글 조회
+//  일반 게시물 부모 댓글 조회
     List<Comment> findByPostAndParentIsNull(Post post);
 
+//  투표 게시물 부모 댓글 조회
+    List<Comment> findByVoteAndParentIsNull(Vote vote);
 
-
+//   투표게시물 댓글 조회
+    @Query("select c.vote from Comment c where c.id = :parentId")
+    Vote findVoteByParentId(@Param("parentId") Long parentId);
 
 }

@@ -34,5 +34,7 @@ public interface UserRepository extends JpaRepository<User, Long> {
     @Query("SELECT u FROM User u WHERE u.banUntil <= :now AND u.banYN = 'N'")
     List<User> findUsersToBan(@Param("now") LocalDateTime now);
 
-
+    boolean existsByLoginId(String loginId);
+    boolean existsByEmail(String email);
+    boolean existsByNickName(String nickname);
 }

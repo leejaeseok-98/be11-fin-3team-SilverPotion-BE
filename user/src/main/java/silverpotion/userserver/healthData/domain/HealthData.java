@@ -70,12 +70,13 @@ public class HealthData extends BaseTimeEntity {
 
 
     //    조회용 dto객체 변환 메서드
-    public HealthDataListDto toListDtoFromEntity(){
+    public HealthDataListDto toListDtoFromEntity(String img){
         return HealthDataListDto.builder()
                 .step(this.step).heartbeat(this.heartbeat).calory(this.calory)
                 .activeCalory(this.activeCalory).distance(this.distance)
                 .totalSleepMinutes(this.totalSleepMinutes).deepSleepMinutes(this.deepSleepMinutes)
                 .lightSleepMinutes(this.lightSleepMinutes).remSleepMinutes(this.remSleepMinutes).period(this.period)
+                .imgUrl(img)
                 .build();
     }
 

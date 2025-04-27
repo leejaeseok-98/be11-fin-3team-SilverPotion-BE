@@ -82,6 +82,13 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시물 삭제 완료", postId), HttpStatus.OK);
     }
 
+//    투표게시물 삭제
+    @PostMapping("/vote/delete/{voteId}")
+    public ResponseEntity<?> deleteVote(@PathVariable Long voteId, @RequestHeader("X-User-LoginId") String loginId) {
+        postService.deleteVote(voteId, loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "투표게시물 삭제 완료", voteId), HttpStatus.OK);
+    }
+
     //    6.게시물 전체 조회
     @GetMapping("/list")
     public ResponseEntity<?> getPostList(@RequestParam(name = "page", defaultValue = "0") Integer page,
@@ -144,6 +151,13 @@ public class PostController {
     public ResponseEntity<?> voteLike(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
         PostLikeResDto likeInfo = PostLikeService.toggleVoteLike(voteId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표 게시물 좋아요 완료",likeInfo),HttpStatus.OK);
+    }
+
+//    특정항목에 투표하기
+    @PostMapping("/vote/option")
+    public ResponseEntity<?> voteOption(@RequestHeader("X-User-LoginId") String loginId,@RequestBody VoteOptionReqDto dto){
+        VoteAnswerResDto voteAnswerResDto = postService.doVote(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "특정항목에 투표 완료",voteAnswerResDto),HttpStatus.OK);
     }
 
 

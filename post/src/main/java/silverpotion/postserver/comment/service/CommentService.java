@@ -104,19 +104,35 @@ public class CommentService {
     public Long replyCreate(String loginId,ReplyCommentCreateReqDto dto){
         Long userId = userClient.getUserIdByLoginId(loginId);
         Comment parent = commentRepository.findById(dto.getParentId()).orElseThrow(()->new EntityNotFoundException("댓글이 없다"));
-        Post post = commentRepository.findPostByParentId(parent.getId());
 
-        Comment comment = Comment.builder()
-                .userId(userId)
-                .post(post)
-                .parent(parent)
-                .content(dto.getContent())
-                .build();
-        commentRepository.save(comment);
+        // 부모 댓글이 Post용인지 Vote용인지 구분 필요 (예: parent.getPost() or parent.getVote() 확인)
+        if (parent.getPost() != null) { // 일반 게시물 댓글
+            Post post = commentRepository.findPostByParentId(parent.getId());
 
-        parent.addChild(comment);
-        return post.getId();
+            Comment comment = Comment.builder()
+                    .userId(userId)
+                    .post(post)
+                    .parent(parent)
+                    .content(dto.getContent())
+                    .build();
+            commentRepository.save(comment);
+            parent.addChild(comment);
+            return post.getId();
+        } else if (parent.getVote() != null) { // 투표 게시물 댓글
+            Vote vote = commentRepository.findVoteByParentId(parent.getId());
 
+            Comment comment = Comment.builder()
+                    .userId(userId)
+                    .vote(vote)
+                    .parent(parent)
+                    .content(dto.getContent())
+                    .build();
+            commentRepository.save(comment);
+            parent.addChild(comment);
+            return vote.getVoteId();
+        } else {
+            throw new IllegalStateException("부모 댓글이 어떤 게시물에도 속해있지 않습니다.");
+        }
     }
 
 

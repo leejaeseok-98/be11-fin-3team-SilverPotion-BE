@@ -40,8 +40,8 @@ public class Vote extends BaseTimeEntity {
 
     private String description;
 
-    @OneToMany(mappedBy = "vote", cascade = CascadeType.REMOVE, orphanRemoval = true)
-    private List<VoteOptions> voteOptions;//투표항목
+    @OneToMany(mappedBy = "vote", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<VoteOptions> voteOptions = new ArrayList<>();//투표항목
 
     private boolean multipleChoice; //복수선택 여부
 
@@ -66,13 +66,16 @@ public class Vote extends BaseTimeEntity {
     @JoinColumn(name = "gathering_id")
     private Gathering gathering;
 
-    public void update(Long userId,VotePostUpdateDto dto,List<VoteOptions> voteOptions) {
+    public void update(Long userId,VotePostUpdateDto dto) {
         this.writerId = userId;
         this.title = dto.getTitle();
-        this.voteOptions.clear();
-        this.voteOptions.addAll(voteOptions);
         this.description = dto.getDescription();
         this.multipleChoice = dto.isMultipleChoice();
+    }
+
+    public void addVoteOption(VoteOptions option) {
+        this.voteOptions.add(option);
+        option.updateVote(this); // 주인 쪽에 연결
     }
 
     //  작성자를 한번만 지정할 수 있도록 제약
@@ -102,6 +105,12 @@ public class Vote extends BaseTimeEntity {
             this.likeCount = 0L;
         } else {
             this.likeCount--;
+        }
+    }
+    public void setVoteOptions(List<VoteOptions> voteOptions) {
+        this.voteOptions = voteOptions;
+        for (VoteOptions option : voteOptions) {
+            option.updateVote(this); // FK 설정 (연관관계 주인)
         }
     }
 }

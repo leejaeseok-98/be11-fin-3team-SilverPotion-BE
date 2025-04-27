@@ -1,5 +1,7 @@
 package silverpotion.postserver.post.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,6 +14,7 @@ import java.util.List;
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
+@Getter
 @Builder
 public class VoteOptions {
     @Id
@@ -22,8 +25,15 @@ public class VoteOptions {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vote_id")
+    @JsonIgnore
     private Vote vote;
 
     @OneToMany(mappedBy = "voteOption", cascade = CascadeType.REMOVE, orphanRemoval = true)
+    @JsonManagedReference
     private List<VoteAnswer> answers = new ArrayList<>();
+
+    public void updateVote(Vote vote) {
+        this.vote = vote;
+    }
+
 }

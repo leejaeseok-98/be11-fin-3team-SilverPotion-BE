@@ -1,5 +1,6 @@
 package silverpotion.postserver.post.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -20,5 +21,6 @@ public class VoteAnswer {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "vote_option_id")
+    @JsonIgnore
     private VoteOptions voteOption;
 }

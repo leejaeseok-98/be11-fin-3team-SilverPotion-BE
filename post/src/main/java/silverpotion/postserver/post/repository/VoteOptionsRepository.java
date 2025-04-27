@@ -10,4 +10,6 @@ import java.util.List;
 @Repository
 public interface VoteOptionsRepository extends JpaRepository<VoteOptions, Long> {
     List<VoteOptions> findByVote(Vote vote);
+
+    List<VoteOptions> findByVote_voteId(Long voteId);
 }

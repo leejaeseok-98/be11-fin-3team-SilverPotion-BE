@@ -90,7 +90,6 @@
 
             if (dto.getPostCategory() == PostCategory.free){
                 Post draftPost = Post.builder()
-                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -100,7 +99,6 @@
             }
             else if (dto.getPostCategory() == PostCategory.notice) {
                 Post draftPost = Post.builder()
-                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -110,7 +108,6 @@
 
             } else if (dto.getPostCategory() == PostCategory.vote) {
                 Vote draftVote = Vote.builder()
-                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -238,16 +235,29 @@
             postRepository.delete(post);
         }
 
+        public void deleteVote(Long voteId,String loginId){
+            Long userId = userClient.getUserIdByLoginId(loginId);
+            Vote vote = voteRepository.findById(voteId).orElseThrow(()-> new EntityNotFoundException("투표게시물을 찾을 수 없습니다."));
+            if (!userId.equals(vote.getWriterId())){return;}
+            voteRepository.delete(vote);
+        }
     //    //    7. 게시물 조회
         public Page<PostVoteResDTO> getPostAndVoteList(int page, int size, String loginId) {
             int safePage = (page <= 0) ? 0 : page;
             int offset = (safePage == 0) ? 0 : (safePage - 1) * size;
             List<PostVoteUnionDto> rawList = postQueryRepository.findAllPostAndVote(size, offset);
             long totalCount = postQueryRepository.countPostAndVote();
-
             Long userId = userClient.getUserIdByLoginId(loginId);
+
             List<PostVoteResDTO> dtoList = rawList.stream()
-                    .map(dto -> convertToDto(dto,userId))
+                    .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요!
+                        PostVoteResDTO postVoteResDTO = convertToDto(item, userId);
+                        if (item.getPostCategory() == PostCategory.vote) {
+                            List<VoteOptions> options = voteOptionsRepository.findByVote_voteId(item.getId());
+                            postVoteResDTO.setVoteOptions(options);
+                        }
+                        return postVoteResDTO;
+                    })
                     .collect(Collectors.toList());
 
             Pageable pageable = PageRequest.of(safePage, size);

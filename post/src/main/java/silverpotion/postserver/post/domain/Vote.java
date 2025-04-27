@@ -48,6 +48,7 @@ public class Vote extends BaseTimeEntity {
     @OneToMany(mappedBy = "vote", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<VoteLike> voteLikes = new ArrayList<>();
 
+    @Builder.Default
     @Column(name = "like_count",nullable = false)
     private Long likeCount =0L;
 

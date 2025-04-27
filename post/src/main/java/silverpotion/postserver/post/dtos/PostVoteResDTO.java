@@ -7,9 +7,11 @@ import lombok.NoArgsConstructor;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.PostCategory;
 import silverpotion.postserver.post.domain.PostFile;
+import silverpotion.postserver.post.domain.VoteOptions;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -32,4 +34,8 @@ public class PostVoteResDTO {
     private List<String> voteOptions;// VOTE 전용
     private LocalDateTime closeTime;
     private boolean participating;
+
+    public void setVoteOptions(List<VoteOptions> options){
+        this.voteOptions = options.stream().map(VoteOptions::getOptionText).collect(Collectors.toList());
+    }
 }

@@ -89,17 +89,19 @@ public class PostController {
     }
 
     //    6.게시물 전체 조회
-    @GetMapping("/list")
+    @GetMapping("/list/{gatheringId}")
     public ResponseEntity<?> getPostList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size,
-                                         @RequestHeader("X-User-LoginId") String loginId
+                                         @RequestHeader("X-User-LoginId") String loginId,
+                                         @PathVariable Long gatheringId
                                          ) {
-        Page<PostVoteResDTO> postListResDtos = postService.getPostAndVoteList(page, size,loginId);
+        Page<PostVoteResDTO> postListResDtos = postService.getPostAndVoteList(gatheringId,page, size,loginId);
+        System.out.println(gatheringId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시물 리스트 불러오기 완료", postListResDtos), HttpStatus.OK);
     }
 
 //    자유글 조회
-    @GetMapping("/free/list")
+    @GetMapping("/free/list/{gatheringId}")
     public ResponseEntity<?> getFreeList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size,
                                          @RequestHeader("X-User-LoginId") String loginId){
@@ -107,7 +109,7 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"자유글 리스트 불러오기 완료",freeList),HttpStatus.OK);
     }
 //    공지글 조회
-    @GetMapping("/notice/list")
+    @GetMapping("/notice/list/{gatheringId}")
     public ResponseEntity<?> getNoticeList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size,
                                          @RequestHeader("X-User-LoginId") String loginId){
@@ -116,7 +118,7 @@ public class PostController {
     }
 
 //    투표 조회
-    @GetMapping("/vote/list")
+    @GetMapping("/vote/list/{gatheringId}")
     public ResponseEntity<?> getVoteList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                            @RequestParam(name = "size", defaultValue = "5") Integer size,
                                            @RequestHeader("X-User-LoginId") String loginId){

@@ -242,10 +242,10 @@
             voteRepository.delete(vote);
         }
     //    //    7. 게시물 조회
-        public Page<PostVoteResDTO> getPostAndVoteList(int page, int size, String loginId) {
+        public Page<PostVoteResDTO> getPostAndVoteList(Long gatheringId,int page, int size, String loginId) {
             int safePage = (page <= 0) ? 0 : page;
             int offset = (safePage == 0) ? 0 : (safePage - 1) * size;
-            List<PostVoteUnionDto> rawList = postQueryRepository.findAllPostAndVote(size, offset);
+            List<PostVoteUnionDto> rawList = postQueryRepository.findAllPostAndVote(gatheringId,size, offset);
             long totalCount = postQueryRepository.countPostAndVote();
             Long userId = userClient.getUserIdByLoginId(loginId);
 

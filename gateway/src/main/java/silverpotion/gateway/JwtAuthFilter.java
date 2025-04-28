@@ -24,6 +24,7 @@ public class JwtAuthFilter implements GlobalFilter {
 
     private static final List<String> ALLOWED_PATHS = List.of(
             "/silverpotion/user/create",
+            "/silverpotion/user/checkDuplicate",
             "/silverpotion/user/login",
             "/silverpotion/gathering-category",
             "/silverpotion/gathering-category/detail",

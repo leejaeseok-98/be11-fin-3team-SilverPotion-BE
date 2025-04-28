@@ -73,14 +73,14 @@ public class HealthDataService {
     public HealthDataListDto todayData(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         LocalDate today = LocalDate.now();
-        return healthDataRepository.findByUserIdAndCreatedDateAndDataType(user.getId(),today,DataType.DAY).orElseThrow(()->new EntityNotFoundException("금일 기록이 없습니다")).toListDtoFromEntity();
+        return healthDataRepository.findByUserIdAndCreatedDateAndDataType(user.getId(),today,DataType.DAY).orElseThrow(()->new EntityNotFoundException("금일 기록이 없습니다")).toListDtoFromEntity(user.getProfileImage());
     }
 
     //    3. 헬스데이터 특정날짜 조회
     public HealthDataListDto specificDateData(HealthDataSpecificDateDto dto, String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
         LocalDate specificDate = LocalDate.parse(dto.getSpecificDate());
-        return healthDataRepository.findByUserIdAndCreatedDateAndDataType(user.getId(), specificDate,DataType.DAY).orElseThrow(()->new EntityNotFoundException("해당날짜의 기록이 없습니다")).toListDtoFromEntity();
+        return healthDataRepository.findByUserIdAndCreatedDateAndDataType(user.getId(), specificDate,DataType.DAY).orElseThrow(()->new EntityNotFoundException("해당날짜의 기록이 없습니다")).toListDtoFromEntity(user.getProfileImage());
     }
 
     //   4.헬스데이터 지난주 평균 조회
@@ -134,7 +134,7 @@ public class HealthDataService {
             }
         }
          if(isThereTodayData){
-             return  targetData.toListDtoFromEntity();
+             return  targetData.toListDtoFromEntity(dependentUser.getProfileImage());
          } else{
              throw new IllegalArgumentException("피보호자의 금일 기록이 없습니다");
          }
@@ -149,7 +149,7 @@ public class HealthDataService {
         //findFirst하는 이유는 리스트로 뽑히는데 어차피 그날에 만들어진 데이터는 1개일 것
         HealthData targetData = user.getMyHealthData().stream().filter(h->h.getCreatedDate().equals(targetMonday)).filter(h->h.getDataType()==DataType.WEEKAVG)
                                 .findFirst().orElseThrow(()->new EntityNotFoundException("해당 주간 평균데이터가 존재하지 않습니다"));
-        return targetData.toListDtoFromEntity();
+        return targetData.toListDtoFromEntity(user.getProfileImage());
     }
 
 //   8.특정 월 평균헬스데이터 조회
@@ -159,7 +159,7 @@ public class HealthDataService {
         LocalDate targetFirstDay = LocalDate.parse(dto.getSelectedDate()).plusMonths(1).withDayOfMonth(1);
         HealthData targetData = user.getMyHealthData().stream().filter(h->h.getCreatedDate().equals(targetFirstDay)).filter(h->h.getDataType()==DataType.MONTHAVG)
                                 .findFirst().orElseThrow(()->new EntityNotFoundException("해당 월간데이터가 존재하지 않습니다"));
-        return targetData.toListDtoFromEntity();
+        return targetData.toListDtoFromEntity(user.getProfileImage());
     }
 
     //    09. 내 피보호자 특정 주 평균헬스데이터 조회
@@ -183,7 +183,7 @@ public class HealthDataService {
         LocalDate targetDate = LocalDate.parse(dto.getSelectDate()).with(DayOfWeek.MONDAY).plusWeeks(1);
         HealthData targetData = dependentData.stream().filter(c->c.getCreatedDate().equals(targetDate)).filter(c->c.getDataType()==DataType.WEEKAVG)
                 .findFirst().orElseThrow(()->new EntityNotFoundException("해당 주간 데이터가 존재하지 않습니다"));
-        return targetData.toListDtoFromEntity();
+        return targetData.toListDtoFromEntity(dependent.getProfileImage());
     }
 
 //    10. 내 피보호자 특정 주 평균헬스데이터 조회
@@ -207,7 +207,7 @@ public class HealthDataService {
        LocalDate targetDate = LocalDate.parse(dto.getSelectDate()).plusMonths(1).withDayOfMonth(1);
        HealthData targetData = dependentData.stream().filter(c->c.getCreatedDate().equals(targetDate)).filter(c->c.getDataType()==DataType.MONTHAVG)
                                 .findFirst().orElseThrow(()->new EntityNotFoundException("해당 월간 데이터가 존재하지 않습니다"));
-       return targetData.toListDtoFromEntity();
+       return targetData.toListDtoFromEntity(dependent.getProfileImage());
     }
 
 //    11.헬스데이터 올인원 조회
@@ -241,7 +241,7 @@ public class HealthDataService {
         System.out.println(selectedDate);
 
         HealthData selectedData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(selectedUser.getId(), selectedDate,selectedType).orElseThrow(()->new EntityNotFoundException("해당 데이터가 존재하지 않습니다"));
-        return selectedData.toListDtoFromEntity();
+        return selectedData.toListDtoFromEntity(selectedUser.getProfileImage());
 
     }
 

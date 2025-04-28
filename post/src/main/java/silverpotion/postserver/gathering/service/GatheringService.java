@@ -5,6 +5,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 //import org.opensearch.client.RestHighLevelClient;
 //import org.opensearch.client.RestHighLevelClient;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
@@ -35,6 +36,7 @@ import java.util.stream.Collectors;
 
 @Service
 @Transactional
+@Slf4j
 public class GatheringService {
 
     private final GatheringRepository gatheringRepository;
@@ -121,7 +123,7 @@ public class GatheringService {
                 .collect(Collectors.toList());
 
         gatheringDetailRepository.saveAll(details);
-
+        log.info("모임생성정보 id:{}, name:{}, chatRoomId:{}",gathering.getId(),gathering.getGatheringName(),gathering.getChatRoomId());
         return gathering.getId();
     }
 
@@ -189,7 +191,8 @@ public class GatheringService {
                             category,
                             gathering.getIntroduce(),
                             peopleCount,
-                            gathering.getLeaderId()
+                            gathering.getLeaderId(),
+                            gathering.getChatRoomId()
                     );
                 })
                 .collect(Collectors.toList());
@@ -223,7 +226,8 @@ public class GatheringService {
                 category,
                 gathering.getIntroduce(),
                 peopleCount,
-                gathering.getLeaderId()
+                gathering.getLeaderId(),
+                gathering.getChatRoomId()
         );
     }
 
@@ -262,7 +266,8 @@ public class GatheringService {
                         gathering.getGatheringCategory() != null ? gathering.getGatheringCategory().getName() : "미분류",
                         gathering.getIntroduce(),
                         gatheringPeopleRepository.countByGatheringIdAndStatusActivate(gathering.getId()),
-                        gathering.getLeaderId()
+                        gathering.getLeaderId(),
+                        gathering.getChatRoomId()
                 ))
                 .collect(Collectors.toList());
     }
@@ -348,19 +353,19 @@ public class GatheringService {
         // 상태 변경
         gatheringPeople.updateStatus(dto.getStatus());
 
-        // 상태로 인한 그룹채팅 참가유무 세팅
-        if (gatheringPeople.getStatus() == Status.ACTIVATE) {
-            // 그룹 채팅 참여자 추가
-            AddChatParticipantRequest request = new AddChatParticipantRequest();
-            request.setChatRoomId(gathering.getChatRoomId());
-            request.setUserId(gatheringPeople.getUserId());
-
-            chatFeignClient.addParticipant(request);
-
-        } else if (gatheringPeople.getStatus() == Status.BAN) {
-            // 그룹 채팅 참여자 제거
-            chatFeignClient.removeParticipant(gathering.getChatRoomId(), gatheringPeople.getUserId());
-        }
+//        // 상태로 인한 그룹채팅 참가유무 세팅
+//        if (gatheringPeople.getStatus() == Status.ACTIVATE) {
+//            // 그룹 채팅 참여자 추가
+//            AddChatParticipantRequest request = new AddChatParticipantRequest();
+//            request.setChatRoomId(gathering.getChatRoomId());
+//            request.setUserId(gatheringPeople.getUserId());
+//
+//            chatFeignClient.addParticipant(request);
+//
+//        } else if (gatheringPeople.getStatus() == Status.BAN) {
+//            // 그룹 채팅 참여자 제거
+//            chatFeignClient.removeParticipant(gathering.getChatRoomId(), gatheringPeople.getUserId());
+//        }
         // 저장
         gatheringPeopleRepository.save(gatheringPeople);
     }

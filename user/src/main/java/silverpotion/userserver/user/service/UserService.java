@@ -357,7 +357,18 @@ public class UserService {
     private boolean isValidPassword(String password) {
         return password.length() >= 8 && password.matches(".*[0-9].*") && password.matches(".*[!@#$%^&*()].*");
     }
+    // id 로 유저 찾기 feign
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 ID의 사용자를 찾을 수 없습니다."));
 
-
+        return UserDto.builder()
+                .id(user.getId())
+                .loginId(user.getLoginId())
+                .nickName(user.getNickName())
+                .birthday(user.getBirthday())
+                .name(user.getName())
+                .build();
+    }
 
 }

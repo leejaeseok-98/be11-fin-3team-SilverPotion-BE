@@ -50,7 +50,7 @@ public class Vote extends BaseTimeEntity {
 
     @Builder.Default
     @Column(name = "like_count",nullable = false)
-    private Long likeCount =0L;
+    private Long likeCount = 0L;
 
     @OneToMany(mappedBy = "vote", cascade = CascadeType.REMOVE, orphanRemoval = true)
     private List<Comment> comments = new ArrayList<>();
@@ -112,6 +112,13 @@ public class Vote extends BaseTimeEntity {
         this.voteOptions = voteOptions;
         for (VoteOptions option : voteOptions) {
             option.updateVote(this); // FK 설정 (연관관계 주인)
+        }
+    }
+
+    @PrePersist
+    public void prePersist() {
+        if (this.likeCount == null) {
+            this.likeCount = 0L;
         }
     }
 }

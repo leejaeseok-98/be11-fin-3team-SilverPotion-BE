@@ -68,5 +68,4 @@ public class CommentController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"댓글 좋아요 유저리스트 완료",commentLikeUserList),HttpStatus.OK);
     }
 
-
 }

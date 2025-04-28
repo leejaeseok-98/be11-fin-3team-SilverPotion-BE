@@ -503,8 +503,11 @@
             boolean isLiked = voteLikeRepository.existsByVoteAndUserId(vote, userId);
             String isLike = isLiked ? "Y" : "N";
 
+            //투표여부
+            boolean hasVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
 
-            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList);
+
+            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
         }
 
         //    게시물 상세조회

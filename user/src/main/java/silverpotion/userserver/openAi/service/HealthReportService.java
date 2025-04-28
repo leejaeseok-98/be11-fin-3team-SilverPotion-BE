@@ -252,7 +252,7 @@ public class HealthReportService {
      //일단, 그 날짜의 회원 헬스데이터를 가지고 옴.(그날 만들어진 것중 일일 데이터타입인 것임)
      HealthData healthData = loginUser.getMyHealthData().stream().filter(h->h.getCreatedDate().equals(selectedData)).filter(h->h.getDataType()== DataType.DAY).findFirst().orElseThrow(()->new EntityNotFoundException("당일 기록이 없습니다"));
     HealthReport report = healthReportRepository.findByHealthDataIdAndCreatedDate(healthData.getId(),selectedData).orElseThrow(()->new EntityNotFoundException("당일 ai리포트 기록이 없습니다"));
-    return report.toReportDtoFromEntity();
+    return report.toReportDtoFromEntity(loginUser.getProfileImage());
 
     }
 
@@ -275,7 +275,7 @@ public class HealthReportService {
 
         HealthData healthData = dependent.getMyHealthData().stream().filter(h->h.getCreatedDate().equals(selectedDate)&&h.getDataType()==DataType.DAY).findFirst().orElseThrow(()->new EntityNotFoundException("당일 건강기록 없습니다"));
         HealthReport healthReport = healthReportRepository.findByHealthDataIdAndCreatedDate(healthData.getId(),selectedDate).orElseThrow(()->new EntityNotFoundException("당일 ai리포트 기록이 없습니다"));
-        return healthReport.toReportDtoFromEntity();
+        return healthReport.toReportDtoFromEntity(dependent.getProfileImage());
     }
 
 //    4.헬스리포트 올인원 조회
@@ -315,12 +315,12 @@ public class HealthReportService {
             HealthData selectedHealthData = selectedUser.getMyHealthData().stream().filter(h -> h.getDataType().equals(selectedType)).filter(h -> h.getCreatedDate().equals(makingReportDay)).findFirst().orElseThrow(() -> new EntityNotFoundException("당일 헬스 데이터가 없습니다"));
             System.out.println("건강데이터" + selectedHealthData.getId());
             HealthReport selectedReport = healthReportRepository.findByHealthDataIdAndCreatedDate(selectedHealthData.getId(), selectedDate).orElseThrow(() -> new EntityNotFoundException("없는 데이터입니다1"));
-            return selectedReport.toReportDtoFromEntity();
+            return selectedReport.toReportDtoFromEntity(selectedUser.getProfileImage());
         } else { //사용자가 주간 리포트를 조회하면 (일단 월간은 나중에)
             HealthData selectedHealthData = selectedUser.getMyHealthData().stream().filter(h -> h.getDataType().equals(selectedType)).filter(h -> h.getCreatedDate().equals(selectedDate)).findFirst().orElseThrow(() -> new EntityNotFoundException("당일 헬스데이터가 없습니다2"));
             System.out.println("건강데이터"+selectedHealthData.getId());
             HealthReport selectedReport = healthReportRepository.findByHealthDataIdAndCreatedDate(selectedHealthData.getId(), selectedDate).orElseThrow(() -> new EntityNotFoundException("없는 데이터입니다2"));
-            return  selectedReport.toReportDtoFromEntity();
+            return  selectedReport.toReportDtoFromEntity(selectedUser.getProfileImage());
         }
     }
 

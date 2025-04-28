@@ -1,16 +1,14 @@
 package silverpotion.postserver.post.feignClient;
 
 import org.springframework.cloud.openfeign.FeignClient;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.*;
 import silverpotion.postserver.common.dto.CommonDto;
+import silverpotion.postserver.common.service.FeignConfig;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.util.List;
 
-@FeignClient(name = "user-service", path = "silverpotion/user")
+@FeignClient(name = "user-service", path = "silverpotion/user", configuration = FeignConfig.class)
 public interface UserClient {
 
     @GetMapping("/userId")
@@ -31,4 +29,12 @@ public interface UserClient {
     //    유저id로 유저 프로필 리스트 가져오기(set)
     @PostMapping("/post/profileInfo")
     CommonDto PostProfileInfo(@RequestBody List<Long> accessibleUserIds);
+
+    // userId로 닉네임 조회
+    @GetMapping("/{userId}/nickname")
+    String getNicknameByUserId(@PathVariable("userId") Long userId);
+
+    // userId로 loginId 조회
+    @GetMapping("/loginId")
+    String getLoginIdByUserId(@RequestParam("id") Long id);
 }

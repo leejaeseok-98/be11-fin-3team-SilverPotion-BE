@@ -73,6 +73,19 @@ public class UserService {
         return user.getId();
     }
 
+    //1-2.회원가입 중복체크
+    public boolean isDuplicate(String field, String value){
+       if("loginId".equals(field)){
+           return userRepository.existsByLoginId(value);
+       } else if("email".equals(field)){
+           return userRepository.existsByEmail(value);
+       } else if("nickName".equals(field)){
+           return userRepository.existsByNickName(value);
+       } else{
+           throw new IllegalArgumentException("잘못된 입력입니다");
+       }
+    }
+
     //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
         
@@ -285,6 +298,18 @@ public class UserService {
 
     }
 
+    //17. 화면에서 로그인 아이디 주면 프로필 이미지 주는 용도
+    public String getProfilePicture(String loginId,UserImgReqDto dto){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        User selectedUser;
+        if(loginId.equals(dto.getLoginId())){
+            selectedUser = user;
+        } else{
+            selectedUser = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        }
+        return selectedUser.getProfileImage();
+    }
+
     //    게시물 조회시, 작성자 프로필 조회
     public  Map<Long, UserProfileInfoDto> getProfileInfoMap(List<Long> userIds) {
         List<User> users = userRepository.findAllById(userIds); // JPA 기본 제공
@@ -357,7 +382,18 @@ public class UserService {
     private boolean isValidPassword(String password) {
         return password.length() >= 8 && password.matches(".*[0-9].*") && password.matches(".*[!@#$%^&*()].*");
     }
+    // id 로 유저 찾기 feign
+    public UserDto getUserById(Long id) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("해당 ID의 사용자를 찾을 수 없습니다."));
 
-
+        return UserDto.builder()
+                .id(user.getId())
+                .loginId(user.getLoginId())
+                .nickName(user.getNickName())
+                .birthday(user.getBirthday())
+                .name(user.getName())
+                .build();
+    }
 
 }

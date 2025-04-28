@@ -5,6 +5,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import retrofit2.http.HTTP;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
@@ -45,6 +46,13 @@ public class    UserController {
     public ResponseEntity<?> userCreate(@RequestBody UserCreateDto dto){
        Long id =userService.userCreate(dto);
        return new ResponseEntity<>(new CommonDto(HttpStatus.CREATED.value(),"user is created successfully",id), HttpStatus.CREATED);
+    }
+
+//    1-2.회원가입 아이디,이메일,닉네임 중복체크
+    @GetMapping("/checkDuplicate")
+    public ResponseEntity<?> checkDuplicate(@RequestParam String field, @RequestParam String value){
+        boolean isDuplicate = userService.isDuplicate(field,value);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "check need",isDuplicate),HttpStatus.OK);
     }
 
 //    2-1.로그인
@@ -182,6 +190,13 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",nameInfo),HttpStatus.OK);
     }
 
+    //17. 로그인 아이디 주면 프로필 이미지 리턴(화면용 api)
+    @PostMapping("whatisyourpicture")
+    public ResponseEntity<?> getProfilePicture(@RequestHeader("X-User-LoginId")String loginId,@RequestBody UserImgReqDto dto){
+         String imgUrl =  userService.getProfilePicture(loginId,dto);
+         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",imgUrl),HttpStatus.OK);
+    }
+
 //    게시물 조회시, 작성자 프로필 조회
     @PostMapping("/post/profileInfo")
     public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){
@@ -274,5 +289,10 @@ public class    UserController {
        String nickName = userService.withdraw(loginId);
        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
     }
-
+    // ✅ UserId로 UserDto 반환하는 API
+    @GetMapping("/id")
+    public ResponseEntity<UserDto> getUserById(@RequestParam("id") Long id) {
+        UserDto userDto = userService.getUserById(id);
+        return ResponseEntity.ok(userDto);
+    }
 }

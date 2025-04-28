@@ -17,4 +17,5 @@ public class GatheringInfoDto {
     private String introduce;
     private Long peopleCount;
     private Long leaderId;
+    private Long chatRoomId;
 }

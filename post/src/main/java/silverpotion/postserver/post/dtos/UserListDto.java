@@ -12,6 +12,7 @@ import lombok.NoArgsConstructor;
 @Builder
 public class UserListDto {
     private Long id;
+    private String name;
     private String nickName;
-    private String profileImg;
+    private String profileImgUrl;
 }

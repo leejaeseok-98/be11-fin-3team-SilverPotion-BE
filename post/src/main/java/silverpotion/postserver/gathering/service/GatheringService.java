@@ -24,6 +24,10 @@ import silverpotion.postserver.gatheringCategory.repository.GatheringCategoryRep
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.repository.GatheringDetailRepository;
+import silverpotion.postserver.notification.dto.GatheringJoinRequestEventDto;
+import silverpotion.postserver.notification.dto.NotificationMessageDto;
+import silverpotion.postserver.notification.service.NotificationEventPublisher;
+import silverpotion.postserver.notification.service.NotificationProducer;
 import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
@@ -45,6 +49,8 @@ public class GatheringService {
     private final GatheringPeopleRepository gatheringPeopleRepository;
     private final ImageService imageService;
     private final ChatFeignClient chatFeignClient;
+    private final NotificationEventPublisher notificationEventPublisher;
+    private final NotificationProducer notificationProducer;
 //    private final OpenSearchService openSearchService;
 //    @Autowired
 //    private RestHighLevelClient client;
@@ -52,7 +58,7 @@ public class GatheringService {
 
     public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService,
 //            , OpenSearchService openSearchService
-                            ChatFeignClient chatFeignClient) {
+                            ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
@@ -62,6 +68,8 @@ public class GatheringService {
         this.imageService = imageService;
 //        this.openSearchService = openSearchService;
         this.chatFeignClient = chatFeignClient;
+        this.notificationEventPublisher = notificationEventPublisher;
+        this.notificationProducer = notificationProducer;
     }
 
 //    @PostConstruct
@@ -324,6 +332,18 @@ public class GatheringService {
                 .greetingMessage(dto.getGreetingMessage())
                 .status(Status.WAIT) // 기본 상태
                 .build();
+
+        Long gatheringLeaderId = gathering.getLeaderId();
+        String gatheringLeaderLoginId = userClient.getLoginIdByUserId(gatheringLeaderId);
+        String userNickname = userClient.getNicknameByUserId(userId);
+
+        notificationProducer.sendNotification(NotificationMessageDto.builder()
+                .loginId(gatheringLeaderLoginId)
+                .title("모임 가입 요청")
+                .content(userNickname + "님이 '" + gathering.getGatheringName() + "' 모임에 가입 요청을 보냈습니다.")
+                .type("JOIN_REQUEST")
+                .referenceId(dto.getGatheringId())
+                .build());
 
         gatheringPeopleRepository.save(gatheringPeople);
 

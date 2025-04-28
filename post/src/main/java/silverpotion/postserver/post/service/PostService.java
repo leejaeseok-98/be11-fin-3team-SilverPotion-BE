@@ -19,7 +19,7 @@ package silverpotion.postserver.post.service;
     import silverpotion.postserver.gathering.domain.Gathering;
     import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
     import silverpotion.postserver.gathering.repository.GatheringRepository;
-    import silverpotion.postserver.post.UserClient.UserClient;
+    import silverpotion.postserver.post.feignClient.UserClient;
     import silverpotion.postserver.post.domain.*;
     import silverpotion.postserver.post.dtos.*;
     import silverpotion.postserver.post.repository.*;

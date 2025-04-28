@@ -39,7 +39,7 @@ public class InitialDataLoader implements CommandLineRunner {
                     .birthday("19500818")
                     .loginId("user")
                     .password(passwordEncoder.encode("12341234"))
-                    .nickName("홍홍홍")
+                    .nickName("홍진영")
                     .email("trot@naver.com")
                     .address("서울시 동작구 신대방동 101로")
                     .zipcode("01010")

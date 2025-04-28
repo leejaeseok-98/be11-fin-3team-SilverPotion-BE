@@ -73,6 +73,19 @@ public class UserService {
         return user.getId();
     }
 
+    //1-2.회원가입 중복체크
+    public boolean isDuplicate(String field, String value){
+       if("loginId".equals(field)){
+           return userRepository.existsByLoginId(value);
+       } else if("email".equals(field)){
+           return userRepository.existsByEmail(value);
+       } else if("nickName".equals(field)){
+           return userRepository.existsByNickName(value);
+       } else{
+           throw new IllegalArgumentException("잘못된 입력입니다");
+       }
+    }
+
     //    2-1.로그인
     public Map<String,Object> login(LoginDto dto){
         
@@ -283,6 +296,18 @@ public class UserService {
         nameInfo.add(Opponent.getNickName());
         return nameInfo;
 
+    }
+
+    //17. 화면에서 로그인 아이디 주면 프로필 이미지 주는 용도
+    public String getProfilePicture(String loginId,UserImgReqDto dto){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        User selectedUser;
+        if(loginId.equals(dto.getLoginId())){
+            selectedUser = user;
+        } else{
+            selectedUser = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        }
+        return selectedUser.getProfileImage();
     }
 
     //    게시물 조회시, 작성자 프로필 조회

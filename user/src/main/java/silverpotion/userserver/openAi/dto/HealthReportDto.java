@@ -13,7 +13,9 @@ import java.time.LocalDate;
 @Builder
 public class HealthReportDto {
 
-    String text;
-    LocalDate date;
+    private String text;
+    private LocalDate date;
+    private String period;
+    private String imgUrl;
 
 }

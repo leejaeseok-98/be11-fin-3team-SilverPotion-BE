@@ -9,7 +9,19 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.transaction.PlatformTransactionManager;
+import silverpotion.userserver.batch.daily.DailyHealthReportProcessor;
+import silverpotion.userserver.batch.daily.DailyHealthReportReader;
+import silverpotion.userserver.batch.daily.DailyHealthReportWriter;
+import silverpotion.userserver.batch.monthly.MonthlyHealthDataProcessor;
+import silverpotion.userserver.batch.monthly.MonthlyHealthDataReader;
+import silverpotion.userserver.batch.monthly.MonthlyHealthDataWriter;
+import silverpotion.userserver.batch.monthly.MonthlyHealthReportTasklet;
+import silverpotion.userserver.batch.weekly.WeeklyHealthDataProcessor;
+import silverpotion.userserver.batch.weekly.WeeklyHealthDataReader;
+import silverpotion.userserver.batch.weekly.WeeklyHealthDataWriter;
+import silverpotion.userserver.batch.weekly.WeeklyHealthReportTasklet;
 import silverpotion.userserver.healthData.domain.HealthData;
+import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.user.domain.User;
 
 @Configuration
@@ -17,6 +29,9 @@ public class SpringBatchConfig {
 
     private final JobRepository jobRepository; //배치 작업의 실행이력을 db에 저장하는 역할.job이 언제 실행되었는지, 성공했는지 실패했는지 등
     private final PlatformTransactionManager transactionManager; //배치는 db작업을 묶어서 실행하는 경우가 많음. 이걸 트랜잭션 단위로 관리하기 위해 필요한 객체. 얘가 있어야 작업도중 실패하면 롤백이 가능
+    private final DailyHealthReportReader dailyHealthReportReader;
+    private final DailyHealthReportProcessor dailyHealthReportProcessor;
+    private final DailyHealthReportWriter dailyHealthReportWriter;
     private final WeeklyHealthDataReader weeklyHealthDataReader;
     private final WeeklyHealthDataProcessor weeklyHealthDataProcessor;
     private final WeeklyHealthDataWriter weeklyHealthDataWriter;
@@ -26,9 +41,12 @@ public class SpringBatchConfig {
     private final MonthlyHealthDataWriter monthlyHealthDataWriter;
     private final MonthlyHealthReportTasklet monthlyHealthReportTasklet;
 
-    public SpringBatchConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager, WeeklyHealthDataReader weeklyHealthDataReader, WeeklyHealthDataProcessor weeklyHealthDataProcessor, WeeklyHealthDataWriter weeklyHealthDataWriter, WeeklyHealthReportTasklet weeklyHealthReportTasklet, MonthlyHealthDataReader monthlyHealthDataReader, MonthlyHealthDataProcessor monthlyHealthDataProcessor, MonthlyHealthDataWriter monthlyHealthDataWriter, MonthlyHealthReportTasklet monthlyHealthReportTasklet) {
+    public SpringBatchConfig(JobRepository jobRepository, PlatformTransactionManager transactionManager, DailyHealthReportReader dailyHealthReportReader, DailyHealthReportProcessor dailyHealthReportProcessor, DailyHealthReportWriter dailyHealthReportWriter, WeeklyHealthDataReader weeklyHealthDataReader, WeeklyHealthDataProcessor weeklyHealthDataProcessor, WeeklyHealthDataWriter weeklyHealthDataWriter, WeeklyHealthReportTasklet weeklyHealthReportTasklet, MonthlyHealthDataReader monthlyHealthDataReader, MonthlyHealthDataProcessor monthlyHealthDataProcessor, MonthlyHealthDataWriter monthlyHealthDataWriter, MonthlyHealthReportTasklet monthlyHealthReportTasklet) {
         this.jobRepository = jobRepository;
         this.transactionManager = transactionManager;
+        this.dailyHealthReportReader = dailyHealthReportReader;
+        this.dailyHealthReportProcessor = dailyHealthReportProcessor;
+        this.dailyHealthReportWriter = dailyHealthReportWriter;
         this.weeklyHealthDataReader = weeklyHealthDataReader;
         this.weeklyHealthDataProcessor = weeklyHealthDataProcessor;
         this.weeklyHealthDataWriter = weeklyHealthDataWriter;
@@ -38,7 +56,27 @@ public class SpringBatchConfig {
         this.monthlyHealthDataWriter = monthlyHealthDataWriter;
         this.monthlyHealthReportTasklet = monthlyHealthReportTasklet;
     }
+//    데일리 잡--------------------------------------------------------------------------------------------------------------------------
+    @Bean
+    @Qualifier("dailyMakingReport")
+    public Job dailyMakingReport(){
+        return new JobBuilder("dailyMakingReport",jobRepository)
+                .start(dailyReportStep())
+                .build();
+    }
 
+    @Bean
+    public Step dailyReportStep(){
+        return new StepBuilder("dailyReportStep",jobRepository)
+                .<User, HealthReport>chunk(100,transactionManager)
+                .reader(dailyHealthReportReader)
+                .processor(dailyHealthReportProcessor)
+                .writer(dailyHealthReportWriter)
+                .build();
+    }
+
+
+//    위클리 잡-----------------------------------------------------------------------------------------------------------------------
 
     @Bean
     @Qualifier("weeklyAverageHealthJob")
@@ -46,6 +84,7 @@ public class SpringBatchConfig {
     public Job weeklyAverageHealthJob(){
         return new JobBuilder("weeklyAverageHealthJob", jobRepository) //JobBuilder를 job을 만드는 도구로 인자로 이 job의 이름과 jobRepository를 받음. 여기서 바로 job의 이름을 설정하는 것이기도 함
                 .start(weeklyAverageStep()) // 이 job을 시작 할 때 어떤 step을 실행할 지 지정하는 것
+                .next(weeklyHealthReportStep())
                 .build();
     }
 
@@ -62,13 +101,13 @@ public class SpringBatchConfig {
     }
 
 
-    @Bean
-    @Qualifier("weeklyHealthReportJob")
-    public Job weeklyHealthReportJob() {
-        return new JobBuilder("weeklyHealthReportJob", jobRepository)
-                .start(weeklyHealthReportStep()) // 하나의 step만 있는 job
-                .build();
-    }
+//    @Bean
+//    @Qualifier("weeklyHealthReportJob")
+//    public Job weeklyHealthReportJob() {
+//        return new JobBuilder("weeklyHealthReportJob", jobRepository)
+//                .start(weeklyHealthReportStep()) // 하나의 step만 있는 job
+//                .build();
+//    }
 
     @Bean
     public Step weeklyHealthReportStep(){
@@ -77,7 +116,7 @@ public class SpringBatchConfig {
                 .build();
     }
 
-
+    //    먼슬리 잡-----------------------------------------------------------------------------------------------------------------------
     @Bean
     @Qualifier("monthlyAverageHealthJob")
     public Job monthlyAverageHealthJob(){

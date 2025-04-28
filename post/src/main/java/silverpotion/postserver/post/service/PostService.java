@@ -1,7 +1,8 @@
-package silverpotion.postserver.post.service;
+    package silverpotion.postserver.post.service;
 
     import com.fasterxml.jackson.core.type.TypeReference;
     import com.fasterxml.jackson.databind.ObjectMapper;
+    import io.lettuce.core.ScriptOutputType;
     import jakarta.persistence.EntityNotFoundException;
     import org.apache.catalina.User;
     import org.springframework.beans.factory.annotation.Value;
@@ -19,9 +20,9 @@ package silverpotion.postserver.post.service;
     import silverpotion.postserver.gathering.domain.Gathering;
     import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
     import silverpotion.postserver.gathering.repository.GatheringRepository;
-    import silverpotion.postserver.post.feignClient.UserClient;
     import silverpotion.postserver.post.domain.*;
     import silverpotion.postserver.post.dtos.*;
+    import silverpotion.postserver.post.feignClient.UserClient;
     import silverpotion.postserver.post.repository.*;
     import software.amazon.awssdk.core.sync.RequestBody;
     import software.amazon.awssdk.services.s3.S3Client;
@@ -89,7 +90,6 @@ package silverpotion.postserver.post.service;
 
             if (dto.getPostCategory() == PostCategory.free){
                 Post draftPost = Post.builder()
-                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -99,7 +99,6 @@ package silverpotion.postserver.post.service;
             }
             else if (dto.getPostCategory() == PostCategory.notice) {
                 Post draftPost = Post.builder()
-                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -109,7 +108,6 @@ package silverpotion.postserver.post.service;
 
             } else if (dto.getPostCategory() == PostCategory.vote) {
                 Vote draftVote = Vote.builder()
-                        .writerId(userId)
                         .gathering(gathering)
                         .postCategory(dto.getPostCategory())
                         .postStatus(PostStatus.draft)
@@ -183,14 +181,24 @@ package silverpotion.postserver.post.service;
         // 4. 투표 게시물 저장
         private void saveVotePost(Vote vote, Long userId, VotePostUpdateDto dto) {
             List<VotePostUpdateDto.VoteOptionDto> optionsDtos = dto.getVoteOptions(); //dto에서 옵션 문자열 리스트 추출
+            // null 체크 추가!
+            if (optionsDtos == null || optionsDtos.isEmpty()) {
+                throw new IllegalArgumentException("투표 항목(voteOptions)이 비어있거나 null입니다.");
+            }
+            // 새 리스트 생성
+            List<VoteOptions> newOptions = new ArrayList<>();
+            for (VotePostUpdateDto.VoteOptionDto opt : optionsDtos) {
+                VoteOptions voteOption = VoteOptions.builder()
+                        .optionText(opt.getOptionText())
+                        .vote(vote)
+                        .build();
+                newOptions.add(voteOption);
+            }
 
-    //        voteoptions 객체 리스트 생성
-            List<VoteOptions> voteOptionsList = optionsDtos.stream().map(opt -> VoteOptions.builder()
-                            .optionText(opt.getOptionText())
-                            .vote(vote)
-                            .build())
-                    .collect(Collectors.toList());
-            vote.update(userId,dto,voteOptionsList); // 예시
+            vote.getVoteOptions().clear();
+            vote.getVoteOptions().addAll(newOptions);
+
+            vote.update(userId, dto);
             vote.changeStatus(PostStatus.fin);
             vote.setCloseTime();
             System.out.println(vote.getCloseTime());
@@ -227,16 +235,29 @@ package silverpotion.postserver.post.service;
             postRepository.delete(post);
         }
 
+        public void deleteVote(Long voteId,String loginId){
+            Long userId = userClient.getUserIdByLoginId(loginId);
+            Vote vote = voteRepository.findById(voteId).orElseThrow(()-> new EntityNotFoundException("투표게시물을 찾을 수 없습니다."));
+            if (!userId.equals(vote.getWriterId())){return;}
+            voteRepository.delete(vote);
+        }
     //    //    7. 게시물 조회
         public Page<PostVoteResDTO> getPostAndVoteList(int page, int size, String loginId) {
             int safePage = (page <= 0) ? 0 : page;
             int offset = (safePage == 0) ? 0 : (safePage - 1) * size;
             List<PostVoteUnionDto> rawList = postQueryRepository.findAllPostAndVote(size, offset);
             long totalCount = postQueryRepository.countPostAndVote();
-
             Long userId = userClient.getUserIdByLoginId(loginId);
+
             List<PostVoteResDTO> dtoList = rawList.stream()
-                    .map(dto -> convertToDto(dto,userId))
+                    .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요!
+                        PostVoteResDTO postVoteResDTO = convertToDto(item, userId);
+                        if (item.getPostCategory() == PostCategory.vote) {
+                            List<VoteOptions> options = voteOptionsRepository.findByVote_voteId(item.getId());
+                            postVoteResDTO.setVoteOptions(options);
+                        }
+                        return postVoteResDTO;
+                    })
                     .collect(Collectors.toList());
 
             Pageable pageable = PageRequest.of(safePage, size);
@@ -418,40 +439,77 @@ package silverpotion.postserver.post.service;
                 System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
                 result = List.of(); // 빈 리스트 처리
             }
-            Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
+            Map<Long, UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long, UserProfileInfoDto>>() {
+            });
 
             //        해당 유저들의 공지글만 조회(페이징)
-            Page<Vote> voteList = voteRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds,PostCategory.vote,
-                    DelYN.N,PostStatus.fin,pageable);
+            Page<Vote> voteList = voteRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds, PostCategory.vote,
+                    DelYN.N, PostStatus.fin, pageable);
             return voteList.map(vote ->
             {
 
                 UserProfileInfoDto writerInfo = profileList.get(vote.getWriterId());
                 boolean isParticipants = voteAnswerRepository.existsByUserIdAndVoteId(userId, vote.getVoteId());
 
-                return VoteResListDto.fromEntity(vote,writerInfo,isParticipants);
+                return VoteResListDto.fromEntity(vote, writerInfo, isParticipants);
             });
         }
 
-    //    투표상세조회
-        public VoteDetailResDto getVoteDetail(Long voteId,String loginId) {
+        //    투표상세조회
+        public VoteDetailResDto getVoteDetail(Long voteId, String loginId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
-            Vote vote = voteRepository.findById(voteId).orElseThrow(()-> new EntityNotFoundException("Vote not found"));
+            //투표게시물 조회
+            Vote vote = voteRepository.findById(voteId).orElseThrow(() -> new EntityNotFoundException("Vote not found"));
+            System.out.println("vote.getVoteOptions() : "+vote.getVoteOptions());
+            //프로필 가져오기
             Long writerId = vote.getWriterId();
             UserProfileInfoDto userProfileInfoDto = userClient.getUserProfileInfo(writerId);
+
+            //참가자 수
             Long participantsCount = voteAnswerRepository.countDistinctUserByVoteId(voteId);
+            //투표게시물 수
             Long voteLikeCount = voteLikeRepository.countByVote(vote);
+            //댓글 수
             Long commentCount = voteRepository.countVoteComments(vote.getVoteId());
-            boolean isLiked = voteLikeRepository.existsByVoteAndUserId(vote,userId);
+
+            //        부모 댓글만 조회(parent == null)
+            List<Comment> parentComments = commentRepository.findByVoteAndParentIsNull(vote);
+
+            //        각 부모 댓글과 그 자식 댓글(대댓글)을 계층적으로 구성
+            // 댓글 목록 조회
+            List<CommentListResDto> commentList = parentComments.stream()
+                    .map(parent -> {
+                        Long parentLikeCount = commentRepository.countCommentLikes(parent.getId());
+                        boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
+                        String isParentLike = isParentLiked ? "Y" : "N";
+
+                        //                    대댓글 리스트 구성
+                        List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
+                            Long childLikeCount = commentRepository.countCommentLikes(child.getId());
+                            boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
+                            String isChildLike = isChildLiked ? "Y" : "N";
+
+                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, userProfileInfoDto);
+                        }).collect(Collectors.toList());
+
+                        //              부모 댓글 DTO생성 후 대댓글 추가
+                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, userProfileInfoDto);
+                        parentDto.setReplies(childDtos);
+                        return parentDto;
+                    })
+                    .collect(Collectors.toList());
+
+            // 좋아요 여부
+            boolean isLiked = voteLikeRepository.existsByVoteAndUserId(vote, userId);
             String isLike = isLiked ? "Y" : "N";
 
 
-            return VoteDetailResDto.fromEntity(vote,voteLikeCount,commentCount,isLike,participantsCount,userProfileInfoDto);
+            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList);
         }
 
-    //    게시물 상세조회
+        //    게시물 상세조회
         @Transactional(readOnly = true)
-        public PostDetailResDto getDetail(Long postId,String loginId) {
+        public PostDetailResDto getDetail(Long postId, String loginId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
 
             // 게시물 조회 (없으면 예외 발생)
@@ -464,10 +522,10 @@ package silverpotion.postserver.post.service;
             // 게시물 좋아요 개수 조회
             Long postLikeCount = postRepository.countPostLikes(postId);
 
-    //        부모 댓글만 조회(parent == null)
+            //        부모 댓글만 조회(parent == null)
             List<Comment> parentComments = commentRepository.findByPostAndParentIsNull(post);
 
-    //        각 부모 댓글과 그 자식 댓글(대댓글)을 계층적으로 구성
+            //        각 부모 댓글과 그 자식 댓글(대댓글)을 계층적으로 구성
             // 댓글 목록 조회
             List<CommentListResDto> commentList = parentComments.stream()
                     .map(parent -> {
@@ -475,30 +533,92 @@ package silverpotion.postserver.post.service;
                         boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
                         String isParentLike = isParentLiked ? "Y" : "N";
 
-    //                    대댓글 리스트 구성
+                        //                    대댓글 리스트 구성
                         List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
                             Long childLikeCount = commentRepository.countCommentLikes(child.getId());
                             boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
                             String isChildLike = isChildLiked ? "Y" : "N";
 
-                            return CommentListResDto.fromEntity(child,childLikeCount,isChildLike,writerProfile);
+                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, writerProfile);
                         }).collect(Collectors.toList());
 
-    //              부모 댓글 DTO생성 후 대댓글 추가
-                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent,parentLikeCount,isParentLike,writerProfile);
+                        //              부모 댓글 DTO생성 후 대댓글 추가
+                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, writerProfile);
                         parentDto.setReplies(childDtos);
                         return parentDto;
                     })
                     .collect(Collectors.toList());
 
 
-
             // 사용자의 좋아요 여부 확인
-            boolean isLiked = postLikeRepository.existsByPostIdAndUserId(postId,userId);
+            boolean isLiked = postLikeRepository.existsByPostIdAndUserId(postId, userId);
             String isLike = isLiked ? "Y" : "N";
 
             // DTO 변환 후 반환
-            return PostDetailResDto.fromEntity(post,writerProfile,postLikeCount, commentList, isLike);
+            return PostDetailResDto.fromEntity(post, writerProfile, postLikeCount, commentList, isLike);
         }
 
+        public VoteAnswerResDto doVote(String loginId, VoteOptionReqDto dto) {
+            Long userId = userClient.getUserIdByLoginId(loginId);
+
+            //먼저 투표한 적 있는지 체크(복수 선택이라면 옵션 하나로 체크해도 됨)
+            System.out.println("dto.getOptionIds()"+dto.getOptionIds());
+            System.out.println("dto.getOptionIds().get(0)"+dto.getOptionIds().get(0));
+
+            Long voteId = voteOptionsRepository.findById(dto.getOptionIds().get(0)).orElseThrow(() -> new EntityNotFoundException("vote option not found"))
+                    .getVote().getVoteId();
+            boolean alreadyVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
+            if (alreadyVoted) {
+                throw new IllegalArgumentException("이미 투표했습니다");
+            }
+
+            //voteAnswer 저장
+            for (Long optionId : dto.getOptionIds()) {
+                VoteOptions selectedOption = voteOptionsRepository.findById(optionId).orElseThrow(() -> new EntityNotFoundException("Vote option not found"));
+
+                VoteAnswer voteAnswer = VoteAnswer.builder()
+                        .voteOption(selectedOption)
+                        .userId(userId)
+                        .build();
+                voteAnswerRepository.save(voteAnswer);
+            }
+            return createVoteAnswerResDto(userId, voteId);
+
+        }
+        private VoteAnswerResDto createVoteAnswerResDto(Long userId, Long voteId) {
+            // 내가 선택한 optionId 리스트 조회
+            List<Long> selectedOptionIds = voteAnswerRepository.findOptionIdsByUserIdAndVoteId(userId, voteId);
+
+            // 전체 참가자 수 (중복 제거)
+            Long totalParticipants = voteAnswerRepository.countDistinctUserByVoteId(voteId);
+
+            // 해당 투표의 옵션들 모두 조회
+            Vote vote = voteRepository.findById(voteId).orElseThrow(() -> new EntityNotFoundException("vote not found"));
+            List<VoteOptions> options = voteOptionsRepository.findByVote(vote);
+
+            // 각 옵션별 결과 생성
+            List<VoteOptionsResDto> optionDtos = options.stream()
+                    .map(option -> {
+                        Long count = voteAnswerRepository.countByVoteOptionId(option.getId());
+                        double ratio = totalParticipants > 0 ? (count * 100.0 / totalParticipants) : 0.0;
+                        return new VoteOptionsResDto(
+                                option.getId(),
+                                option.getOptionText(),
+                                selectedOptionIds.contains(option.getId()),
+                                count,
+                                ratio
+                        );
+                    })
+                    .collect(Collectors.toList());
+
+            // 복수 선택 여부 가져오기
+            boolean multipleChoice = options.isEmpty() ? false : options.get(0).getVote().isMultipleChoice();
+
+            return new VoteAnswerResDto(
+                    selectedOptionIds,
+                    multipleChoice,
+                    totalParticipants,
+                    optionDtos
+            );
+        }
     }

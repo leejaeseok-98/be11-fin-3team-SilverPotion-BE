@@ -58,7 +58,8 @@ public class ChatMessageService {
 
         // 4. Kafka 발행
         try {
-            ChatMessageDto messageDto = ChatMessageDto.fromEntity(message);
+            String senderNickName = userFeign.getNicknameByUserId(dto.getSenderId());
+            ChatMessageDto messageDto = ChatMessageDto.fromEntity(message,senderNickName);
             String json = objectMapper.writeValueAsString(messageDto);
             System.out.println("📤 Kafka 발행 JSON = " + json);
             kafkaTemplate.send("chat-topic", json);
@@ -76,7 +77,10 @@ public class ChatMessageService {
         Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
 
         return chatMessageRepository.findByChatRoomId(roomId, pageable)
-                .map(ChatMessageDto::fromEntity);
+                .map(entity -> {
+                    String senderNick = userFeign.getNicknameByUserId(entity.getSenderId());
+                    return ChatMessageDto.fromEntity(entity, senderNick);
+                });
     }
 
     public Long getUserIdByLoginId(String loginId) {

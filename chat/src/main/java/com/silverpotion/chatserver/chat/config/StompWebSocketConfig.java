@@ -24,6 +24,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/connect")
                 .setAllowedOrigins("http://localhost:3000")
                 .addInterceptors(interceptor)
+                .setHandshakeHandler(new CustomHandshakeHandler())
                 .withSockJS();
     }
 
@@ -33,6 +34,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
 //        /publish로 시작하는 url패턴으로 메시지가 발행되면 @Controller 객체의 @MessaMapping메서드로 라우팅
         registry.setApplicationDestinationPrefixes("/pub");
         registry.enableSimpleBroker("/sub","/user","topic");
+
         registry.setUserDestinationPrefix("/user");
 
     }

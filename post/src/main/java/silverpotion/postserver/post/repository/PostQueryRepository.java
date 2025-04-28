@@ -22,7 +22,7 @@ public interface PostQueryRepository extends JpaRepository<Post, Long> {
             NULL AS voteOptions,
             p.post_category AS postCategory
          FROM post p
-         WHERE p.del_yn = 'N' AND p.post_status = 'fin')
+         WHERE p.del_yn = 'N' AND p.post_status = 'fin' AND p.gathering_id = :gatheringId)
 
         UNION ALL
 
@@ -36,12 +36,12 @@ public interface PostQueryRepository extends JpaRepository<Post, Long> {
             NULL AS voteOptions,
             v.post_category AS postCategory
          FROM vote v
-         WHERE v.del_yn = 'N' AND v.post_status = 'fin')
+         WHERE v.del_yn = 'N' AND v.post_status = 'fin' AND v.gathering_id = :gatheringId)
 
         ORDER BY createdAt DESC
         LIMIT :limit OFFSET :offset
         """, nativeQuery = true)
-    List<PostVoteUnionDto> findAllPostAndVote(@Param("limit") int limit, @Param("offset") int offset);
+    List<PostVoteUnionDto> findAllPostAndVote(@Param("gatheringId") Long gatheringId,@Param("limit") int limit, @Param("offset") int offset);
 
     @Query(value = """
     SELECT (

@@ -23,9 +23,11 @@ public class Report extends BaseTimeEntity {
     private User reporter; //신고자id
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ReportBigCategory reportBigCategory;//어디 유형에서 온 신고인지(채팅,게시물 등)
 
     @Column(nullable = false)
+    @Enumerated(EnumType.STRING)
     private ReportSmallCategory reportSmallCategory; //어떤 유형에 신고인지(욕설, 따돌림 등)
 
     @Column(nullable = false)
@@ -36,6 +38,7 @@ public class Report extends BaseTimeEntity {
 
     @Column(nullable = false)
     @Builder.Default
+    @Enumerated(EnumType.STRING)
     private ReportStatus reportStatus = ReportStatus.WAIT;//신고처리상태(대기, 완료)
 
     private String adminComment; //관리자 코멘트

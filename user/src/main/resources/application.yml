@@ -13,7 +13,7 @@ spring:
     database-platform: org.hibernate.dialect.MariaDBDialect
     generate-ddl: true
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
 #      ddl-auto: create
     show_sql: true
   application:
@@ -25,11 +25,11 @@ spring:
       enabled: false
     initialize-schema: never
 
-#  kafka:
-#    bootstrap-servers: localhost:9092
-#    group-id: my-consumer-group
-#    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
-#    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+  kafka:
+    bootstrap-servers: localhost:9092
+    group-id: my-consumer-group
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 cloud:
   aws:
     credentials:

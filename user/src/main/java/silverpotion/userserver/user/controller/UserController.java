@@ -21,7 +21,7 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("silverpotion/user")
+@RequestMapping("/silverpotion/user")
 public class    UserController {
     private final UserService userService;
     private final GoogleService googleService;

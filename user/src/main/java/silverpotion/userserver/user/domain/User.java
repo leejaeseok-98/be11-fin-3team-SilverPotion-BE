@@ -147,6 +147,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         }
     }
 
+    public void changeRole(Role role){
+        this.role = role;
+    }
+
     //   이미지 등록 메서드
     public void changeMyProfileImag(String imgUrl){
         this.profileImage = imgUrl;

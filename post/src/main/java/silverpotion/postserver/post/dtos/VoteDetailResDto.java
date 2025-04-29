@@ -31,8 +31,9 @@ public class VoteDetailResDto {
     private LocalDateTime createTime; //생성시간
     private LocalDateTime closeTime; //마감시간
     private Long participantsCount;//참가자 수
+    private boolean hasVoted; //투표 여부
 
-    public static VoteDetailResDto fromEntity(Vote vote, Long voteLikeCount,Long commentCount,String isLike, Long participantsCount,UserProfileInfoDto writerInfo,List<CommentListResDto> commentList) {
+    public static VoteDetailResDto fromEntity(Vote vote, Long voteLikeCount,Long commentCount,String isLike, Long participantsCount,UserProfileInfoDto writerInfo,List<CommentListResDto> commentList,boolean hasVoted) {
         return VoteDetailResDto.builder()
                 .voteId(vote.getVoteId())
                 .writerId(writerInfo.getUserId())
@@ -48,6 +49,7 @@ public class VoteDetailResDto {
                 .isLike(isLike)
                 .createTime(vote.getCreatedTime())
                 .closeTime(vote.getCloseTime())
+                .hasVoted(hasVoted)
                 .build();
     }
 

@@ -3,6 +3,7 @@ package silverpotion.userserver.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import silverpotion.userserver.admin.dtos.AdminUserListDto;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
@@ -178,6 +179,20 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
        return UserPromptDto.builder().healthData(nowHealthData).prompt(promt).build();
 
+    }
+
+    public AdminUserListDto fromEntity(){
+        return AdminUserListDto.builder()
+                .id(this.id)
+                .email(this.email)
+                .name(this.name)
+                .nickname(this.nickName)
+                .banYn(this.banYN)
+                .birthday(this.birthday)
+                .region(this.region)
+                .role(this.role)
+                .createdDate(this.getCreatedTime())
+                .build();
     }
 
     // 일간 건강프롬프트 생성 메서드

@@ -14,6 +14,7 @@ import org.springframework.web.multipart.MultipartFile;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.careRelation.domain.LinkStatus;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
+import silverpotion.userserver.common.dto.UserBanedException;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.BanYN;
@@ -93,6 +94,17 @@ public class UserService {
        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
        }
+       // 정지 해제 조건 확인
+        if (user.getBanYN().equals(BanYN.N)&&user.getBanUntil() != null&& user.getBanUntil().isBefore(LocalDateTime.now())){
+            user.unban();
+            userRepository.save(user);
+        }
+
+        //정지 상태라면 로그인 차단
+        if (user.getBanYN().equals(BanYN.Y)){
+            throw new UserBanedException("정지된 계정입니다. 해제 시각:" + user.getBanUntil());
+        }
+
        String jwtToken = jwtTokenProvider.createToken(
                user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName());
        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
@@ -325,20 +337,8 @@ public class UserService {
                 ));
     }
 
-    public int banUsersAutomatically(){
-        List<User> users = userRepository.findUsersToBan(LocalDateTime.now());
 
-        for (User user : users) {
-            user.setBanYN(BanYN.Y);
-        }
-        return userRepository.saveAll(users).size(); //정지된 유저 수 반환
-    }
 
-    //    유저 차단
-    public void banUserManually(Long userId,LocalDateTime until){
-        User user = userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(() -> new EntityNotFoundException("없는 사용자"));
-        user.BanUntil(until);
-    }
 
     //   sns로그인 oauth만들기
     public User userBySocialId(String loginId){

@@ -8,6 +8,7 @@ import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
+import silverpotion.userserver.healthScore.domain.HealthScore;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
@@ -108,6 +109,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //유저상세건강정보
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserDetailHealthInfo userDetailHealthInfo;
+    //유저 건강데이터와 상세건강정보를 기반으로 헬스점수
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<HealthScore> healthScores = new ArrayList<>();
 
 //    정지 만료일 (이 날짜 전까지 정지 상태)
     private LocalDateTime banUntil;

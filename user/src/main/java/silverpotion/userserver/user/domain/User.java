@@ -328,7 +328,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
 
 
-    public void BanUntil(LocalDateTime banUntil){
+    public void Ban(LocalDateTime banUntil){
         this.banYN = BanYN.Y;
         this.banUntil = banUntil;
     }
@@ -336,8 +336,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     public boolean shouldBeBanned(){
         return banYN == BanYN.Y && LocalDateTime.now().isBefore(banUntil);
     }
-    public void setBanYN(BanYN banYN){
-        this.banYN = banYN;
+
+    public void unban(){
+        this.banYN = BanYN.N;
+        this.banUntil = null;
     }
 
     //    비밀번호 변경

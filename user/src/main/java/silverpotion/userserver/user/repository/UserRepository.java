@@ -16,6 +16,9 @@ import java.util.Optional;
 
 @Repository
 public interface UserRepository extends JpaRepository<User, Long>, JpaSpecificationExecutor<User> {
+    // 정지 해제 되는 계정 조회
+    List<User> findAllByBanYNIsTrueAndBanUntilBefore(LocalDateTime now);
+
     Optional<User> findByIdAndDelYN(Long id,DelYN delYN);
 
     Optional<User> findByLoginIdAndDelYN(String loginId, DelYN delYN);

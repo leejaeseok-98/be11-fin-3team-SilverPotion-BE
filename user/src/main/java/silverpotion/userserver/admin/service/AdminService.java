@@ -17,10 +17,13 @@ import silverpotion.userserver.admin.dtos.UserDetailDto;
 import silverpotion.userserver.admin.dtos.UserSearchDto;
 import silverpotion.userserver.admin.repository.AdminRepository;
 import silverpotion.userserver.careRelation.repository.CareRelationRepository;
+import silverpotion.userserver.user.domain.BanYN;
+import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.Role;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.repository.UserRepository;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -97,5 +100,29 @@ public class AdminService {
         int protectorCount = careRelationRepository.countDependentsByProtectorId(userId);
 
         return UserDetailDto.detailList(user,dependentCount,protectorCount);
+    }
+
+    //    유저 차단
+    public void banUserManually(Long userId,Long banDays){
+        User user = userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(() -> new EntityNotFoundException("없는 사용자"));
+        user.Ban(LocalDateTime.now().plusMinutes(banDays));
+        userRepository.save(user);
+    }
+
+    //차단 해제(스케줄러)
+    public int unbanExpiredUsers(){
+        List<User> usersToUnban = userRepository.findAllByBanYNIsTrueAndBanUntilBefore(LocalDateTime.now());
+
+        for (User user : usersToUnban) {
+            user.unban();
+        }
+        return userRepository.saveAll(usersToUnban).size(); //정지된 유저 수 반환
+    }
+
+    //정지 해제
+    public void unbanUser(Long userId){
+        User user = userRepository.findById(userId).orElseThrow(()->new EntityNotFoundException("해당 사용자을 찾을 수 없습니다."));
+        user.unban();
+        userRepository.save(user);
     }
 }

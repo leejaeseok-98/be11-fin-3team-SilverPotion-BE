@@ -3,6 +3,7 @@ package silverpotion.userserver.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import silverpotion.userserver.admin.dtos.AdminUserListDto;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
@@ -191,6 +192,20 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
     }
 
+    public AdminUserListDto fromEntity(){
+        return AdminUserListDto.builder()
+                .id(this.id)
+                .email(this.email)
+                .name(this.name)
+                .nickname(this.nickName)
+                .banYn(this.banYN)
+                .birthday(this.birthday)
+                .region(this.region)
+                .role(this.role)
+                .createdDate(this.getCreatedTime())
+                .build();
+    }
+
     // 일간 건강프롬프트 생성 메서드
     public UserPromptDto healthPromptForDay(){
         LocalDate today = LocalDate.now();
@@ -344,7 +359,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
 
 
-    public void BanUntil(LocalDateTime banUntil){
+    public void Ban(LocalDateTime banUntil){
         this.banYN = BanYN.Y;
         this.banUntil = banUntil;
     }
@@ -352,8 +367,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     public boolean shouldBeBanned(){
         return banYN == BanYN.Y && LocalDateTime.now().isBefore(banUntil);
     }
-    public void setBanYN(BanYN banYN){
-        this.banYN = banYN;
+
+    public void unban(){
+        this.banYN = BanYN.N;
+        this.banUntil = null;
     }
 
     //    비밀번호 변경

@@ -204,13 +204,7 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 작성자 유저 리스트 조회",dto),HttpStatus.OK);
     }
 
-//    사용자 정지(관리자 수동 처리)
-    //    @PreAuthorize("hasRole('ADMIN))
-    @PostMapping("/ban")
-    public ResponseEntity<?> banUser(@RequestBody UserBanRequestDto userBanRequestDto){
-        userService.banUserManually(userBanRequestDto.getUserId(),userBanRequestDto.getBanUntil());
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"사용자가 정지되었습니다.",userBanRequestDto.getUserId()),HttpStatus.OK);
-    }
+
 
 //    구글 로그인
     @PostMapping("/google/login")
@@ -289,7 +283,7 @@ public class    UserController {
        String nickName = userService.withdraw(loginId);
        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
     }
-    // ✅ UserId로 UserDto 반환하는 API
+    // UserId로 UserDto 반환하는 API
     @GetMapping("/id")
     public ResponseEntity<UserDto> getUserById(@RequestParam("id") Long id) {
         UserDto userDto = userService.getUserById(id);

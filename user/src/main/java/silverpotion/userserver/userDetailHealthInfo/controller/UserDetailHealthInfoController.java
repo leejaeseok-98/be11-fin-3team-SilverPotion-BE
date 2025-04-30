@@ -30,7 +30,7 @@ public class UserDetailHealthInfoController {
 //  2. BMI 지수 조회
     @GetMapping("/bmicheck")
     public ResponseEntity<?> bmiCheck(@RequestHeader("X-User-loginId")String loginId){
-        Map<Double,String> myBmi = userDetailHealthInfoService.bmiCheck(loginId);
+        Map<String,Object> myBmi = userDetailHealthInfoService.bmiCheck(loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"sucess",myBmi),HttpStatus.OK);
     }
 

@@ -9,12 +9,15 @@ import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
 import silverpotion.userserver.healthScore.domain.HealthScore;
+import silverpotion.userserver.healthScore.domain.HealthScoreUtils;
 import silverpotion.userserver.healthScore.domain.Type;
 import silverpotion.userserver.healthScore.dtos.HealthScoreMakeReqDto;
+import silverpotion.userserver.healthScore.dtos.HealthScoreResDto;
 import silverpotion.userserver.healthScore.repository.HealthScoreRepository;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.repository.UserRepository;
+import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -35,7 +38,7 @@ public class HealthScoreService {
     }
 
 //  1.헬스점수 만들기
-    public int makingHealthScore(String loginId, HealthScoreMakeReqDto dto){
+    public HealthScoreResDto makingHealthScore(String loginId, HealthScoreMakeReqDto dto){
         User loginUser = userRepository.findByLoginIdAndDelYN(loginId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
 
         //로그인한 유저의 피보호자와 보호자 리스트
@@ -66,17 +69,28 @@ public class HealthScoreService {
        LocalDate selectedDate = LocalDate.parse(dto.getDate(), DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         Type type = Type.valueOf(dto.getType());
         DataType dataType = DataType.valueOf(dto.getType());
-
+        HealthScore healthScore;
         try {
-            HealthScore healthScore = healthScoreRepository.findByUserIdAndCreatedDateAndType(selectedUser.getId(), selectedDate, type).orElseThrow(() -> new EntityNotFoundException("데이터가 없습니다"));
+           healthScore = healthScoreRepository.findByUserIdAndCreatedDateAndType(selectedUser.getId(), selectedDate, type).orElseThrow(() -> new EntityNotFoundException("데이터가 없습니다"));
         } catch (EntityNotFoundException e){
            HealthData healthData = selectedUser.getMyHealthData().stream().filter(h->h.getDataType().equals(dataType)).filter(c->c.getCreatedDate().equals(selectedDate)).findFirst().orElseThrow(()->new EntityNotFoundException("데이터가 없습니다2"));
 //            방법 2
 //            HealthData healthData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(selectedUser.getId(), selectedDate, dataType).orElseThrow(()-> new EntityNotFoundException("데이터가 없습니다"));
+            UserDetailHealthInfo info = selectedUser.getUserDetailHealthInfo();
 
+          int activityScore =  HealthScoreUtils.whatsMyActivityScore(healthData,info,selectedUser);
+          int bodyScore =HealthScoreUtils.whatsMybodyScore(healthData,info,selectedUser);
+          int habitScore =HealthScoreUtils.whatsMyHabitScore(info);
+          int totalScore = HealthScoreUtils.totalScore(activityScore,bodyScore,habitScore);
 
+        healthScore =  HealthScore.builder().totalScore(totalScore).activityScore(activityScore).bodyScore(bodyScore)
+                .habitScore(habitScore).type(type).user(selectedUser).createdDate(selectedDate).build();
 
+        healthScoreRepository.save(healthScore);
+        selectedUser.getHealthScores().add(healthScore);
         }
+        return healthScore.toDto();
+
 
 
 

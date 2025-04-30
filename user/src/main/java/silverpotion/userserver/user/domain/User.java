@@ -243,7 +243,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
     }
     // 내 체질량지수 리턴 메서드
-    public Map<Double,String> makingBmi(){
+    public Map<String,Object> makingBmi(){
       int height =  this.getUserDetailHealthInfo().getHeight();
       int weight =  this.getUserDetailHealthInfo().getWeight();
       Double heightM = height/100.0; //키를 m로 변환
@@ -259,8 +259,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
       } else{
           weightCategory="비만";
       }
-        Map<Double,String> bmiInfo = new HashMap<>();
-        bmiInfo.put(bmi,weightCategory);
+        Map<String,Object> bmiInfo = new HashMap<>();
+        bmiInfo.put("bmi",bmi);
+        bmiInfo.put("category",weightCategory);
         return bmiInfo;
     }
 

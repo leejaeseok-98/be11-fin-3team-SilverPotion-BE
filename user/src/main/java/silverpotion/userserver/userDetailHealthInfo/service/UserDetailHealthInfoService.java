@@ -40,9 +40,9 @@ public class UserDetailHealthInfoService {
     }
 
 //  2.BMI지수 조회
-   public Map<Double,String> bmiCheck(String loginId){
+   public Map<String,Object> bmiCheck(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
-        Map<Double,String> bmiInfo = new HashMap<>();
+        Map<String,Object> bmiInfo = new HashMap<>();
         if(user.getUserDetailHealthInfo()==null){
             throw new IllegalArgumentException("건강상세조회를 하지 않은 유저입니다");
         } else {

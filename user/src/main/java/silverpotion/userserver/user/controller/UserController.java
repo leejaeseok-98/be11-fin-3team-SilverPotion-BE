@@ -289,7 +289,7 @@ public class    UserController {
        String nickName = userService.withdraw(loginId);
        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
     }
-    // ✅ UserId로 UserDto 반환하는 API
+    // UserId로 UserDto 반환하는 API
     @GetMapping("/id")
     public ResponseEntity<UserDto> getUserById(@RequestParam("id") Long id) {
         UserDto userDto = userService.getUserById(id);

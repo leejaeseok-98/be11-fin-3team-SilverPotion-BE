@@ -48,7 +48,7 @@ public class AdminController {
     // 유저 목록 조회
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(@PageableDefault(size = 10, sort = "id", direction =Sort.Direction.DESC)Pageable pageable, UserSearchDto dto){
+    public ResponseEntity<?> getUsers(@PageableDefault(size = 10, sort = "id", direction =Sort.Direction.DESC)Pageable pageable, @RequestBody UserSearchDto dto){
         Page<AdminUserListDto> userListDto = adminService.userList(pageable,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "관리자 유저 조회 완료",userListDto),HttpStatus.OK);
     }

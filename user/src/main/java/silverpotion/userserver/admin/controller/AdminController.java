@@ -8,22 +8,22 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import silverpotion.userserver.admin.dtos.AdminUserListDto;
-import silverpotion.userserver.admin.dtos.UserBanRequestDto;
-import silverpotion.userserver.admin.dtos.UserDetailDto;
-import silverpotion.userserver.admin.dtos.UserSearchDto;
+import silverpotion.userserver.admin.dtos.*;
 import silverpotion.userserver.admin.service.AdminService;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.report.service.ReportService;
 import silverpotion.userserver.user.service.UserService;
 
 @RestController
 @RequestMapping("/silverpotion/admins")
 public class AdminController {
     private final AdminService adminService;
+    private final ReportService reportService;
     private final UserService userService;
 
-    public AdminController(AdminService adminService, UserService userService) {
+    public AdminController(AdminService adminService, ReportService reportService, UserService userService) {
         this.adminService = adminService;
+        this.reportService = reportService;
         this.userService = userService;
     }
     // 관리자 등록
@@ -70,5 +70,7 @@ public class AdminController {
         adminService.unbanUser(userId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"정지 해제되었습니다..",userId),HttpStatus.OK);
     }
+
+
 
 }

@@ -37,6 +37,7 @@ public class ReportResponseDto {
                 .referenceId(report.getReferenceId())
                 .content(report.getContent())
                 .reportStatus(report.getReportStatus())
+                .reportedTime(report.getCreatedTime())
                 .build();
     }
 }

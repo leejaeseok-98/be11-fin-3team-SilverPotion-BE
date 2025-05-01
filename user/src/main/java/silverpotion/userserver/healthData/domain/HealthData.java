@@ -8,6 +8,7 @@ import silverpotion.userserver.healthData.dtos.HealthDataListDto;
 import silverpotion.userserver.healthData.dtos.HealthSyncDto;
 import silverpotion.userserver.openAi.domain.HealthReport;
 import silverpotion.userserver.user.domain.User;
+import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -70,13 +71,15 @@ public class HealthData extends BaseTimeEntity {
 
 
     //    조회용 dto객체 변환 메서드
-    public HealthDataListDto toListDtoFromEntity(String img){
+    public HealthDataListDto toListDtoFromEntity(String img, int targetCalories, int targetSteps){
         return HealthDataListDto.builder()
                 .step(this.step).heartbeat(this.heartbeat).calory(this.calory)
                 .activeCalory(this.activeCalory).distance(this.distance)
                 .totalSleepMinutes(this.totalSleepMinutes).deepSleepMinutes(this.deepSleepMinutes)
                 .lightSleepMinutes(this.lightSleepMinutes).remSleepMinutes(this.remSleepMinutes).period(this.period)
                 .imgUrl(img)
+                .targetCalories(targetCalories)
+                .targetSteps(targetSteps)
                 .build();
     }
 

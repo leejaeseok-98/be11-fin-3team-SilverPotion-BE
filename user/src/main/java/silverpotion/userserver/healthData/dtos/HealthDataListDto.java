@@ -32,6 +32,10 @@ public class HealthDataListDto {
     private String period;
     // 프로필 이미지
     private String imgUrl;
+    // 타켓 칼로리
+    private int targetCalories;
+    // 타켓 걸음수
+    private int targetSteps;
 
 
 

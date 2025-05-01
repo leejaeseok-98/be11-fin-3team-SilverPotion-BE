@@ -9,15 +9,19 @@ import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
 import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
+import silverpotion.userserver.healthScore.domain.HealthScore;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
+import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @AllArgsConstructor
@@ -103,6 +107,13 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //활동 지역
     @Column(nullable = false)
     private String region;
+    //유저상세건강정보
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserDetailHealthInfo userDetailHealthInfo;
+    //유저 건강데이터와 상세건강정보를 기반으로 헬스점수
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<HealthScore> healthScores = new ArrayList<>();
 
 //    정지 만료일 (이 날짜 전까지 정지 상태)
     private LocalDateTime banUntil;
@@ -246,8 +257,28 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return UserPromptDto.builder().healthData(monthData).prompt(promt).build();
 
     }
+    // 내 체질량지수 리턴 메서드
+    public Map<String,Object> makingBmi(){
+      int height =  this.getUserDetailHealthInfo().getHeight();
+      int weight =  this.getUserDetailHealthInfo().getWeight();
+      Double heightM = height/100.0; //키를 m로 변환
+      Double bmi = weight/(heightM*heightM);
+      String weightCategory ="";
 
-
+      if(bmi<18.5){
+          weightCategory="저체중";
+      } else if(bmi<=24.9){
+          weightCategory="정상체중";
+      } else if(bmi<=29.9){
+          weightCategory="과체중";
+      } else{
+          weightCategory="비만";
+      }
+        Map<String,Object> bmiInfo = new HashMap<>();
+        bmiInfo.put("bmi",bmi);
+        bmiInfo.put("category",weightCategory);
+        return bmiInfo;
+    }
 
 
 

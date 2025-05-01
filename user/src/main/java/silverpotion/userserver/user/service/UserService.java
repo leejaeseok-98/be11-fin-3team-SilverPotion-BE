@@ -322,6 +322,24 @@ public class UserService {
         return selectedUser.getProfileImage();
     }
 
+    //18.로그인 아이디 주면 이 사람이 건강세부조사 작성했는지 아닌지 여부 리턴
+    public boolean haveDetailHealthInfo(String loginId, UserHaveDetailHealthInfoReqDto dto){
+        boolean yesOrNo =false;
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        User selectedUser;
+        if(loginId.equals(dto.getLoginId())){
+            selectedUser = user;
+        } else{
+            selectedUser = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        }
+
+        if(selectedUser.getUserDetailHealthInfo() !=null){
+            yesOrNo =true;
+        }
+        return yesOrNo;
+    }
+
+
     //    게시물 조회시, 작성자 프로필 조회
     public  Map<Long, UserProfileInfoDto> getProfileInfoMap(List<Long> userIds) {
         List<User> users = userRepository.findAllById(userIds); // JPA 기본 제공
@@ -395,5 +413,7 @@ public class UserService {
                 .name(user.getName())
                 .build();
     }
+
+
 
 }

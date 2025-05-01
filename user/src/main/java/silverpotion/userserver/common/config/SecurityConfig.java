@@ -37,7 +37,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http,
                                                    JwtHeaderAuthenticationFilter jwtHeaderAuthenticationFilter) throws Exception {
         http
-                .csrf().disable()
+                .csrf(csrf->csrf.disable())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/silverpotion/user/login", "/silverpotion/user/create","/silverpotion/user/checkDuplicate","/silverpotion/user/refresh-token",
                                 "/silverpotion/user/google/login", "/silverpotion/user/kakao/login").permitAll()

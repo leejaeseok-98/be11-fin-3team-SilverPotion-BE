@@ -79,7 +79,7 @@ public class AdminController {
     //    신고 목록 조회
     @GetMapping("/report/list")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getReportList(@RequestHeader("X-User-LoginId") String loginId, Pageable pageable, ReportRequestDto reportRequestDto){
+    public ResponseEntity<?> getReportList(@RequestHeader("X-User-LoginId") String loginId, Pageable pageable, @RequestBody ReportRequestDto reportRequestDto){
         Page<ReportResponseDto> reports = reportService.findAllReports(loginId, pageable,reportRequestDto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"신고 유저 조회 성공",reports),HttpStatus.OK);
     }

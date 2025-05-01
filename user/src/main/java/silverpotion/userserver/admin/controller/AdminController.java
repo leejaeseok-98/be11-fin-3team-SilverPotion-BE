@@ -1,5 +1,6 @@
 package silverpotion.userserver.admin.controller;
 
+import jakarta.validation.Valid;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -11,6 +12,10 @@ import org.springframework.web.bind.annotation.*;
 import silverpotion.userserver.admin.dtos.*;
 import silverpotion.userserver.admin.service.AdminService;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.report.dtos.ReportDetailListDto;
+import silverpotion.userserver.report.dtos.ReportProcessResDto;
+import silverpotion.userserver.report.dtos.ReportRequestDto;
+import silverpotion.userserver.report.dtos.ReportResponseDto;
 import silverpotion.userserver.report.service.ReportService;
 import silverpotion.userserver.user.service.UserService;
 
@@ -71,6 +76,29 @@ public class AdminController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"정지 해제되었습니다..",userId),HttpStatus.OK);
     }
 
+    //    신고 목록 조회
+    @GetMapping("/report/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getReportList(@RequestHeader("X-User-LoginId") String loginId, Pageable pageable, ReportRequestDto reportRequestDto){
+        Page<ReportResponseDto> reports = reportService.findAllReports(loginId, pageable,reportRequestDto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"신고 유저 조회 성공",reports),HttpStatus.OK);
+    }
+
+    //    신고 상세 조회
+    @GetMapping("/report/detail/{reportId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getReportDetails(@PathVariable Long reportId){
+        ReportDetailListDto dto = reportService.getReportDetails(reportId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "detail is uploaded successfully",dto),HttpStatus.OK);
+    }
+
+    //    특정 신고 처리
+    @PostMapping("/report/{reportId}/process")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?> getReportProcess(@PathVariable Long reportId, @RequestBody @Valid ReportProcessResDto dto){
+        ReportProcessResDto reportProcessResDto = reportService.processReport(reportId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "process is uploaded successfully",reportProcessResDto),HttpStatus.OK);
+    }
 
 
 }

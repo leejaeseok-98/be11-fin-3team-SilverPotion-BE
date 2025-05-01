@@ -197,6 +197,14 @@ public class    UserController {
          return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",imgUrl),HttpStatus.OK);
     }
 
+    //18.로그인 아이디 주면 이 사람이 건강세부조사 작성했는지 아닌지 여부 리턴(작성했으면 true, 아니면 false)
+    @PostMapping("/havedetailhealthinfo")
+    public ResponseEntity<?> haveDetailHealthInfo(@RequestHeader("X-User-LoginId")String loginId, @RequestBody UserHaveDetailHealthInfoReqDto dto){
+        boolean yesOrNo = userService.haveDetailHealthInfo(loginId, dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",yesOrNo),HttpStatus.OK);
+
+    }
+
 //    게시물 조회시, 작성자 프로필 조회
     @PostMapping("/post/profileInfo")
     public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){

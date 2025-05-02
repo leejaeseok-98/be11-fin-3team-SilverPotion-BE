@@ -25,6 +25,10 @@ import silverpotion.postserver.gatheringCategory.repository.GatheringCategoryRep
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.repository.GatheringDetailRepository;
+import silverpotion.postserver.gatheringVector.domain.GatheringVector;
+import silverpotion.postserver.gatheringVector.domain.GatheringVectorUtils;
+import silverpotion.postserver.gatheringVector.dtos.GatheringVectorCreateDto;
+import silverpotion.postserver.gatheringVector.repository.GatheringVectorRepository;
 import silverpotion.postserver.notification.dto.GatheringJoinRequestEventDto;
 import silverpotion.postserver.notification.dto.NotificationMessageDto;
 import silverpotion.postserver.notification.service.NotificationEventPublisher;
@@ -53,6 +57,7 @@ public class GatheringService {
     private final ChatFeignClient chatFeignClient;
     private final NotificationEventPublisher notificationEventPublisher;
     private final NotificationProducer notificationProducer;
+    private final GatheringVectorRepository gatheringVectorRepository;
 //    private final OpenSearchService openSearchService;
 //    @Autowired
 //    private RestHighLevelClient client;
@@ -60,7 +65,7 @@ public class GatheringService {
 
     public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService,
 //            , OpenSearchService openSearchService
-                            ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer) {
+                            ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer, GatheringVectorRepository gatheringVectorRepository) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
@@ -72,6 +77,7 @@ public class GatheringService {
         this.chatFeignClient = chatFeignClient;
         this.notificationEventPublisher = notificationEventPublisher;
         this.notificationProducer = notificationProducer;
+        this.gatheringVectorRepository = gatheringVectorRepository;
     }
 
 //    @PostConstruct
@@ -132,7 +138,36 @@ public class GatheringService {
 
         gatheringDetailRepository.saveAll(details);
         log.info("모임생성정보 id:{}, name:{}, chatRoomId:{}",gathering.getId(),gathering.getGatheringName(),gathering.getChatRoomId());
+
+
+        // 4.모임 벡터값 생성
+        for(GatheringDetail g : details){
+            gathering.getGatheringDetails().add(g);
+        }
+
+        GatheringVectorCreateDto vectorCreateDto = GatheringVectorUtils.makingGatheringVector(gathering);
+        double empathySupport = GatheringVectorUtils.normalize(vectorCreateDto.getEmpathySupport(),30);
+        double achievementSupport =GatheringVectorUtils.normalize(vectorCreateDto.getAchievementSupport(),30);
+        double connectivitySupport = GatheringVectorUtils.normalize(vectorCreateDto.getConnectivitySupport(),20);
+        double energySupport =  GatheringVectorUtils.normalize(vectorCreateDto.getAchievementSupport(),20);
+        GatheringVector gatheringVector = GatheringVector.builder().empathySupport(empathySupport).connectivitySupport(connectivitySupport)
+                .achievementSupport(achievementSupport).energySupport(energySupport).gathering(gathering).build();
+        gatheringVectorRepository.save(gatheringVector);
+
+
+
         return gathering.getId();
+
+
+
+
+
+
+
+
+
+
+
     }
 
     // 모임 수정

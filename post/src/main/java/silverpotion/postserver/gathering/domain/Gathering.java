@@ -6,6 +6,7 @@ import silverpotion.postserver.common.domain.BaseTimeEntity;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.domain.GatheringDetail;
+import silverpotion.postserver.gatheringVector.domain.GatheringVector;
 import silverpotion.postserver.meeting.domain.Meeting;
 import silverpotion.postserver.post.domain.Post;
 
@@ -68,6 +69,9 @@ public class Gathering extends BaseTimeEntity {
     @OneToMany(mappedBy = "gathering", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default
     private List<GatheringPeople> gatheringPeople = new ArrayList<>();
+
+    @OneToOne(mappedBy = "gathering",cascade = CascadeType.ALL, orphanRemoval = true)
+    private GatheringVector gatheringVector;
 
     private Long chatRoomId; // 💡 채팅방 ID만 저장 (연결용)
 

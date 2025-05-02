@@ -28,13 +28,13 @@ public class UserDetailHealthInfoCreateReqDto {
     private int targetStep;
     //목표 소모칼로리
     private int targetCalory;
-    //고립감 점수
-    private int isolationScore;
-    //의욕감 점수
-    private int driveScore;
-    //자존감 점수
-    private int selfEsteemScore;
-    //에너지 점수
+    //정서적 위로 필요성
+    private int empathyNeedScore;
+    //성취성
+    private int achieveScore;
+    //사교성
+    private int peopleConnectivityScore;
+    //활동성
     private int energyScore;
 
 
@@ -50,9 +50,9 @@ public class UserDetailHealthInfoCreateReqDto {
                 .exerciseHabit(this.exerciseHabit)
                 .targetStep(this.targetStep)
                 .targetCalory(this.targetCalory)
-                .isolationScore(this.isolationScore)
-                .driveScore(this.driveScore)
-                .selfEsteemScore(this.selfEsteemScore)
+                .empathyNeedScore(this.empathyNeedScore)
+                .achieveScore(this.achieveScore)
+                .peopleConnectivityScore(this.peopleConnectivityScore)
                 .energyScore(this.energyScore)
                 .build();
     }

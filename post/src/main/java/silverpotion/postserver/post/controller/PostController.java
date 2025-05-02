@@ -50,7 +50,7 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "임시 저장완료", response), HttpStatus.OK);
     }
 
-    //    3. 자유글, 공지사항 게시물 작성시, 제목/이미지/내용 저장(최종 저장)
+    //    3. 자유글 게시물 작성시, 제목/이미지/내용 저장(최종 저장)
     @PutMapping("/update/free/{postId}") // 임시저장 때, postId가 나와서 쉽게 조회 후 저장
     public ResponseEntity<?> freeSave(@PathVariable Long postId, @RequestHeader("X-User-LoginId") String loginId
             , @ModelAttribute FreePostUpdateDto freePostUpdateDto) {

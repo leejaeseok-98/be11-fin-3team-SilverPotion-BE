@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.Negative;
 import lombok.*;
 import silverpotion.userserver.common.domain.BaseTimeEntity;
+import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
 
 import java.time.LocalDateTime;
@@ -51,13 +52,13 @@ public class Report extends BaseTimeEntity {
 
     @Column(nullable = false)
     @Builder.Default
-    private Boolean isDeleted = false;
+    private DelYN delYn = DelYN.N;
 
     // 신고 상태 변경 메서드
     public void updateStatusAndDelete(ReportStatus status, String adminComment) {
         this.reportStatus = status;
         this.adminComment = adminComment;
         this.processedAt = LocalDateTime.now(); // 처리된 시간 갱신
-        this.isDeleted = true;
+        this.delYn = DelYN.Y;
     }
 }

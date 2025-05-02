@@ -28,6 +28,8 @@ public class ReportResponseDto {
 
 
     public static ReportResponseDto fromReport(Report report){
+        System.out.println(report.getReportBigCategory());
+        System.out.println(report.getReportSmallCategory());
         return ReportResponseDto.builder()
                 .reportId(report.getId())
                 .reporterId(report.getReporter().getId())

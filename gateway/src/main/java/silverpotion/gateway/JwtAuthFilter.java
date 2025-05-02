@@ -73,7 +73,7 @@ public class JwtAuthFilter implements GlobalFilter {
 
             String loginId = claims.getSubject();
             String role = claims.get("role", String.class);
-            if (path.contains("/admin/")) {
+            if (path.contains("/admins/")) {
                 if (!"ADMIN".equals(role)) {
                     System.out.println("❌ 관리자 권한이 아닙니다. 차단된 요청: " + path);
                     exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);

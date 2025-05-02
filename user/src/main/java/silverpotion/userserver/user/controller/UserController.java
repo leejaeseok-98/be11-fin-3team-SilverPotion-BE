@@ -1,11 +1,14 @@
 package silverpotion.userserver.user.controller;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retrofit2.http.HTTP;
+import silverpotion.userserver.admin.domain.Admin;
+import silverpotion.userserver.admin.repository.AdminRepository;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
@@ -27,13 +30,15 @@ public class    UserController {
     private final GoogleService googleService;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoService kakaoService;
+    private final AdminRepository adminRepository;
 
 
-    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider, KakaoService kakaoService) {
+    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider, KakaoService kakaoService, AdminRepository adminRepository) {
         this.userService = userService;
         this.googleService = googleService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.kakaoService = kakaoService;
+        this.adminRepository = adminRepository;
     }
 //    0.헬스체크용 url(배포용)
     @GetMapping("/healthcheck")
@@ -224,8 +229,7 @@ public class    UserController {
         GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
-        System.out.println("소셜 아이디"+googleProfileDto.getSub());
-        System.out.println("유저" + originalUser);
+        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
         if(originalUser == null){
             SocialSignUpDto signUpDto = new SocialSignUpDto(
                     googleProfileDto.getSub(),
@@ -237,9 +241,7 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-
-
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
@@ -257,6 +259,7 @@ public class    UserController {
         KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
+        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
         if(originalUser == null){
             KakaoSignUpDto signUpDto = new KakaoSignUpDto(
                     kakaoProfileDto.getId(),
@@ -269,7 +272,7 @@ public class    UserController {
 //        회원가입 되어있으면 토큰 발급
         else {
 
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);

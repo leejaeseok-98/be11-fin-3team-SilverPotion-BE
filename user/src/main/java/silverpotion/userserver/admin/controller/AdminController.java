@@ -32,28 +32,28 @@ public class AdminController {
         this.userService = userService;
     }
     // 관리자 등록
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @PostMapping("/register/{userId}")
     public ResponseEntity<?> register(@PathVariable Long userId) {
         adminService.registerAdmin(userId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "관리자 등록 완료",userId), HttpStatus.OK);
     }
     //관리자 삭제
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('SUPER_ADMIN')")
     @DeleteMapping("/delete/{userId}")
     public ResponseEntity<?> deleteAdmin(@PathVariable Long userId,@RequestHeader("X-User-LoginId")String loginId){
         adminService.deleteAdmin(userId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "관리자 삭제 완료",userId), HttpStatus.OK);
     }
     // 유저 목록 조회
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @GetMapping("/users")
-    public ResponseEntity<?> getUsers(@PageableDefault(size = 10, sort = "id", direction =Sort.Direction.DESC)Pageable pageable, @RequestBody UserSearchDto dto){
+    public ResponseEntity<?> getUsers(@PageableDefault(size = 10, sort = "id", direction =Sort.Direction.DESC)Pageable pageable, @ModelAttribute UserSearchDto dto){
         Page<AdminUserListDto> userListDto = adminService.userList(pageable,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "관리자 유저 조회 완료",userListDto),HttpStatus.OK);
     }
     // 유저 상세 조회
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @GetMapping("/detail/{userId}")
     public ResponseEntity<?> detailList(@PathVariable Long userId){
         UserDetailDto userDetailDto = adminService.userDetailList(userId);
@@ -61,7 +61,7 @@ public class AdminController {
     }
 
     //    사용자 정지(관리자 수동 처리)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @PostMapping("/ban")
     public ResponseEntity<?> banUser(@RequestBody UserBanRequestDto userBanRequestDto){
         adminService.banUserManually(userBanRequestDto.getUserId(),userBanRequestDto.getBanDays());
@@ -69,7 +69,7 @@ public class AdminController {
     }
 
     //    사용자 정지 해제(관리자 수동 처리)
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     @PostMapping("/unban/{userId}")
     public ResponseEntity<?> unbanUser(@PathVariable Long userId){
         adminService.unbanUser(userId);
@@ -78,15 +78,15 @@ public class AdminController {
 
     //    신고 목록 조회
     @GetMapping("/report/list")
-    @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> getReportList(@RequestHeader("X-User-LoginId") String loginId, Pageable pageable, @RequestBody ReportRequestDto reportRequestDto){
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
+    public ResponseEntity<?> getReportList(@RequestHeader("X-User-LoginId") String loginId, Pageable pageable, @ModelAttribute ReportRequestDto reportRequestDto){
         Page<ReportResponseDto> reports = reportService.findAllReports(loginId, pageable,reportRequestDto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"신고 유저 조회 성공",reports),HttpStatus.OK);
     }
 
     //    신고 상세 조회
     @GetMapping("/report/detail/{reportId}")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public ResponseEntity<?> getReportDetails(@PathVariable Long reportId){
         ReportDetailListDto dto = reportService.getReportDetails(reportId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "detail is uploaded successfully",dto),HttpStatus.OK);
@@ -94,7 +94,7 @@ public class AdminController {
 
     //    특정 신고 처리
     @PostMapping("/report/{reportId}/process")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAnyRole('ADMIN','SUPER_ADMIN')")
     public ResponseEntity<?> getReportProcess(@PathVariable Long reportId, @RequestBody @Valid ReportProcessResDto dto){
         ReportProcessResDto reportProcessResDto = reportService.processReport(reportId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "process is uploaded successfully",reportProcessResDto),HttpStatus.OK);

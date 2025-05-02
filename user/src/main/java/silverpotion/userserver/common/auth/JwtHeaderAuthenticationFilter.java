@@ -28,7 +28,7 @@ public class JwtHeaderAuthenticationFilter extends OncePerRequestFilter {
         if (loginId != null && role != null) {
             // 1.권한 생성
             Collection<GrantedAuthority> authorities = List.of(new SimpleGrantedAuthority(role));
-
+            System.out.println("인증된 권한 :" + authorities);
             // 2.인증 객체 생성 (로그인아이디, credentials 없음, 권한 목록)
             UsernamePasswordAuthenticationToken authentication =
                     new UsernamePasswordAuthenticationToken(loginId, null, authorities);

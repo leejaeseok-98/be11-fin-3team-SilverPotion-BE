@@ -8,11 +8,11 @@ import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
-import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
 import silverpotion.userserver.healthScore.domain.HealthScore;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
+import silverpotion.userserver.recommendation.domain.UserVector;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -110,6 +110,9 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //유저상세건강정보
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
     private UserDetailHealthInfo userDetailHealthInfo;
+    //유저벡터
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserVector userVector;
     //유저 건강데이터와 상세건강정보를 기반으로 헬스점수
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @Builder.Default

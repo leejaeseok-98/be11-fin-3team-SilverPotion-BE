@@ -34,13 +34,13 @@ public class UserDetailHealthInfo extends BaseTimeEntity {
     private int targetStep;
     //목표 소모칼로리
     private int targetCalory;
-    //고립감 점수
-    private int isolationScore;
-    //의욕감 점수
-    private int driveScore;
-    //자존감 점수
-    private int selfEsteemScore;
-    //에너지 점수
+    //정서적 위로 필요성
+    private int empathyNeedScore;
+    //성취성
+    private int achieveScore;
+    //사교성
+    private int peopleConnectivityScore;
+    //활동성
     private int energyScore;
     //유저
     @OneToOne
@@ -58,9 +58,9 @@ public class UserDetailHealthInfo extends BaseTimeEntity {
         this.exerciseHabit = dto.getExerciseHabit();
         this.targetStep = dto.getTargetStep();
         this.targetCalory = dto.getTargetCalory();
-        this.isolationScore = dto.getIsolationScore();
-        this.driveScore = dto.getDriveScore();
-        this.selfEsteemScore = dto.getSelfEsteemScore();
+        this.empathyNeedScore = dto.getEmpathyNeedScore();
+        this.achieveScore  = dto.getAchieveScore();
+        this.peopleConnectivityScore = dto.getPeopleConnectivityScore();
         this.energyScore = dto.getEnergyScore();
     }
 

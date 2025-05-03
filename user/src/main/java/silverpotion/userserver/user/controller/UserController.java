@@ -12,6 +12,7 @@ import silverpotion.userserver.admin.repository.AdminRepository;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
+import silverpotion.userserver.user.domain.Role;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.service.GoogleService;
@@ -229,7 +230,11 @@ public class    UserController {
         GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
-        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+        String adminRole = null;
+        if(!originalUser.getRole().equals(Role.USER)){
+            Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+            adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+        }
         if(originalUser == null){
             SocialSignUpDto signUpDto = new SocialSignUpDto(
                     googleProfileDto.getSub(),
@@ -241,7 +246,7 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),adminRole);
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
@@ -259,7 +264,11 @@ public class    UserController {
         KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
-        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+        String adminRole = null;
+        if(!originalUser.getRole().equals(Role.USER)){
+            Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+            adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+        }
         if(originalUser == null){
             KakaoSignUpDto signUpDto = new KakaoSignUpDto(
                     kakaoProfileDto.getId(),
@@ -272,7 +281,7 @@ public class    UserController {
 //        회원가입 되어있으면 토큰 발급
         else {
 
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),adminRole);
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);

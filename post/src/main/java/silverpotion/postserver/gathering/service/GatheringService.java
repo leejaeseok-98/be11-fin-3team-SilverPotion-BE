@@ -497,4 +497,40 @@ public class GatheringService {
 //        return openSearchService.searchGatherings(request);
 //    }
 
+
+
+   public List<GatheringInfoDtoForUserServiceDto> fiveRecommendedGatherings(List<Long> gatheringIds){
+
+       List<Gathering>fiveList = gatheringRepository.findByIdIn(gatheringIds);
+
+      return  fiveList.stream().map(gathering -> {
+           //모임 카테고리명
+           String category = gathering.getGatheringCategory() !=null ? gathering.getGatheringCategory().getName() : "미분류";
+           //세부카테고리명 최대 2개까지니까 리스트로 가지고 오기
+           List<String> detailCategory = gathering.getGatheringDetails().stream().map(gd -> gd.getGatheringCategoryDetail().getName()).toList();
+           //현재 모임 인원 수 가져오기
+           Long peopleCount = gatheringPeopleRepository.countByGatheringIdAndStatusActivate(gathering.getId());
+
+           return GatheringInfoDtoForUserServiceDto.builder()
+                   .id(gathering.getId())
+                   .gatheringName(gathering.getGatheringName())
+                   .imageUrl(gathering.getImageUrl())
+                   .region(gathering.getRegion())
+                   .maxPeople(gathering.getMaxPeople())
+                   .peopleCount(peopleCount)
+                   .category(category)
+                   .detailCategory(detailCategory)
+                   .introduce(gathering.getIntroduce())
+                   .build();
+               }).toList();
+
+    }
+
+
+
+
+
+
+
+
 }

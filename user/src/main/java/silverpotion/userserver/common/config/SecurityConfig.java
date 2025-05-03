@@ -41,7 +41,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/silverpotion/user/login", "/silverpotion/user/create","/silverpotion/user/checkDuplicate","/silverpotion/user/refresh-token",
                                 "/silverpotion/user/google/login", "/silverpotion/user/kakao/login").permitAll()
-                        .requestMatchers("/silverpotion/user/**").access(this::internalOrAuthenticated)
+                        .requestMatchers("/silverpotion/user/**","/silverpotion/gatheringvector/**","silverpotion/gathering/**").access(this::internalOrAuthenticated)
                         .requestMatchers("/silverpotion/admins/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )

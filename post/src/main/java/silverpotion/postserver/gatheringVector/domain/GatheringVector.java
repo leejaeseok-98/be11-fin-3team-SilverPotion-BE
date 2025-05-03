@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 import silverpotion.postserver.gathering.domain.Gathering;
+import silverpotion.postserver.gatheringVector.dtos.GatheringVectorForUserServiceDto;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,5 +30,17 @@ public class GatheringVector extends BaseTimeEntity {
     @OneToOne
     @JoinColumn(name = "gathering_id")
     private Gathering gathering;
+
+
+
+    public GatheringVectorForUserServiceDto toDtoForUserService(){
+        return GatheringVectorForUserServiceDto.builder()
+                .id(this.gathering.getId())
+                .empathySupport(this.empathySupport)
+                .achievementSupport(this.achievementSupport)
+                .connectivitySupport(this.connectivitySupport)
+                .energySupport(this.energySupport)
+                .build();
+    }
 
 }

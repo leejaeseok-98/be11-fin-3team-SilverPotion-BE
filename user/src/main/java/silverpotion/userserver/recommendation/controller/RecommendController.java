@@ -7,7 +7,10 @@ import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import silverpotion.userserver.common.dto.CommonDto;
+import silverpotion.userserver.recommendation.dtos.GatheringInfoDtoForUserServiceDto;
 import silverpotion.userserver.recommendation.service.RecommendService;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/silverpotion/recommend")
@@ -24,8 +27,8 @@ public class RecommendController {
     @GetMapping("/fivegatherings")
     public ResponseEntity<?> recommendGatherings(@RequestHeader("X-User-LoginId") String loginId){
 //        여기서 소모임 리스트 5개를 리턴해야함(일단은 유저벡터만드는 로직으로)
-        recommendService.recommendGatherings(loginId);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success","success"),HttpStatus.OK);
+       List<GatheringInfoDtoForUserServiceDto> list = recommendService.recommendGatherings(loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",list),HttpStatus.OK);
     }
 
 

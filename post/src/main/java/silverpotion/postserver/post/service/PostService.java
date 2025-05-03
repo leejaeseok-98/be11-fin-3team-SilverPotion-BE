@@ -250,7 +250,7 @@
             Long userId = userClient.getUserIdByLoginId(loginId);
 
             List<PostVoteResDTO> dtoList = rawList.stream()
-                    .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요!
+                    .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요
                         PostVoteResDTO postVoteResDTO = convertToDto(item, userId);
                         if (item.getPostCategory() == PostCategory.vote) {
                             List<VoteOptions> options = voteOptionsRepository.findByVote_voteId(item.getId());
@@ -271,6 +271,7 @@
             UserProfileInfoDto userProfileInfoDto = null;
             boolean isParticipants = false;
             LocalDateTime closeTime = null;
+            Long writerId = null;
 
             List<String> voteOptions = null;
 
@@ -284,8 +285,7 @@
             if (dto.getPostCategory() == PostCategory.free) {
                 System.out.println("postId : " + dto.getId());
                 post = postRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 게시물입니다."));
-                Long writerId = post.getWriterId();
-                System.out.println("writerId : " + writerId);
+                writerId = post.getWriterId();
                 if (writerId == null){
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
@@ -295,8 +295,7 @@
             } else if (dto.getPostCategory() == PostCategory.notice) {
                 System.out.println("postId : " + dto.getId());
                 post = postRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 게시물입니다."));
-                Long writerId = post.getWriterId();
-                System.out.println("writerId : " + writerId);
+                writerId = post.getWriterId();
                 if (writerId == null){
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
@@ -304,10 +303,8 @@
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.vote) {
-                System.out.println("voteId : "+ dto.getId());
                 vote = voteRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 투표게시물입니다"));
-                Long writerId = vote != null ? vote.getWriterId() : null;
-                System.out.println("writerId : "+ writerId);
+                writerId = vote != null ? vote.getWriterId() : null;
                 if (writerId == null){
                     throw new IllegalArgumentException("vote writerId가 null입니다. voteId:" +  vote.getVoteId());
                 }
@@ -328,6 +325,7 @@
                     .id(dto.getId())
                     .title(dto.getTitle())
                     .content(dto.getContent())
+                    .writerId(writerId)
                     .likeCount(likeCount)
                     .commentCount(commentCount)
                     .postCategory(dto.getPostCategory())

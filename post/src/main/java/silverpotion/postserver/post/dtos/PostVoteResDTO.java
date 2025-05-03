@@ -21,6 +21,7 @@ public class PostVoteResDTO {
     private Long id; // post면 post.id, vote면 vote.voteid
     private String title;
     private String content;
+    private Long writerId;
     private LocalDateTime createdAt;
     private String nickname;
     private String profileImage;

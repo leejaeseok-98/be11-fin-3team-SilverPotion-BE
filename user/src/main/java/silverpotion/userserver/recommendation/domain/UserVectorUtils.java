@@ -117,6 +117,17 @@ public class UserVectorUtils {
         return dot/(Math.sqrt(normA) *  Math.sqrt(normB));
     }
 
+    //유클리드 거리 계산
+    public static double euclideanDistance(double[]a, double[]b){
+        if(a.length != b.length) throw new IllegalArgumentException("벡터간 길이 불일치");
+
+        double sum = 0.0;
+        for(int i=0; i<a.length; i++){
+            sum +=Math.pow(a[i]-b[i],2); //벡터의 각 차이의 제곱을 sum에 더함
+        }
+        return Math.sqrt(sum);
+    }
+
 
 
 

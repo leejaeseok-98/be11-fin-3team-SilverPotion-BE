@@ -12,6 +12,7 @@ import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.repository.UserRepository;
 
 import java.util.AbstractMap;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,8 +29,8 @@ public class RecommendService {
     }
 
 
-//    1.사용자에게 맞는 소모임 5개 추천
-    public List<GatheringInfoDtoForUserServiceDto> recommendGatherings(String loginId){
+//    1.사용자에게 맞는 소모임 5개 추천 성향과 다른 소모임 3개추천
+    public  Map<String,List<GatheringInfoDtoForUserServiceDto>> recommendGatherings(String loginId){
         User user = userRepository.findByLoginIdAndDelYN(loginId, DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
       //유저 벡터값 계산
         double[] userVector = UserVectorUtils.makingUserVector(user);
@@ -42,8 +43,26 @@ public class RecommendService {
                 .sorted((a,b) -> Double.compare(b.getValue(),a.getValue())).limit(5).map(Map.Entry::getKey)
                 .toList();
 
-        return postClient.fiveRecommendedGatherings(top5Ids);
+        List<GatheringInfoDtoForUserServiceDto> similarGatherings = postClient.fiveRecommendedGatherings(top5Ids);
 
+
+        //유클리드 거리 계산으로 가장 차이가 큰 모임 아이디 3개 뽑아내기
+        List<Long> top3DiffIds = allGatheringVectors.stream().map(gv->new AbstractMap.SimpleEntry<>(
+                gv.getId(), UserVectorUtils.euclideanDistance(userVector,gv.toVectorValue())
+                ))
+                .sorted((a,b) -> Double.compare(b.getValue(), a.getValue())).limit(3).map(Map.Entry::getKey)
+                .toList();
+        List<GatheringInfoDtoForUserServiceDto> differentGatherings = postClient.fiveRecommendedGatherings(top3DiffIds);
+
+        Map<String,List<GatheringInfoDtoForUserServiceDto>> recommendedList = new HashMap<>();
+        recommendedList.put("similar",similarGatherings);
+        recommendedList.put("different", differentGatherings);
+        return recommendedList;
 
     }
+
+
+
+
+
 }

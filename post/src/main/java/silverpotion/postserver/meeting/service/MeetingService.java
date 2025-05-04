@@ -4,6 +4,7 @@ import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import silverpotion.postserver.calendar.service.CalendarService;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.common.service.ImageService;
 import silverpotion.postserver.gathering.domain.Gathering;
@@ -32,9 +33,10 @@ public class MeetingService {
     private final UserClient userClient;
     private final ImageService imageService;
     private final MeetingParticipantRepository meetingParticipantRepository;
+    private final CalendarService calendarService;
 //    private final OpenSearchService openSearchService;
 
-    public MeetingService(MeetingRepository meetingRepository, GatheringRepository gatheringRepository, UserClient userClient, ImageService imageService, MeetingParticipantRepository meetingParticipantRepository
+    public MeetingService(MeetingRepository meetingRepository, GatheringRepository gatheringRepository, UserClient userClient, ImageService imageService, MeetingParticipantRepository meetingParticipantRepository, CalendarService calendarService
 //                          , OpenSearchService openSearchService
     ) {
         this.meetingRepository = meetingRepository;
@@ -43,6 +45,7 @@ public class MeetingService {
         this.imageService = imageService;
         this.meetingParticipantRepository = meetingParticipantRepository;
 //        this.openSearchService = openSearchService;
+        this.calendarService = calendarService;
     }
 
     // 정모 생성
@@ -102,6 +105,9 @@ public class MeetingService {
                 .build();
 
         meetingParticipantRepository.save(participant);
+
+        //모임장 정모 캘린더 자동 등록
+        calendarService.registerMeetingEvent(meeting, loginId);
 
         // OpenSearch index 저장
 //        openSearchService.indexMeeting(meeting);
@@ -218,6 +224,9 @@ public class MeetingService {
                 .build();
 
         meetingParticipantRepository.save(meetingParticipant);
+
+        // 캘린더에 자동 등록
+        calendarService.registerMeetingEvent(meeting, loginId);
     }
 
     // 정모 참석 취소

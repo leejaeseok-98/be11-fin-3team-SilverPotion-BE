@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import silverpotion.postserver.calendar.dtos.CalendarCreateResDto;
+import silverpotion.postserver.calendar.dtos.UpdateCalendarDto;
 import silverpotion.postserver.common.domain.BaseTimeEntity;
 
 import java.time.LocalDateTime;
@@ -24,7 +25,6 @@ public class Calendar extends BaseTimeEntity {
     @Column(nullable = false)
     private Long userId; //일정 소유자(사용자 입력 or 정모자동등록)
 
-    @Column(nullable = false)
     private String title;//제목
     
     private String description;//설명
@@ -35,11 +35,18 @@ public class Calendar extends BaseTimeEntity {
     private LocalDateTime end;
 
     private boolean allDay; //종일 여부
-    
-    @Column(nullable = false)
+
     private String place;//장소
     
     @Column(nullable = false)
     private String source; // 예: 정모, 사용자 입력
 
+    public void updateCalendar(UpdateCalendarDto dto) {
+        this.title = dto.getTitle();
+        this.description = dto.getDescription();
+        this.start = dto.getStart();
+        this.end = dto.getEnd();
+        this.allDay = dto.isAllDay();
+        this.place = dto.getPlace();
+    }
 }

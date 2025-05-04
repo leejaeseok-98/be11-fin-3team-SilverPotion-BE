@@ -5,6 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import silverpotion.postserver.calendar.domain.Calendar;
 import silverpotion.postserver.calendar.dtos.CalendarCreateResDto;
+import silverpotion.postserver.calendar.dtos.UpdateCalendarDto;
 import silverpotion.postserver.calendar.service.CalendarService;
 import silverpotion.postserver.common.dto.CommonDto;
 
@@ -33,8 +34,18 @@ public class CalendarController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "일정 조회 완료",calendars),HttpStatus.OK);
     }
     //일정 수정
-
+    @PutMapping("/update")
+    public ResponseEntity<?> updateCalendar(@RequestHeader("X-User-LoginId") String loginId,@RequestBody UpdateCalendarDto dto){
+        calendarService.updateCalendar(loginId,dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "일정 수정 완료",dto),HttpStatus.OK);
+    }
     //일정 삭제
+    @DeleteMapping("/delete/{calendarId}")
+    public ResponseEntity<?> deleteCalendar(@RequestHeader("X-User-LoginId") String loginId,@PathVariable Long calendarId){
+        calendarService.deleteCalendar(calendarId,loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"일정 삭제 완료",calendarId),HttpStatus.OK);
+    }
 
     //정모 자동 등록
+
 }

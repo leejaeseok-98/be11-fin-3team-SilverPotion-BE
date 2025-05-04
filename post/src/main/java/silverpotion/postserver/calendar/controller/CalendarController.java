@@ -46,6 +46,4 @@ public class CalendarController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"일정 삭제 완료",calendarId),HttpStatus.OK);
     }
 
-    //정모 자동 등록
-
 }

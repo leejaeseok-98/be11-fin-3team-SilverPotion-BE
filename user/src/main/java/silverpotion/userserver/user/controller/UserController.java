@@ -219,67 +219,67 @@ public class    UserController {
 
 
 
-//    구글 로그인
-    @PostMapping("/google/login")
-    public ResponseEntity<?> googleLogin(@RequestBody RedirectDto redirectDto){
-//        access토큰발급
-        AccessTokenDto accessTokenDto = googleService.getAccessToken(redirectDto.getCode());
-
-//        사용자 정보 얻기
-        GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
-//        회원가입이 되어있지 않다면 회원가입
-        User originalUser = userService.userBySocialId(googleProfileDto.getSub());
-        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
-        if(originalUser == null){
-            SocialSignUpDto signUpDto = new SocialSignUpDto(
-                    googleProfileDto.getSub(),
-                    googleProfileDto.getEmail(),
-                    googleProfileDto.getName()
-            );
-            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
-        }
-
-//        회원가입 되어있으면 토큰 발급
-        else {
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
-            Map<String, Object> loginInfo = new HashMap<>();
-            loginInfo.put("id",originalUser.getId());
-            loginInfo.put("token", jwtToken);
-            loginInfo.put("name",originalUser.getName());
-            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
-        }
-    }
-    //    카카오 로그인
-    @PostMapping("/kakao/login")
-    public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto){
-//        access토큰발급
-        AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
-
-//        사용자 정보 얻기
-        KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
-//        회원가입이 되어있지 않다면 회원가입
-        User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
-        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
-        if(originalUser == null){
-            KakaoSignUpDto signUpDto = new KakaoSignUpDto(
-                    kakaoProfileDto.getId(),
-                    kakaoProfileDto.getKakao_account().getEmail(),
-                    kakaoProfileDto.getKakao_account().getProfile().getNickname()
-            );
-            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
-        }
-
-//        회원가입 되어있으면 토큰 발급
-        else {
-
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
-            Map<String, Object> loginInfo = new HashMap<>();
-            loginInfo.put("id",originalUser.getId());
-            loginInfo.put("token", jwtToken);
-            loginInfo.put("name", originalUser.getName());
-            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
-        }
-    }
+////    구글 로그인
+//    @PostMapping("/google/login")
+//    public ResponseEntity<?> googleLogin(@RequestBody RedirectDto redirectDto){
+////        access토큰발급
+//        AccessTokenDto accessTokenDto = googleService.getAccessToken(redirectDto.getCode());
+//
+////        사용자 정보 얻기
+//        GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
+////        회원가입이 되어있지 않다면 회원가입
+//        User originalUser = userService.userBySocialId(googleProfileDto.getSub());
+//        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+//        if(originalUser == null){
+//            SocialSignUpDto signUpDto = new SocialSignUpDto(
+//                    googleProfileDto.getSub(),
+//                    googleProfileDto.getEmail(),
+//                    googleProfileDto.getName()
+//            );
+//            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
+//        }
+//
+////        회원가입 되어있으면 토큰 발급
+//        else {
+//            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
+//            Map<String, Object> loginInfo = new HashMap<>();
+//            loginInfo.put("id",originalUser.getId());
+//            loginInfo.put("token", jwtToken);
+//            loginInfo.put("name",originalUser.getName());
+//            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+//        }
+//    }
+//    //    카카오 로그인
+//    @PostMapping("/kakao/login")
+//    public ResponseEntity<?> kakaoLogin(@RequestBody RedirectDto redirectDto){
+////        access토큰발급
+//        AccessTokenDto accessTokenDto = kakaoService.getAccessToken(redirectDto.getCode());
+//
+////        사용자 정보 얻기
+//        KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
+////        회원가입이 되어있지 않다면 회원가입
+//        User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
+//        Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+//        if(originalUser == null){
+//            KakaoSignUpDto signUpDto = new KakaoSignUpDto(
+//                    kakaoProfileDto.getId(),
+//                    kakaoProfileDto.getKakao_account().getEmail(),
+//                    kakaoProfileDto.getKakao_account().getProfile().getNickname()
+//            );
+//            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
+//        }
+//
+////        회원가입 되어있으면 토큰 발급
+//        else {
+//
+//            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),admin.getRole().toString());
+//            Map<String, Object> loginInfo = new HashMap<>();
+//            loginInfo.put("id",originalUser.getId());
+//            loginInfo.put("token", jwtToken);
+//            loginInfo.put("name", originalUser.getName());
+//            return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",loginInfo),HttpStatus.OK);
+//        }
+//    }
 
     //  비밀번호 변경
     @PostMapping("/password/change")

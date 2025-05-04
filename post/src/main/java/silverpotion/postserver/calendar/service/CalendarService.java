@@ -6,6 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import silverpotion.postserver.calendar.domain.Calendar;
 import silverpotion.postserver.calendar.dtos.CalendarCreateResDto;
+import silverpotion.postserver.calendar.dtos.CalendarDetailResDto;
 import silverpotion.postserver.calendar.dtos.UpdateCalendarDto;
 import silverpotion.postserver.calendar.repository.CalendarRepository;
 import silverpotion.postserver.meeting.domain.Meeting;
@@ -64,6 +65,12 @@ public class CalendarService {
     public List<Calendar> getCalendar(String loginId){
         Long userId = userClient.getUserIdByLoginId(loginId);
         return calendarRepository.findByUserId(userId);
+    }
+
+    //일정 상세조회
+    public CalendarDetailResDto getDetail(Long calendarId){
+        Calendar calendar = calendarRepository.findById(calendarId).orElseThrow(()-> new EntityNotFoundException("등록된 일정이 없습니다"));
+        return CalendarDetailResDto.detailResDto(calendar);
     }
 
     //일정 수정

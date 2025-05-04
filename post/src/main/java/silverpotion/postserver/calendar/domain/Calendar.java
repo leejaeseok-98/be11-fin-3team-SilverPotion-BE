@@ -49,4 +49,5 @@ public class Calendar extends BaseTimeEntity {
         this.allDay = dto.isAllDay();
         this.place = dto.getPlace();
     }
+
 }

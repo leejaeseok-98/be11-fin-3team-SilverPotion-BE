@@ -93,6 +93,7 @@ public class GatheringController {
             @RequestBody GatheringPeopleCreateDto dto) {
 
         gatheringService.createGatheringPeople(dto, loginId);
+
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "모임에 가입 신청되었습니다.", dto), HttpStatus.OK);
     }
 

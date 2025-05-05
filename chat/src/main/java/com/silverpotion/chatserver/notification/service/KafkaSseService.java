@@ -3,9 +3,11 @@ package com.silverpotion.chatserver.notification.service;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.silverpotion.chatserver.chat.domain.MessageType;
 import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
 import com.silverpotion.chatserver.chat.repository.ChatParticipantRepository;
 import com.silverpotion.chatserver.notification.controller.SseController;
+import com.silverpotion.chatserver.notification.dto.NotificationRequestDto;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -15,6 +17,7 @@ import org.springframework.messaging.simp.user.SimpUser;
 import org.springframework.messaging.simp.user.SimpUserRegistry;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -27,6 +30,7 @@ public class KafkaSseService {
     private final ChatParticipantRepository chatParticipantRepository;
     private final SimpMessagingTemplate messagingTemplate;
     private final SimpUserRegistry simpUserRegistry;
+    private final SseController sseController;
 
     public void publishToSseTopic(ChatMessageDto dto) {
         log.info("🔥 발행 전 DTO: {}", dto);
@@ -37,11 +41,6 @@ public class KafkaSseService {
             e.printStackTrace();
         }
     }
-//    @KafkaListener(topics = "chat-topic", groupId = "chat-consumer-group")
-//    public void handleMessage(String messageJson) throws JsonProcessingException {
-//        ChatMessageDto dto = objectMapper.readValue(messageJson, ChatMessageDto.class);
-//        // 오프라인 유저에게 SSE 푸시 전송 등 수행
-//    }
 
     @KafkaListener(
             topics = "chat-topic",
@@ -73,5 +72,32 @@ public class KafkaSseService {
         }
     }
 
+
+    @KafkaListener(
+            topics = "notification-topic",
+            groupId = "notification-group",
+            concurrency = "1"
+    )
+    public void consumeNotification(String messageJson) {
+        log.info("📨 알림 Kafka 수신됨: {}", messageJson);
+        try {
+            NotificationRequestDto dto = objectMapper.readValue(messageJson, NotificationRequestDto.class);
+
+            ChatMessageDto message = ChatMessageDto.builder()
+                    .senderId(0L)
+                    .senderNickName("알림")
+                    .roomId(0L)  // 알림 전용이면 0L 또는 dto.getReferenceId() 사용
+                    .content(dto.getContent())
+                    .type(MessageType.SYSTEM) // enum 변환
+                    .createdAt(LocalDateTime.now())
+                    .build();
+
+            sseController.sendToClientOrQueue(dto.getLoginId(), message);
+            log.info("📡 알림 전송 완료 → {}", dto.getLoginId());
+
+        } catch (Exception e) {
+            log.error("❌ 알림 처리 실패", e);
+        }
+    }
 
 }

@@ -23,7 +23,7 @@ public class NotificationProducer {
         try {
             String message = objectMapper.writeValueAsString(dto);
             kafkaTemplate.send("notification-topic", message);
-            log.info("✅ 알림 발행: {}", message);
+            log.info("✅ 알림 발행(server: gather): {}", message);
         } catch (JsonProcessingException e) {
             log.error("❌ 알림 발행 실패", e);
         }

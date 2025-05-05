@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-import silverpotion.postserver.notification.dto.GatheringJoinRequestEventDto;
 
 @Service
 public class NotificationEventPublisher {
@@ -16,7 +15,7 @@ public class NotificationEventPublisher {
         this.objectMapper = objectMapper;
     }
 
-    public void publishJoinRequest(GatheringJoinRequestEventDto dto) {
+    public void publishJoinRequest(NotificationRequestDto dto) {
         try {
             String message = objectMapper.writeValueAsString(dto);
             kafkaTemplate.send("gathering-join-request", message);

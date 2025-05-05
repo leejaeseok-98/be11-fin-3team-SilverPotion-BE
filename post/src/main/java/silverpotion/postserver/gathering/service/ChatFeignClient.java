@@ -29,4 +29,6 @@ public interface ChatFeignClient {
             @RequestParam("title") String title,
             @RequestParam("userId") Long userId
     );
+    @PostMapping("/notifications/send") // 🔥 알림 전송용 엔드포인트
+    void sendNotification(@RequestBody NotificationRequestDto dto);
 }

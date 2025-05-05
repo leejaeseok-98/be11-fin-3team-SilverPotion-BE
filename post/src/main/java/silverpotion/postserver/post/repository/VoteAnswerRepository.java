@@ -4,6 +4,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+import silverpotion.postserver.post.domain.Vote;
 import silverpotion.postserver.post.domain.VoteAnswer;
 
 import java.util.List;
@@ -26,4 +27,10 @@ public interface VoteAnswerRepository extends JpaRepository<VoteAnswer, Long> {
 
     // 옵션별 투표 수 (득표 수)
     Long countByVoteOptionId(Long optionId);
+
+    // 다시 투표 시, 기존 투표 모두 삭제
+    void deleteByUserIdAndVoteOption_Vote_VoteId(Long userId, Long voteId);
+
+    // 옵션 ID로 답변 전체 조회
+    List<VoteAnswer> findByVoteOption_Id(Long voteOptionId);
 }

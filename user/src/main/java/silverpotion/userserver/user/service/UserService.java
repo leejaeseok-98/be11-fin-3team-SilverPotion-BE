@@ -21,6 +21,7 @@ import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.BanYN;
 import silverpotion.userserver.user.domain.DelYN;
+import silverpotion.userserver.user.domain.Role;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.repository.UserRepository;
@@ -95,7 +96,11 @@ public class UserService {
     public Map<String,Object> login(LoginDto dto){
         
        User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
-//        Admin admin = adminRepository.findByUserId(user.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+       String adminRole = null;
+       if(!user.getRole().equals(Role.USER)){
+           Admin admin = adminRepository.findByUserId(user.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+           adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+       }
        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
        }
@@ -111,16 +116,14 @@ public class UserService {
         }
 
        String jwtToken = jwtTokenProvider.createToken(
-//               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName(),admin.getRole().toString());
-        user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName().toString());
-
+               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName(),adminRole);
        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
         redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
        Map<String, Object> loginInfo = new HashMap<>();
 
        loginInfo.put("userId",user.getId());
        loginInfo.put("role",user.getRole());
-//       loginInfo.put("adminRole", admin.getRole());
+       loginInfo.put("adminRole", adminRole);
        loginInfo.put("profileUrl",user.getProfileImage());
        loginInfo.put("nickName",user.getNickName());
        loginInfo.put("name",user.getName());
@@ -149,9 +152,7 @@ public class UserService {
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
 
-//        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString(),claims.get("adminRole").toString());
-        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString().toString());
-
+        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString(),claims.get("adminRole").toString());
         loginInfo.put("token", token);
         return loginInfo;
     }

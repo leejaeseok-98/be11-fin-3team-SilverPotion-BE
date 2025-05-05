@@ -229,21 +229,22 @@ public class    UserController {
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
         String adminRole = null;
-        if(!originalUser.getRole().equals(Role.USER)){
-            Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
-            adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
-        }
         if(originalUser == null){
             SocialSignUpDto signUpDto = new SocialSignUpDto(
                     googleProfileDto.getSub(),
                     googleProfileDto.getEmail(),
                     googleProfileDto.getName()
             );
+
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
         }
 
 //        회원가입 되어있으면 토큰 발급
         else {
+            if(!originalUser.getRole().equals(Role.USER)){
+                Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+                adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+            }
             String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),adminRole);
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
@@ -263,10 +264,7 @@ public class    UserController {
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
         String adminRole = null;
-        if(!originalUser.getRole().equals(Role.USER)){
-            Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
-            adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
-        }
+
         if(originalUser == null){
             KakaoSignUpDto signUpDto = new KakaoSignUpDto(
                     kakaoProfileDto.getId(),
@@ -278,7 +276,10 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-
+            if(!originalUser.getRole().equals(Role.USER)){
+                Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+                adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+            }
             String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),adminRole);
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());

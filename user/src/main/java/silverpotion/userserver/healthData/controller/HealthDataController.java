@@ -24,12 +24,14 @@ public class HealthDataController {
     //    0.앱으로부터 헬스데이터 받아오는 api
     @PostMapping("/fromPhone")
     public void receiveData(@RequestBody HealthSyncDto dto, @RequestHeader("X-User-LoginId") String loginId) {
+        System.out.println("데이터 받음");
         healthDataService.save(dto, loginId);
     }
 
     //    1. 사용자의 앱에 헬스데이터 보내달라고 요청하는 api(건강탭에 들어가면 바로 이 api가 작동되도록 해야함)
     @GetMapping("/dataFromApp")
     public void sendHealthDataReq(@RequestHeader("X-User-LoginId")String loginId){
+        System.out.println("데이어요청");
         healthDataService.sendHealthDataReq(loginId);
     }
 

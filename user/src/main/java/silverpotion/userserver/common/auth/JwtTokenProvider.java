@@ -33,7 +33,7 @@ public class JwtTokenProvider {
     }
 
 
-    public String createToken(String loginId, String role, Long userId, String profileUrl, String nickName, String name,String adminRole){
+    public String createToken(String loginId, String role, Long userId, String profileUrl, String nickName, String name, String adminRole){
         Claims claims = Jwts.claims().setSubject(loginId);
         claims.put("role",role);
         claims.put("adminRole",adminRole);

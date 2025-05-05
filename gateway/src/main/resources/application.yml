@@ -13,7 +13,10 @@ spring:
       globalcors:
         cors-configurations:
           '[/**]':
-            allowedOrigins: 'http://localhost:3000'
+            allowedOrigins:
+              - http://localhost:3000
+#              - https://www.jy1187.shop
+#              - https://d414-220-72-230-176.ngrok-free.app
             allowedMethods: '*'
             allowedHeaders: '*'
             allowedCredentials: true

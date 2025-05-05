@@ -218,8 +218,6 @@ public class    UserController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 작성자 유저 리스트 조회",dto),HttpStatus.OK);
     }
 
-
-
 //    구글 로그인
     @PostMapping("/google/login")
     public ResponseEntity<?> googleLogin(@RequestBody RedirectDto redirectDto){

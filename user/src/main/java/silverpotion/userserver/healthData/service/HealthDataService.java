@@ -44,13 +44,18 @@ public class HealthDataService {
         //오늘 날짜
         LocalDate today =LocalDate.now();
 
+
         //평균 심박수
         List<HeartRateData>beatList = dto.getHeartRateData();
-        int sum = 0;
-        for(HeartRateData h : beatList){
-            sum +=(int)h.getBpm();
+        int averageBpm =0;
+        if(beatList != null && ! beatList.isEmpty()){
+            int sum = 0;
+            for(HeartRateData h : beatList){
+                sum +=(int)h.getBpm();
+                averageBpm = sum / beatList.size();
+            }
         }
-        int averageBpm = sum / beatList.size();
+
         //엔티티 객체 생성
         Optional<HealthData> todayHealthData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(user.getId(), today, DataType.DAY);
         if(todayHealthData.isPresent()){ // 이미 오늘 날짜에 생성된 헬스데이터가 있다면 기존의 것을 지우고 최근 엔티티 객체를 새로 저장

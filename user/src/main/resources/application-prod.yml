@@ -1,0 +1,91 @@
+#?? ??
+spring:
+  servlet:
+    multipart:
+      max-file-size: 10MB # 개별파일 최대 크기
+      max-request-size: 10MB  # 전체 요청 최대 크기
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${DB_HOST}:3306/silverpotion
+    username: admin
+    password: ${DB_PW}
+  jpa:
+    database: mysql
+    database-platform: org.hibernate.dialect.MariaDBDialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    #      ddl-auto: create
+    show_sql: true
+  application:
+    name: user-service
+  #    enabled: false를 붙임으로써 잡충돌을 막았음(스케줄러로 수동으로 하니 적합한 설정)
+  #    스프링 배치 관련 테이블 자동 생성(배포,운영단계에서는 never로 변경)
+  batch:
+    job:
+      enabled: false
+    initialize-schema: never
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+    loadbalancer:
+      mode: service
+
+  kafka:
+#    kafka-service는 파드로 띄울 서비스 이름
+    bootstrap-servers: kafka-service:9092
+    group-id: my-consumer-group
+    key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+cloud:
+  aws:
+    credentials:
+      access-key: ${AWS_ACCESS}
+      secret-key: ${AWS_SECRET}
+    region:
+      static: ap-northeast-2
+    s3:
+      bucket: silverpotion
+server:
+  port: 8080
+
+jwt:
+  secretKey: ${JWT_SECRET}
+  expiration: 3000
+  secretKeyRt: ${JWT_SECRET_RT}
+  #  200일
+  expirationRt: 288000
+
+openai:
+  api-key: ${AI_KEY}
+
+logging:
+  level:
+    root: info
+  #    별도의 에러로그 없이, 날짜구분없이 모든로그를 남기는 설정
+  file:
+    name: logs/app.log
+#포트원 결제 관련 키값들
+imp:
+  code: ${IMP_CODE}
+  access: ${IMP_ACCESS}
+  secret: ${IMP_SECRET}
+
+oauth:
+  google:
+    client-id: ${GOOGLE_ID}
+    client-secret: ${GOOGLE_SECRET}
+    redirect-uri: https://www.jy1187.shop/oauth/google/redirect
+  kakao:
+    client-id: ${KAKAO_ID}
+    redirect-uri: https://www.jy1187.shop/oauth/kakao/redirect
+
+# 휴대폰 API 관련설정
+coolsms:
+  apiKey: ${COOLSMS_KEY}
+  apiSecret: ${COOLSMS_SECRET}
+  fromNumber: 01042891784 # 발신번호

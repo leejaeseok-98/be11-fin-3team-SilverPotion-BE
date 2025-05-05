@@ -38,7 +38,10 @@ dependencies {
 	testImplementation 'org.springframework.security:spring-security-test'
 	testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 
+	//개발환경-유레카
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	//배포환경-쿠버네티스
+	implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
 	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 	implementation 'org.mariadb.jdbc:mariadb-java-client:3.1.4' // 최신 버전 사용 가능
 

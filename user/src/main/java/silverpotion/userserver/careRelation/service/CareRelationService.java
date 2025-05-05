@@ -1,7 +1,6 @@
 package silverpotion.userserver.careRelation.service;
 
 import jakarta.persistence.EntityNotFoundException;
-import jakarta.ws.rs.NotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import silverpotion.userserver.careRelation.domain.CareRelation;

@@ -1,6 +1,6 @@
 package silverpotion.postserver.comment.controller;
 
-import jakarta.ws.rs.Path;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -13,7 +13,6 @@ import silverpotion.postserver.comment.service.CommentService;
 import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.post.dtos.UserListDto;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("silverpotion/comment")

@@ -1,0 +1,60 @@
+#배포를 위해 유레카 관련 코드 삭제하고 쿠버네티스 설정이 추가됨. 더불어 uri를 쿠버네티스에 맞게 변경 lb->http로
+spring:
+  application:
+    name: api-gateway
+  cloud:
+    gateway:
+      default-filters:
+        - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
+      #      CORS공통처리
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - http://localhost:3000
+              - https://www.jy1187.shop
+            #              - https://d414-220-72-230-176.ngrok-free.app
+            allowedMethods: '*'
+            allowedHeaders: '*'
+            allowedCredentials: true
+      routes:
+        #        유저서비스(여기에 있는 서비스이름(ex.uesr-service)은 쿠버네티스의 서비스 이름과 동일해야함
+        - id: user-service
+          predicates:
+            - Path=/user-service/**
+          filters:
+            - StripPrefix=1
+          uri: http://user-service
+        #          포스트 서비스
+        - id: post-service
+          predicates:
+            - Path=/post-service/**
+          filters:
+            - StripPrefix=1
+          uri: http://post-service
+        #          챗 서비스
+        - id: chat-service
+          predicates:
+            - Path=/chat-service/**
+          filters:
+            - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
+          uri: http://chat-service
+        #          챗 서비스 웹소켓
+        - id: chat-service-ws
+          predicates:
+            - Path=/chat-service/**
+          filters:
+            - StripPrefix=1
+          uri: ws://chat-service
+#      쿠버네티스 설정
+    kubernetes:
+      discovery:
+        enabled: true
+    loadbalancer:
+      mode: service
+
+
+jwt:
+  secretKey: ${JWT_SECRET}
+
+

@@ -23,6 +23,8 @@ public class JwtAuthFilter implements GlobalFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final List<String> ALLOWED_PATHS = List.of(
+            "/health",
+            "/silverpotion/user/healthcheck",
             "/silverpotion/user/create",
             "/silverpotion/user/checkDuplicate",
             "/silverpotion/user/login",

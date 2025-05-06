@@ -1,0 +1,77 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: post
+  namespace: sp
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: post
+  template:
+    metadata:
+      labels:
+        app: post
+    spec:
+      containers:
+        - name: user
+          image: 418295678070.dkr.ecr.ap-northeast-2.amazonaws.com/silverpotion/post:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: REDIS_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: REDIS_HOST
+            - name: DB_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: DB_HOST
+            - name: DB_PW
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: DB_PW
+            - name: AWS_ACCESS
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: AWS_ACCESS
+            - name: AWS_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: AWS_SECRET
+#            - name: OPENSEARCH_HOST
+#              valueFrom:
+#                secretKeyRef:
+#                  name: sp-app-secrets
+#                  key: OPENSEARCH_HOST
+#            - name: OPENSEARCH_PW
+#              valueFrom:
+#                secretKeyRef:
+#                  name: sp-app-secrets
+#                  key: OPENSEARCH_PW
+          resources:
+            limits:
+              cpu: "1"
+              memory: "500Mi"
+            requests:
+              cpu: "0.5"
+              memory: "250Mi"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: post-service
+  namespace: sp
+spec:
+  type: ClusterIP
+  ports:
+    - port: 80
+      targetPort: 8080
+  selector:
+    app: post

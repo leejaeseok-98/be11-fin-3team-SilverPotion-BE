@@ -435,6 +435,19 @@ public class GatheringService {
         // 새로운 모임장으로 변경
         gathering.changeLeader(dto.getUserId());
         gatheringRepository.save(gathering);
+
+        // ✅ 새로운 모임장에게 알림 발송
+        String newLeaderLoginId = userClient.getLoginIdByUserId(dto.getUserId());
+
+        NotificationMessageDto notification = NotificationMessageDto.builder()
+                .loginId(newLeaderLoginId)
+                .title("모임장 위임 알림")
+                .content("회원님이 '" + gathering.getGatheringName() + "' 모임의 새로운 모임장이 되었습니다.")
+                .type("LEADER_CHANGED")
+                .referenceId(gatheringId)
+                .build();
+
+        notificationProducer.sendNotification(notification);
     }
 
     // 모임 탈퇴

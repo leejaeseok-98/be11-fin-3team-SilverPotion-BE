@@ -33,4 +33,7 @@ public interface VoteAnswerRepository extends JpaRepository<VoteAnswer, Long> {
 
     // 옵션 ID로 답변 전체 조회
     List<VoteAnswer> findByVoteOption_Id(Long voteOptionId);
+
+    //투표 여부 조회
+    List<VoteAnswer> findAllByUserIdAndVoteOption_Vote_VoteId(Long userId, Long voteId);
 }

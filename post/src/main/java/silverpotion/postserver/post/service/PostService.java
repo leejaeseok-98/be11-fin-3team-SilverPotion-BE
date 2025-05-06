@@ -523,6 +523,26 @@
             return voteAnswerMap;
         }
 
+        //투표 여부 조회
+        public VoteCheckResDto checkUserVote(String loginId, Long voteId) {
+            //유저 조회
+            Long userId = userClient.getUserIdByLoginId(loginId);
+
+            List<VoteAnswer> answers = voteAnswerRepository.findAllByUserIdAndVoteOption_Vote_VoteId(userId,voteId);
+            //투표 여부
+            boolean isVoted = !answers.isEmpty();
+
+            //어떤 투표항목을 선택했는지 확인
+            List<VoteCheckResDto.SelectedOption> selectedOptions = answers.stream()
+                    .map(answer -> new VoteCheckResDto.SelectedOption(answer.getVoteOption().getId()))
+                    .collect(Collectors.toList());
+
+            return VoteCheckResDto.builder()
+                    .isVoted(isVoted)
+                    .voteOptions(selectedOptions)
+                    .build();
+        }
+
         //    게시물 상세조회
         @Transactional(readOnly = true)
         public PostDetailResDto getDetail(Long postId, String loginId) {

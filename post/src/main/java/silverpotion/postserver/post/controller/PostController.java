@@ -128,6 +128,13 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표글 리스트 불러오기 완료",voteList),HttpStatus.OK);
     }
 
+    // 투표했는지 체크
+    @GetMapping("/vote/check/{voteId}")
+    public ResponseEntity<?> checkVote(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
+        VoteCheckResDto result = postService.checkUserVote(loginId,voteId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표 여부 확인",result),HttpStatus.OK);
+    }
+
 //    각 투표항목별 유저조회
     @GetMapping("/vote/{voteId}/userList")
     public ResponseEntity<?> getVoteUserList(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
@@ -148,6 +155,7 @@ public class PostController {
         VoteDetailResDto voteDetailResDto = postService.getVoteDetail(voteId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "투표 상세조회",voteDetailResDto),HttpStatus.OK);
     }
+
 
     // 7. 상세게시물 조회
     @GetMapping("/detail/{postId}")

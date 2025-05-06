@@ -133,6 +133,12 @@ public class    UserController {
         return userService.getUserProfileInfo(userId);
     }
 
+    //    프로필 조회(투표목록)
+    @GetMapping("/profile/{userId}")
+    public UserProfileInfoDto getProfile(@PathVariable Long userId){
+        return userService.getUserProfileInfo(userId);
+    }
+
     //  10. user list 전체 조회
     @GetMapping("/list")
     public ResponseEntity<?> findAllUser(UserListDto dto) {

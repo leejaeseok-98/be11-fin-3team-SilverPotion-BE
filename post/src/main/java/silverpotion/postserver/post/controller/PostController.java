@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.post.domain.PostCategory;
+import silverpotion.postserver.post.domain.VoteAnswer;
 import silverpotion.postserver.post.dtos.*;
 import silverpotion.postserver.post.repository.PostLikeRepository;
 import silverpotion.postserver.post.repository.VoteRepository;
@@ -108,6 +109,7 @@ public class PostController {
         Page<PostListResDto> freeList = postService.getFreeList(page,size,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"자유글 리스트 불러오기 완료",freeList),HttpStatus.OK);
     }
+
 //    공지글 조회
     @GetMapping("/notice/list/{gatheringId}")
     public ResponseEntity<?> getNoticeList(@RequestParam(name = "page", defaultValue = "0") Integer page,
@@ -126,6 +128,20 @@ public class PostController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표글 리스트 불러오기 완료",voteList),HttpStatus.OK);
     }
 
+//    각 투표항목별 유저조회
+    @GetMapping("/vote/{voteId}/userList")
+    public ResponseEntity<?> getVoteUserList(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
+        Map<Long,List<VoteAnswer>> userList = postService.getVoteUserList(loginId,voteId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표항목별 유저조회 완료",userList),HttpStatus.OK);
+    }
+
+    //다시 투표하기
+    @PostMapping("/vote/reset/{voteId}")
+    public ResponseEntity<?> reVote(@RequestHeader("X-User-LoginId") String loginId,@PathVariable Long voteId){
+        postService.reVote(loginId,voteId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"다시 투표 완료",null),HttpStatus.OK);
+    }
+
 //    투표 상세조회
     @GetMapping("/vote/detail/{voteId}")
     public ResponseEntity<?> getVoteDetail(@PathVariable Long voteId,@RequestHeader("X-User-LoginId") String loginId){
@@ -139,7 +155,6 @@ public class PostController {
         PostDetailResDto postDetailResDto = postService.getDetail(postId,loginId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "게시줄 조회 완료",postDetailResDto),HttpStatus.OK);
     }
-
 
 //    8. 게시물 좋아요 완료
     @PostMapping("/like/{postId}")
@@ -161,6 +176,5 @@ public class PostController {
         VoteAnswerResDto voteAnswerResDto = postService.doVote(loginId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "특정항목에 투표 완료",voteAnswerResDto),HttpStatus.OK);
     }
-
 
 }

@@ -465,7 +465,7 @@
 
             //참가자 수
             Long participantsCount = voteAnswerRepository.countDistinctUserByVoteId(voteId);
-            //투표게시물 수
+            //투표게시물 좋아요 수
             Long voteLikeCount = voteLikeRepository.countByVote(vote);
             //댓글 수
             Long commentCount = voteRepository.countVoteComments(vote.getVoteId());
@@ -506,6 +506,21 @@
 
 
             return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
+        }
+
+        //투표 각 항목별 유저목록조회
+        public Map<Long, List<VoteAnswer>> getVoteUserList(String loginId, Long voteId) {
+            Long userId = userClient.getUserIdByLoginId(loginId);
+            Vote vote = voteRepository.findById(voteId).orElseThrow(() -> new EntityNotFoundException("Vote not found"));
+            //map객체 생성
+            Map<Long, List<VoteAnswer>> voteAnswerMap = new HashMap<>();
+            //투표항목리스트
+            List<VoteOptions> voteOptionsList = voteOptionsRepository.findByVote(vote);
+            for (VoteOptions voteOptions : voteOptionsList) {
+                List<VoteAnswer> answers = voteOptions.getAnswers();
+                voteAnswerMap.put(voteOptions.getId(), answers);
+            }
+            return voteAnswerMap;
         }
 
         //    게시물 상세조회
@@ -561,11 +576,6 @@
 
         public VoteAnswerResDto doVote(String loginId, VoteOptionReqDto dto) {
             Long userId = userClient.getUserIdByLoginId(loginId);
-
-            //먼저 투표한 적 있는지 체크(복수 선택이라면 옵션 하나로 체크해도 됨)
-            System.out.println("dto.getOptionIds()"+dto.getOptionIds());
-            System.out.println("dto.getOptionIds().get(0)"+dto.getOptionIds().get(0));
-
             Long voteId = voteOptionsRepository.findById(dto.getOptionIds().get(0)).orElseThrow(() -> new EntityNotFoundException("vote option not found"))
                     .getVote().getVoteId();
             boolean alreadyVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
@@ -621,5 +631,22 @@
                     totalParticipants,
                     optionDtos
             );
+        }
+
+        // 다시 투표하기
+        public void reVote(String loginId, Long voteId) {
+            //유저 조회
+            Long userId = userClient.getUserIdByLoginId(loginId);
+
+            // 3. 투표 마감 여부 확인
+            Vote vote = voteRepository.findById(voteId)
+                    .orElseThrow(() -> new EntityNotFoundException("투표 게시물이 존재하지 않습니다"));
+            if (vote.getCloseTime() != null && vote.getCloseTime().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("이미 마감된 투표입니다.");
+            }
+
+            // 5. 기존 투표 삭제
+            voteAnswerRepository.deleteByUserIdAndVoteOption_Vote_VoteId(userId, voteId);
+
         }
     }

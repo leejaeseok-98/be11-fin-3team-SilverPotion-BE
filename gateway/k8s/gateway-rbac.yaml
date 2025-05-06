@@ -1,0 +1,26 @@
+#RBAC(Role_Based Access Control 게이트웨이 파드가 쿠버네티스 서비스 정보를 조회할 수 있도록 권한 부여)
+apiVersion: rbac.authorization.k8s.io/v1
+#ClusterRole이란, 쿠버네티스 리소스에 대한 권한을 정의하는 객체. service는 서비스 정보를 조회
+kind: ClusterRole
+metadata:
+  name: gateway-k8s-role
+rules:
+  - apiGroups: [""]
+    resources: ["services", "endpoints", "pods"]
+    verbs: ["get", "list", "watch"]
+#    resources에서 service는 서비스 정보 endpotints는 각 서비스가 연결된 파드들의 ip정보 // get은 단일 리소스 조회 list는 여러리소스 목록 조회,watch는 리소스 변경사항을 구독
+
+---
+# ClusterRoleBinding은 실제 ServuceAccount에게 위의 권한을 연결
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: gateway-k8s-binding
+subjects:
+  - kind: ServiceAccount
+    name: default
+    namespace: sp
+roleRef:
+  kind: ClusterRole
+  name: gateway-k8s-role
+  apiGroup: rbac.authorization.k8s.io

@@ -1,7 +1,5 @@
 package silverpotion.userserver.user.service;
 
-import com.netflix.discovery.provider.Serializer;
-import jakarta.ws.rs.core.MultivaluedMap;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;

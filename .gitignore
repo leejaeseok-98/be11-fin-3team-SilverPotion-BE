@@ -1,0 +1,8 @@
+# IDE
+.idea/
+*.iml
+.idea/workspace.xml
+.idea/vcs.xml
+
+# Logs
+*.log

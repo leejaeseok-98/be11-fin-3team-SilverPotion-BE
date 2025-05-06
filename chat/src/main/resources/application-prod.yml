@@ -5,9 +5,9 @@ spring:
     port: 6379
   datasource:
     driver-class-name: org.mariadb.jdbc.Driver
-    url: jdbc:mariadb://${DB_HOST}:3306/silverpotion
+    url: jdbc:mariadb://${DB_HOST}:3306/silverpotion?useUnicode=true&characterEncoding=utf8mb4
     username: admin
-    password: 1234
+    password: ${DB_PW}
   jpa:
     database: mysql
     #    InnoDB

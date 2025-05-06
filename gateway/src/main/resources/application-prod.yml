@@ -18,34 +18,34 @@ spring:
             allowedHeaders: '*'
             allowedCredentials: true
       routes:
-        #        유저서비스
+        #        유저서비스(여기에 있는 서비스이름(ex.uesr-service)은 쿠버네티스의 서비스 이름과 동일해야함
         - id: user-service
           predicates:
             - Path=/user-service/**
           filters:
             - StripPrefix=1
-          uri: http://user-service:8080
+          uri: http://user-service
         #          포스트 서비스
         - id: post-service
           predicates:
             - Path=/post-service/**
           filters:
             - StripPrefix=1
-          uri: http://post-service:8080
+          uri: http://post-service
         #          챗 서비스
         - id: chat-service
           predicates:
             - Path=/chat-service/**
           filters:
             - RewritePath=/chat-service/(?<segment>.*), /$\{segment}
-          uri: http://chat-service:8080
+          uri: http://chat-service
         #          챗 서비스 웹소켓
         - id: chat-service-ws
           predicates:
             - Path=/chat-service/**
           filters:
             - StripPrefix=1
-          uri: ws://chat-service:8080
+          uri: ws://chat-service
 #      쿠버네티스 설정
     kubernetes:
       discovery:

@@ -24,8 +24,8 @@ repositories {
 }
 
 dependencies {
-//	eureka-server 의존성추가
-//	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
+//	eureka-server 의존성추가(배포시 의존성 제거해야함)
+	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-server'
 }
 
 

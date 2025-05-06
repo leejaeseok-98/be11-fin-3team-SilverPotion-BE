@@ -39,8 +39,8 @@ public class SecurityConfig {
         http
                 .csrf(csrf->csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/silverpotion/user/login", "/silverpotion/user/create","/silverpotion/user/checkDuplicate","/silverpotion/user/refresh-token",
-                                "/silverpotion/user/google/login", "/silverpotion/user/kakao/login" , "/silverpotion/firebase/token","/silverpotion/health/fromPhone").permitAll()
+                        .requestMatchers("/silverpotion/user/healthcheck","/silverpotion/user/login", "/silverpotion/user/create","/silverpotion/user/checkDuplicate"
+                                ,"/silverpotion/user/refresh-token", "/silverpotion/user/google/login", "/silverpotion/user/kakao/login" , "/silverpotion/firebase/token","/silverpotion/health/fromPhone").permitAll()
                         .requestMatchers("/silverpotion/user/**","/silverpotion/gatheringvector/**","silverpotion/gathering/**").access(this::internalOrAuthenticated)
                         .requestMatchers("/silverpotion/admins/**").hasAnyRole("ADMIN","SUPER_ADMIN")
                         .anyRequest().authenticated()

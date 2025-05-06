@@ -473,6 +473,20 @@ public class GatheringService {
             person.setStatus(Status.DEACTIVATE);
             person.setUpdatedTime(LocalDateTime.now());
         }
+        // 모임 회원들에게 해체 알림 발송
+        for (GatheringPeople person : peopleList) {
+            String memberLoginId = userClient.getLoginIdByUserId(person.getUserId());
+
+            NotificationMessageDto notification = NotificationMessageDto.builder()
+                    .loginId(memberLoginId)
+                    .title("모임 해체 알림")
+                    .content("'" + gathering.getGatheringName() + " 모임이 해체되었습니다.")
+                    .type("GATHERING_DISBANDED")
+                    .referenceId(gatheringId)
+                    .build();
+
+            notificationProducer.sendNotification(notification);
+        }
         // OpenSearch Index 저장
 //        openSearchService.indexGathering(gathering);
     }

@@ -174,7 +174,7 @@
 </details>
 <details>
   <summary> kakao회원가입</summary>
-  <img src="https://github.com/user-attachments/assets/1632c825-7dc9-4b74-af3d-65fa215f6d2a>
+  <img src="https://github.com/user-attachments/assets/1632c825-7dc9-4b74-af3d-65fa215f6d2a">
 </details>
 <details>
   <summary> kakao로그인</summary>
@@ -197,7 +197,7 @@
 </details>
 <details>
 <summary> 피보호자 리포트 조회</summary>
-  <img src=https://github.com/user-attachments/assets/b5b91708-a8b7-4445-a90d-4cfd2b984de6">
+  <img src="https://github.com/user-attachments/assets/b5b91708-a8b7-4445-a90d-4cfd2b984de6">
 </details>
 <details>
 <summary> 헬스지수 생성 및 조회</summary>
@@ -231,7 +231,7 @@
 </details>
 <details>
 <summary>투표 상세 조회</summary>
-  <img src="https://github.com/user-attachments/assets/ddb25aa4-55da-416b-98d5-8683b8dbf972>
+  <img src="https://github.com/user-attachments/assets/ddb25aa4-55da-416b-98d5-8683b8dbf972">
 </details>
 <details>
 <summary>투표 항목 유저 조회</summary>
@@ -243,7 +243,7 @@
 </details>
 <details>
 <summary>공지글 생성</summary>
-  <img src="https://github.com/user-attachments/assets/3262c7b0-84ef-46c4-9f9a-884f9310cbca>
+  <img src="https://github.com/user-attachments/assets/3262c7b0-84ef-46c4-9f9a-884f9310cbca">
 </details>
 <details>
 <summary>투표글 생성</summary>

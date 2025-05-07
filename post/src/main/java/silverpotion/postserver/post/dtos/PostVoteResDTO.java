@@ -1,5 +1,6 @@
 package silverpotion.postserver.post.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -21,6 +22,8 @@ public class PostVoteResDTO {
     private Long id; // post면 post.id, vote면 vote.voteid
     private String title;
     private String content;
+    private Long writerId;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt;
     private String nickname;
     private String profileImage;
@@ -32,6 +35,7 @@ public class PostVoteResDTO {
     private Integer viewCount;       // POST 전용
     private Boolean multipleChoice;  // VOTE 전용
     private List<String> voteOptions;// VOTE 전용
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime closeTime;
     private boolean participating;
 

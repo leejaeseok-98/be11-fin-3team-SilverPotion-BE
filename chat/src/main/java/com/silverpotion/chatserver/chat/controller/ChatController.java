@@ -116,5 +116,10 @@ public class ChatController {
         chatRoomService.deleteChatRoom(roomId);
         return ResponseEntity.ok().build();
     }
-
+    // ✅ 메시지 (soft)삭제
+    @PatchMapping("/message/{messageId}/delete")
+    public ResponseEntity<Void> deleteMessage(@PathVariable Long messageId) {
+        chatMessageService.softDeleteMessage(messageId);
+        return ResponseEntity.ok().build();
+    }
 }

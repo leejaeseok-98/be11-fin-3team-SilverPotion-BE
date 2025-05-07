@@ -23,4 +23,5 @@ public class VoteAnswer {
     @JoinColumn(name = "vote_option_id")
     @JsonIgnore
     private VoteOptions voteOption;
+
 }

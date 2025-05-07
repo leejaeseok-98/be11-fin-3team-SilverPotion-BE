@@ -1,0 +1,38 @@
+
+spring:
+  redis:
+    host: ${REDIS_HOST}
+    port: 6379
+  datasource:
+    driver-class-name: org.mariadb.jdbc.Driver
+    url: jdbc:mariadb://${DB_HOST}:3306/silverpotion?useUnicode=true&characterEncoding=utf8mb4
+    username: admin
+    password: ${DB_PW}
+  jpa:
+    database: mysql
+    #    InnoDB
+    database-platform: org.hibernate.dialect.MySQL8Dialect
+    generate-ddl: true
+    hibernate:
+      ddl-auto: create
+    show_sql: true
+  application:
+    name: chat-service
+  kafka:
+    bootstrap-servers: kafka-service:9092
+    consumer:
+      group-id: sse-group
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+  cloud:
+    kubernetes:
+      discovery:
+        enabled: true
+    loadbalancer:
+      mode: service
+
+server:
+  port: 8080

@@ -5,6 +5,7 @@ import org.springframework.web.bind.annotation.*;
 import silverpotion.postserver.gathering.chatDto.AddChatParticipantRequest;
 import silverpotion.postserver.gathering.chatDto.ChatRoomCreateRequest;
 import silverpotion.postserver.gathering.chatDto.ChatRoomResponse;
+import silverpotion.postserver.notification.dto.NotificationMessageDto;
 
 @FeignClient(name = "chat-service")
 public interface ChatFeignClient {
@@ -29,4 +30,6 @@ public interface ChatFeignClient {
             @RequestParam("title") String title,
             @RequestParam("userId") Long userId
     );
+    @PostMapping("/notifications/send") // 🔥 알림 전송용 엔드포인트
+    void sendNotification(@RequestBody NotificationMessageDto dto);
 }

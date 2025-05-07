@@ -21,4 +21,6 @@ public class GatheringCategory {
     @OneToMany(mappedBy = "gatheringCategory" )
     @Builder.Default
     private List<GatheringCategoryDetail> gatheringCategoryDetails = new ArrayList<>();
+
+
 }

@@ -1,5 +1,6 @@
 package silverpotion.postserver.post.dtos;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -24,6 +25,7 @@ public class PostDetailResDto {
     private String content;
     private Long postLikeCount;
     private List<CommentListResDto> commentList;
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdTime;
     private String isUpdate;
     private String isLike;

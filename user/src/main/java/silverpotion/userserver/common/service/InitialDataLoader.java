@@ -3,6 +3,9 @@ package silverpotion.userserver.common.service;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
+import silverpotion.userserver.admin.domain.Admin;
+import silverpotion.userserver.admin.domain.AdminRole;
+import silverpotion.userserver.admin.repository.AdminRepository;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.Role;
 import silverpotion.userserver.user.domain.Sex;
@@ -16,11 +19,13 @@ public class InitialDataLoader implements CommandLineRunner {
     private final UserService userService;
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final AdminRepository adminRepository;
 
-    public InitialDataLoader(UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder) {
+    public InitialDataLoader(UserService userService, UserRepository userRepository, PasswordEncoder passwordEncoder, AdminRepository adminRepository) {
         this.userService = userService;
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
+        this.adminRepository = adminRepository;
     }
 
     @Override
@@ -106,6 +111,13 @@ public class InitialDataLoader implements CommandLineRunner {
             userRepository.save(user2);
         }
 
-
+        if (adminRepository.count() == 0){
+            Admin admin = Admin.builder()
+                    .name("이재석")
+                    .role(AdminRole.SUPER_ADMIN)
+                    .user(userRepository.findByLoginId("admin").get())
+                    .build();
+            adminRepository.save(admin);
+        }
     }
 }

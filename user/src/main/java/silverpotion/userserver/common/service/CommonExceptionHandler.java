@@ -7,6 +7,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import silverpotion.userserver.common.dto.CommonErrorDto;
+import silverpotion.userserver.common.dto.UserBanedException;
 
 import java.nio.file.AccessDeniedException;
 
@@ -38,5 +39,10 @@ public class CommonExceptionHandler {
         return new ResponseEntity(new CommonErrorDto(HttpStatus.FORBIDDEN.value(), e.getMessage()), HttpStatus.FORBIDDEN);
     }
 
+    @ExceptionHandler(UserBanedException.class)
+    public ResponseEntity userBaned(UserBanedException e) {
+        e.printStackTrace();
+        return new ResponseEntity(new CommonErrorDto(HttpStatus.FORBIDDEN.value(), e.getMessage()), HttpStatus.FORBIDDEN);
+    }
 
 }

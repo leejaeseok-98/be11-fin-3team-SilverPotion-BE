@@ -11,6 +11,8 @@ import silverpotion.postserver.comment.domain.CommentLike;
 import silverpotion.postserver.comment.dtos.*;
 import silverpotion.postserver.comment.repository.CommentLikeRepository;
 import silverpotion.postserver.comment.repository.CommentRepository;
+import silverpotion.postserver.notification.dto.NotificationMessageDto;
+import silverpotion.postserver.notification.service.NotificationProducer;
 import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.Vote;
@@ -36,8 +38,9 @@ public class CommentService {
     @Qualifier("commentLikeRedisTemplate")
     private final RedisTemplate<String, Object> commentLikeRedisTemplate;
     private final VoteRepository voteRepository;
+    private final NotificationProducer notificationProducer;
 
-    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserClient userClient, CommentLikeRepository commentLikeRepository, RabbitTemplate rabbitTemplate, @Qualifier("commentLikeRedisTemplate") RedisTemplate<String, Object> commentLikeRedisTemplate, VoteRepository voteRepository) {
+    public CommentService(CommentRepository commentRepository, PostRepository postRepository, UserClient userClient, CommentLikeRepository commentLikeRepository, RabbitTemplate rabbitTemplate, @Qualifier("commentLikeRedisTemplate") RedisTemplate<String, Object> commentLikeRedisTemplate, VoteRepository voteRepository, NotificationProducer notificationProducer) {
         this.commentRepository = commentRepository;
         this.postRepository = postRepository;
         this.userClient = userClient;
@@ -45,6 +48,7 @@ public class CommentService {
         this.rabbitTemplate = rabbitTemplate;
         this.commentLikeRedisTemplate = commentLikeRedisTemplate;
         this.voteRepository = voteRepository;
+        this.notificationProducer = notificationProducer;
     }
 
     public Long commentCreate(String loginId, CommentCreateDto commentCreateDto){
@@ -68,6 +72,17 @@ public class CommentService {
 
         commentRepository.save(comment);
 
+        //댓글 알림발송
+        String writerLoginId = userClient.getNicknameByUserId(post.getWriterId());
+        NotificationMessageDto notification = NotificationMessageDto.builder()
+                .loginId(writerLoginId)
+                .title("댓글 알림")
+                .content("'" + userProfileInfoDto.getNickname() + "'님이 회원님의 게시글에 댓글을 달았습니다.")
+                .type("VOTE_LIKED")
+                .referenceId(post.getId())
+                .build();
+
+        notificationProducer.sendNotification(notification);
         // PostId가 null일 수 있으니 반환도 조정 필요
         return (post != null) ? post.getId() : vote.getVoteId();
     }

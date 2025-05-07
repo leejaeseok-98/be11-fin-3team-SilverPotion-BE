@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
 import silverpotion.postserver.common.service.ImageService;
-import silverpotion.postserver.gathering.chatDto.AddChatParticipantRequest;
 import silverpotion.postserver.gathering.chatDto.ChatRoomCreateRequest;
 import silverpotion.postserver.gathering.chatDto.ChatRoomResponse;
 import silverpotion.postserver.gathering.domain.Gathering;
@@ -18,14 +17,16 @@ import silverpotion.postserver.gathering.domain.GatheringPeople;
 import silverpotion.postserver.gathering.domain.Status;
 import silverpotion.postserver.gathering.dto.*;
 import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
-import silverpotion.postserver.gatheringCategory.domain.GatheringCategoryDetail;
 import silverpotion.postserver.gatheringCategory.domain.GatheringDetail;
 import silverpotion.postserver.gatheringCategory.repository.GatheringCategoryDetailRepository;
 import silverpotion.postserver.gatheringCategory.repository.GatheringCategoryRepository;
 import silverpotion.postserver.gathering.repository.GatheringRepository;
 import silverpotion.postserver.gatheringCategory.domain.GatheringCategory;
 import silverpotion.postserver.gatheringCategory.repository.GatheringDetailRepository;
-import silverpotion.postserver.notification.dto.GatheringJoinRequestEventDto;
+import silverpotion.postserver.gatheringVector.domain.GatheringVector;
+import silverpotion.postserver.gatheringVector.domain.GatheringVectorUtils;
+import silverpotion.postserver.gatheringVector.dtos.GatheringVectorCreateDto;
+import silverpotion.postserver.gatheringVector.repository.GatheringVectorRepository;
 import silverpotion.postserver.notification.dto.NotificationMessageDto;
 import silverpotion.postserver.notification.service.NotificationEventPublisher;
 import silverpotion.postserver.notification.service.NotificationProducer;
@@ -33,7 +34,6 @@ import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -53,6 +53,7 @@ public class GatheringService {
     private final ChatFeignClient chatFeignClient;
     private final NotificationEventPublisher notificationEventPublisher;
     private final NotificationProducer notificationProducer;
+    private final GatheringVectorRepository gatheringVectorRepository;
 //    private final OpenSearchService openSearchService;
 //    @Autowired
 //    private RestHighLevelClient client;
@@ -60,7 +61,7 @@ public class GatheringService {
 
     public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService,
 //            , OpenSearchService openSearchService
-                            ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer) {
+                            ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer, GatheringVectorRepository gatheringVectorRepository) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
@@ -72,6 +73,7 @@ public class GatheringService {
         this.chatFeignClient = chatFeignClient;
         this.notificationEventPublisher = notificationEventPublisher;
         this.notificationProducer = notificationProducer;
+        this.gatheringVectorRepository = gatheringVectorRepository;
     }
 
 //    @PostConstruct
@@ -132,7 +134,36 @@ public class GatheringService {
 
         gatheringDetailRepository.saveAll(details);
         log.info("모임생성정보 id:{}, name:{}, chatRoomId:{}",gathering.getId(),gathering.getGatheringName(),gathering.getChatRoomId());
+
+
+        // 4.모임 벡터값 생성
+        for(GatheringDetail g : details){
+            gathering.getGatheringDetails().add(g);
+        }
+
+        GatheringVectorCreateDto vectorCreateDto = GatheringVectorUtils.makingGatheringVector(gathering);
+        double empathySupport = GatheringVectorUtils.normalize(vectorCreateDto.getEmpathySupport(),30);
+        double achievementSupport =GatheringVectorUtils.normalize(vectorCreateDto.getAchievementSupport(),30);
+        double connectivitySupport = GatheringVectorUtils.normalize(vectorCreateDto.getConnectivitySupport(),20);
+        double energySupport =  GatheringVectorUtils.normalize(vectorCreateDto.getAchievementSupport(),20);
+        GatheringVector gatheringVector = GatheringVector.builder().empathySupport(empathySupport).connectivitySupport(connectivitySupport)
+                .achievementSupport(achievementSupport).energySupport(energySupport).gathering(gathering).build();
+        gatheringVectorRepository.save(gatheringVector);
+
+
+
         return gathering.getId();
+
+
+
+
+
+
+
+
+
+
+
     }
 
     // 모임 수정
@@ -350,43 +381,67 @@ public class GatheringService {
                 .referenceId(dto.getGatheringId())
                 .build());
 
-        gatheringPeopleRepository.save(gatheringPeople);
 
     }
 
     // 모임원 상태 변경
-    public void updateGatheringPeopleStatus(Long gatheringPeopleId, String loginId, GatheringPeopleUpdateDto dto) {
-        Long userId = userClient.getUserIdByLoginId(loginId);
+    public void updateGatheringPeopleStatus(Long gatheringPeopleId, String ownerLoginId, GatheringPeopleUpdateDto dto) {
+        Long ownerUserId = userClient.getUserIdByLoginId(ownerLoginId);
 
         // GatheringPeople 조회
         GatheringPeople gatheringPeople = gatheringPeopleRepository.findById(gatheringPeopleId)
                 .orElseThrow(() -> new IllegalArgumentException("유효하지 않은 GatheringPeople ID입니다."));
-
+        String gatheringPeopleLoginId = userClient.getLoginIdByUserId(gatheringPeople.getUserId());
         // 모임 조회
         Gathering gathering = gatheringPeople.getGathering();
 
         // 요청자가 해당 모임의 모임장인지 검증
-        if (!gathering.getLeaderId().equals(userId)) {
+        if (!gathering.getLeaderId().equals(ownerUserId)) {
             throw new IllegalStateException("해당 모임의 모임장만 상태를 변경할 수 있습니다.");
         }
 
         // 상태 변경
         gatheringPeople.updateStatus(dto.getStatus());
 
-//        // 상태로 인한 그룹채팅 참가유무 세팅
-//        if (gatheringPeople.getStatus() == Status.ACTIVATE) {
-//            // 그룹 채팅 참여자 추가
-//            AddChatParticipantRequest request = new AddChatParticipantRequest();
-//            request.setChatRoomId(gathering.getChatRoomId());
-//            request.setUserId(gatheringPeople.getUserId());
-//
-//            chatFeignClient.addParticipant(request);
-//
-//        } else if (gatheringPeople.getStatus() == Status.BAN) {
-//            // 그룹 채팅 참여자 제거
-//            chatFeignClient.removeParticipant(gathering.getChatRoomId(), gatheringPeople.getUserId());
-//        }
         // 저장
+        if (gatheringPeople.getStatus() == Status.ACTIVATE) {
+            // 가입 승인시 알림 발송
+            NotificationMessageDto notification = NotificationMessageDto.builder()
+                    .loginId(gatheringPeopleLoginId) // 또는 userClient로 얻은 loginId
+                    .title("가입 승인 완료")
+                    .content("' 모임의 가입 요청이 수락되었습니다.")
+                    .type("JOIN_APPROVED")
+                    .referenceId(gathering.getId())
+                    .build();
+
+            notificationProducer.sendNotification(notification);
+        }else if (dto.getStatus() == Status.DEACTIVATE) {
+            // 탈퇴/해체 알림
+            NotificationMessageDto notification = NotificationMessageDto.builder()
+                    .loginId(gatheringPeopleLoginId)
+                    .title("모임 비활성화 처리")
+                    .content(" 모임에서 탈퇴 또는 해체 처리되었습니다.")
+                    .type("DEACTIVATED")
+                    .referenceId(gathering.getId())
+                    .build();
+
+            notificationProducer.sendNotification(notification);
+
+        } else if (dto.getStatus() == Status.BAN) {
+            // 추방 알림
+            NotificationMessageDto notification = NotificationMessageDto.builder()
+                    .loginId(gatheringPeopleLoginId)
+                    .title("모임에서 추방됨")
+                    .content(" 모임에서 강제 탈퇴 처리되었습니다.")
+                    .type("BANNED")
+                    .referenceId(gathering.getId())
+                    .build();
+
+            notificationProducer.sendNotification(notification);
+
+            // 채팅 참여자 제거 로직 (선택)
+            // chatFeignClient.removeParticipant(...);
+        }
         gatheringPeopleRepository.save(gatheringPeople);
     }
 
@@ -415,6 +470,19 @@ public class GatheringService {
         // 새로운 모임장으로 변경
         gathering.changeLeader(dto.getUserId());
         gatheringRepository.save(gathering);
+
+        // ✅ 새로운 모임장에게 알림 발송
+        String newLeaderLoginId = userClient.getLoginIdByUserId(dto.getUserId());
+
+        NotificationMessageDto notification = NotificationMessageDto.builder()
+                .loginId(newLeaderLoginId)
+                .title("모임장 위임 알림")
+                .content("회원님이 '" + gathering.getGatheringName() + "' 모임의 새로운 모임장이 되었습니다.")
+                .type("LEADER_CHANGED")
+                .referenceId(gatheringId)
+                .build();
+
+        notificationProducer.sendNotification(notification);
     }
 
     // 모임 탈퇴
@@ -453,6 +521,20 @@ public class GatheringService {
             person.setStatus(Status.DEACTIVATE);
             person.setUpdatedTime(LocalDateTime.now());
         }
+        // 모임 회원들에게 해체 알림 발송
+        for (GatheringPeople person : peopleList) {
+            String memberLoginId = userClient.getLoginIdByUserId(person.getUserId());
+
+            NotificationMessageDto notification = NotificationMessageDto.builder()
+                    .loginId(memberLoginId)
+                    .title("모임 해체 알림")
+                    .content("'" + gathering.getGatheringName() + " 모임이 해체되었습니다.")
+                    .type("GATHERING_DISBANDED")
+                    .referenceId(gatheringId)
+                    .build();
+
+            notificationProducer.sendNotification(notification);
+        }
         // OpenSearch Index 저장
 //        openSearchService.indexGathering(gathering);
     }
@@ -461,5 +543,41 @@ public class GatheringService {
 //    public List<GatheringSearchResultDto> searchGatherings(GatheringSearchRequest request) {
 //        return openSearchService.searchGatherings(request);
 //    }
+
+
+
+   public List<GatheringInfoDtoForUserServiceDto> fiveRecommendedGatherings(List<Long> gatheringIds){
+
+       List<Gathering>fiveList = gatheringRepository.findByIdIn(gatheringIds);
+
+      return  fiveList.stream().map(gathering -> {
+           //모임 카테고리명
+           String category = gathering.getGatheringCategory() !=null ? gathering.getGatheringCategory().getName() : "미분류";
+           //세부카테고리명 최대 2개까지니까 리스트로 가지고 오기
+           List<String> detailCategory = gathering.getGatheringDetails().stream().map(gd -> gd.getGatheringCategoryDetail().getName()).toList();
+           //현재 모임 인원 수 가져오기
+           Long peopleCount = gatheringPeopleRepository.countByGatheringIdAndStatusActivate(gathering.getId());
+
+           return GatheringInfoDtoForUserServiceDto.builder()
+                   .id(gathering.getId())
+                   .gatheringName(gathering.getGatheringName())
+                   .imageUrl(gathering.getImageUrl())
+                   .region(gathering.getRegion())
+                   .maxPeople(gathering.getMaxPeople())
+                   .peopleCount(peopleCount)
+                   .category(category)
+                   .detailCategory(detailCategory)
+                   .introduce(gathering.getIntroduce())
+                   .build();
+               }).toList();
+
+    }
+
+
+
+
+
+
+
 
 }

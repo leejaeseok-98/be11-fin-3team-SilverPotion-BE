@@ -31,7 +31,12 @@ ext {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	//개발환경-유레카
 	implementation 'org.springframework.cloud:spring-cloud-starter-netflix-eureka-client'
+	//배포환경-쿠버네티스
+//	implementation 'org.springframework.cloud:spring-cloud-starter-kubernetes-client-all'
+//	implementation 'org.springframework.cloud:spring-cloud-starter-loadbalancer'
+
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -43,6 +48,7 @@ dependencies {
 	implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
 	implementation 'io.jsonwebtoken:jjwt-impl:0.11.5'
 	implementation 'io.jsonwebtoken:jjwt-jackson:0.11.5'
+	implementation 'org.springframework.boot:spring-boot-starter-security'
 	//gpt 관련 api
 	implementation 'org.springframework.boot:spring-boot-starter-webflux' // WebClient 포함
 	implementation 'com.fasterxml.jackson.core:jackson-databind'
@@ -69,6 +75,9 @@ dependencies {
 
 	// coolsms 휴대폰API 관련 의존성 추가
 	implementation 'net.nurigo:sdk:4.3.2'
+
+	//FeignClient 의존성 추가
+	implementation 'org.springframework.cloud:spring-cloud-starter-openfeign'
 
 }
 

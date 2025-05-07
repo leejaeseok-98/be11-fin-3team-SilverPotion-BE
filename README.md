@@ -150,7 +150,11 @@
 
 ## 📑 UI/UX 단위 테스트 결과서 (프론트엔드 설계 및 구축)
 - 사용성 테스트, 인터페이스 반응
-  👉 [📎 문서 보기](./docs/UIUX_단위_테스트_결과서.pdf)
+<details>
+  <summary> 메인페이지</summary>
+  <img src="https://github.com/user-attachments/assets/0acddd87-a24c-4a11-98ac-344a3287763d">
+</details>
+
 
 ---
 

@@ -21,6 +21,8 @@ public class VoteCheckResDto {
     @Data
     public static class SelectedOption{
         private Long id;
+        private int voteCount;
+        private int voteRatio;
     }
 
 }

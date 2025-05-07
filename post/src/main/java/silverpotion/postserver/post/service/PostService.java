@@ -504,8 +504,10 @@
             //투표여부
             boolean hasVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
 
+            //투표 유저 조회
+            List<VoteAnswer> userAnswer = voteAnswerRepository.findAllByUserIdAndVoteOption_Vote_VoteId(userId, voteId);
 
-            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
+            return VoteDetailResDto.fromEntity(vote,userAnswer,voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
         }
 
         //투표 각 항목별 유저목록조회
@@ -534,7 +536,15 @@
 
             //어떤 투표항목을 선택했는지 확인
             List<VoteCheckResDto.SelectedOption> selectedOptions = answers.stream()
-                    .map(answer -> new VoteCheckResDto.SelectedOption(answer.getVoteOption().getId()))
+                    .map(answer -> {
+                        VoteOptions voteOptions = answer.getVoteOption();
+                        int totalVotes = voteOptions.getVote().getVoteOptions().stream()
+                                .mapToInt(o -> o.getAnswers().size()).sum();
+
+                        int count = voteOptions.getAnswers().size();
+                        int ratio = totalVotes == 0 ? 0 : (int) Math.round(((double) count / totalVotes) * 100);
+                        return new VoteCheckResDto.SelectedOption(voteOptions.getId(),count,ratio);
+                    })
                     .collect(Collectors.toList());
 
             return VoteCheckResDto.builder()

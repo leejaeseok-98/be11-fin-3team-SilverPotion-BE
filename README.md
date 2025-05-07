@@ -151,9 +151,118 @@
 ## 📑 UI/UX 단위 테스트 결과서 (프론트엔드 설계 및 구축)
 - 사용성 테스트, 인터페이스 반응
 <details>
+  
+  #### - 로그인 및 회원가입-
   <summary> 메인페이지</summary>
-  <img src="https://github.com/user-attachments/assets/0acddd87-a24c-4a11-98ac-344a3287763d">
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/60#issue-3045200785">
 </details>
+<details>
+  <summary> 로그인</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/78#issue-3045470055">
+</details>
+<details>
+  <summary> 회원가입</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/87#issue-3045515781">
+</details>
+<details>
+  <summary> google회원가입</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/79#issue-3045471000">
+</details>
+<details>
+  <summary> google로그인</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/80#issue-3045488625">
+</details>
+<details>
+  <summary> kakao회원가입</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/81#issue-3045490391">
+</details>
+<details>
+  <summary> kakao로그인</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/82#issue-3045501041">
+</details>
+
+
+#### - 건강데이터-
+<details>
+<summary> 본인 건강데이터 조회</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/68#issue-3045298347">
+</details>
+<details>
+<summary> 본인 AI리포트 조회</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/69#issue-3045299873">
+</details>
+<details>
+<summary> 피보호자 데이터 조회</summary>
+  <img src="https://github.com/user-attachments/assets/d20a3eeb-4097-436a-84e0-a9d3f6d89df5">
+</details>
+<details>
+<summary> 피보호자 리포트 조회</summary>
+  <img src="https://github.com/user-attachments/assets/b5b91708-a8b7-4445-a90d-4cfd2b984de6">
+</details>
+<details>
+<summary> 헬스지수 생성 및 조회</summary>
+  <img src="https://github.com/user-attachments/assets/c808c8d3-86b9-4204-b656-fd693bc41792">
+</details>
+<details>
+<summary> 건강데이터기반 모임 추천</summary>
+  <img src="https://github.com/user-attachments/assets/2f42a962-f86c-46df-bf41-1719040c6b77">
+</details>
+
+#### - 모임-
+<details>
+<summary>소모임 생성</summary>
+  <img src="https://github.com/user-attachments/assets/a2f80d17-514c-47e7-bfc5-520dddc41767">
+</details>
+<details>
+<summary>모임 가입</summary>
+  <img src="https://github.com/user-attachments/assets/6d07924a-a5f9-4962-b748-65939a0b947d">
+</details>
+<details>
+<summary>정모 만들기</summary>
+  <img src="https://github.com/user-attachments/assets/0c7f2a8a-0d39-4e6e-b5e0-d5cff0914341">
+</details>
+<details>
+<summary>게시판 전체 조회</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/61#issue-3045207455">
+</details>
+<details>
+<summary>게시판 좋아요</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/62#issue-3045216181">
+</details>
+<details>
+<summary>투표 상세 조회</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/63#issue-3045230981">
+</details>
+<details>
+<summary>투표 항목 유저 조회</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/64#issue-3045236754">
+</details>
+<details>
+<summary>자유글 생성</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/65#issue-3045253496">
+</details>
+<details>
+<summary>공지글 생성</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/66#issue-3045255002">
+</details>
+<details>
+<summary>투표글 생성</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/67#issue-3045255999">
+</details>
+
+#### - 채팅-
+<details>
+<summary>채팅</summary>
+  <img src="https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-FE/issues/59#issue-3045151359">
+</details>
+
+#### - 마이캘린더-
+
+
+
+
+
+
 
 
 ---

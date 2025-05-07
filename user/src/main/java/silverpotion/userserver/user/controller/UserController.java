@@ -1,14 +1,18 @@
 package silverpotion.userserver.user.controller;
 
 
+import jakarta.persistence.EntityNotFoundException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import retrofit2.http.HTTP;
+import silverpotion.userserver.admin.domain.Admin;
+import silverpotion.userserver.admin.repository.AdminRepository;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
 import silverpotion.userserver.common.dto.CommonDto;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
+import silverpotion.userserver.user.domain.Role;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.service.GoogleService;
@@ -21,19 +25,21 @@ import java.util.Map;
 
 @Slf4j
 @RestController
-@RequestMapping("silverpotion/user")
+@RequestMapping("/silverpotion/user")
 public class    UserController {
     private final UserService userService;
     private final GoogleService googleService;
     private final JwtTokenProvider jwtTokenProvider;
     private final KakaoService kakaoService;
+    private final AdminRepository adminRepository;
 
 
-    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider, KakaoService kakaoService) {
+    public UserController(UserService userService, GoogleService googleService, JwtTokenProvider jwtTokenProvider, KakaoService kakaoService, AdminRepository adminRepository) {
         this.userService = userService;
         this.googleService = googleService;
         this.jwtTokenProvider = jwtTokenProvider;
         this.kakaoService = kakaoService;
+        this.adminRepository = adminRepository;
     }
 //    0.헬스체크용 url(배포용)
     @GetMapping("/healthcheck")
@@ -197,19 +203,19 @@ public class    UserController {
          return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "sucess",imgUrl),HttpStatus.OK);
     }
 
+    //18.로그인 아이디 주면 이 사람이 건강세부조사 작성했는지 아닌지 여부 리턴(작성했으면 true, 아니면 false)
+    @PostMapping("/havedetailhealthinfo")
+    public ResponseEntity<?> haveDetailHealthInfo(@RequestHeader("X-User-LoginId")String loginId, @RequestBody UserHaveDetailHealthInfoReqDto dto){
+        boolean yesOrNo = userService.haveDetailHealthInfo(loginId, dto);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "success",yesOrNo),HttpStatus.OK);
+
+    }
+
 //    게시물 조회시, 작성자 프로필 조회
     @PostMapping("/post/profileInfo")
     public ResponseEntity<?> PostProfileInfo(@RequestBody List<Long> userIds){
         Map<Long, UserProfileInfoDto> dto= userService.getProfileInfoMap(userIds);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"게시물 작성자 유저 리스트 조회",dto),HttpStatus.OK);
-    }
-
-//    사용자 정지(관리자 수동 처리)
-    //    @PreAuthorize("hasRole('ADMIN))
-    @PostMapping("/ban")
-    public ResponseEntity<?> banUser(@RequestBody UserBanRequestDto userBanRequestDto){
-        userService.banUserManually(userBanRequestDto.getUserId(),userBanRequestDto.getBanUntil());
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"사용자가 정지되었습니다.",userBanRequestDto.getUserId()),HttpStatus.OK);
     }
 
 //    구글 로그인
@@ -222,22 +228,24 @@ public class    UserController {
         GoogleProfileDto googleProfileDto = googleService.getGoogleProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(googleProfileDto.getSub());
-        System.out.println("소셜 아이디"+googleProfileDto.getSub());
-        System.out.println("유저" + originalUser);
+        String adminRole = null;
         if(originalUser == null){
             SocialSignUpDto signUpDto = new SocialSignUpDto(
                     googleProfileDto.getSub(),
                     googleProfileDto.getEmail(),
                     googleProfileDto.getName()
             );
+
             return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "need_sign_up",signUpDto),HttpStatus.OK);
         }
 
 //        회원가입 되어있으면 토큰 발급
         else {
-
-
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName());
+            if(!originalUser.getRole().equals(Role.USER)){
+                Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+                adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+            }
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),adminRole);
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
@@ -255,6 +263,8 @@ public class    UserController {
         KakaoProfileDto kakaoProfileDto = kakaoService.getKakaoProfile(accessTokenDto.getAccess_token());
 //        회원가입이 되어있지 않다면 회원가입
         User originalUser = userService.userBySocialId(kakaoProfileDto.getId());
+        String adminRole = null;
+
         if(originalUser == null){
             KakaoSignUpDto signUpDto = new KakaoSignUpDto(
                     kakaoProfileDto.getId(),
@@ -266,8 +276,11 @@ public class    UserController {
 
 //        회원가입 되어있으면 토큰 발급
         else {
-
-            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName());
+            if(!originalUser.getRole().equals(Role.USER)){
+                Admin admin = adminRepository.findByUserId(originalUser.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+                adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+            }
+            String jwtToken = jwtTokenProvider.createToken(originalUser.getLoginId(),originalUser.getRole().toString(),originalUser.getId(),originalUser.getProfileImage(),originalUser.getNickName(), originalUser.getName(),adminRole);
             Map<String, Object> loginInfo = new HashMap<>();
             loginInfo.put("id",originalUser.getId());
             loginInfo.put("token", jwtToken);
@@ -289,7 +302,7 @@ public class    UserController {
        String nickName = userService.withdraw(loginId);
        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "goodbye...",nickName),HttpStatus.OK);
     }
-    // ✅ UserId로 UserDto 반환하는 API
+    // UserId로 UserDto 반환하는 API
     @GetMapping("/id")
     public ResponseEntity<UserDto> getUserById(@RequestParam("id") Long id) {
         UserDto userDto = userService.getUserById(id);

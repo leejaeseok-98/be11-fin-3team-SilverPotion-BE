@@ -11,13 +11,17 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
+import silverpotion.userserver.admin.domain.Admin;
+import silverpotion.userserver.admin.repository.AdminRepository;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.careRelation.domain.LinkStatus;
 import silverpotion.userserver.common.auth.JwtTokenProvider;
+import silverpotion.userserver.common.dto.UserBanedException;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.payment.dtos.CashItemOfPaymentListDto;
 import silverpotion.userserver.user.domain.BanYN;
 import silverpotion.userserver.user.domain.DelYN;
+import silverpotion.userserver.user.domain.Role;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.*;
 import silverpotion.userserver.user.repository.UserRepository;
@@ -47,13 +51,15 @@ public class UserService {
     @Value("${cloud.aws.s3.bucket}")
     private String bucket;
     private final S3Client s3Client;
+    private final AdminRepository adminRepository;
 
-    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RedisTemplate<String, Object> redisTemplate, JwtTokenProvider jwtTokenProvider, S3Client s3Client) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder, RedisTemplate<String, Object> redisTemplate, JwtTokenProvider jwtTokenProvider, S3Client s3Client, AdminRepository adminRepository) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
         this.redisTemplate = redisTemplate;
         this.jwtTokenProvider = jwtTokenProvider;
         this.s3Client = s3Client;
+        this.adminRepository = adminRepository;
     }
 
     // 1.회원가입
@@ -90,17 +96,34 @@ public class UserService {
     public Map<String,Object> login(LoginDto dto){
         
        User user = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 사용자입니다"));
+       String adminRole = null;
+       if(!user.getRole().equals(Role.USER)){
+           Admin admin = adminRepository.findByUserId(user.getId()).orElseThrow(()-> new EntityNotFoundException("Admin Not Found"));
+           adminRole = (admin.getRole() != null) ? admin.getRole().toString() : "ROLE_NONE";
+       }
        if(!passwordEncoder.matches(dto.getPassword(), user.getPassword())){
            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다");
        }
+       // 정지 해제 조건 확인
+        if (user.getBanYN().equals(BanYN.N)&&user.getBanUntil() != null&& user.getBanUntil().isBefore(LocalDateTime.now())){
+            user.unban();
+            userRepository.save(user);
+        }
+
+        //정지 상태라면 로그인 차단
+        if (user.getBanYN().equals(BanYN.Y)){
+            throw new UserBanedException("정지된 계정입니다. 해제 시각:" + user.getBanUntil());
+        }
+
        String jwtToken = jwtTokenProvider.createToken(
-               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName());
+               user.getLoginId(), user.getRole().toString(),user.getId(),user.getProfileImage(),user.getNickName(),user.getName(),adminRole);
        String refreshToken = jwtTokenProvider.createRefreshToken(user.getLoginId(), user.getRole().toString());
         redisTemplate.opsForValue().set(user.getLoginId(), refreshToken, 200, TimeUnit.DAYS);
        Map<String, Object> loginInfo = new HashMap<>();
 
        loginInfo.put("userId",user.getId());
        loginInfo.put("role",user.getRole());
+       loginInfo.put("adminRole", adminRole);
        loginInfo.put("profileUrl",user.getProfileImage());
        loginInfo.put("nickName",user.getNickName());
        loginInfo.put("name",user.getName());
@@ -129,7 +152,7 @@ public class UserService {
             return loginInfo;
         } //레디스에 리프레시토큰 값이 없었거나 사용자의 리프레시토큰갑과 일치 안하니 accesstoken발급 하지않는다.(그래서 token값에 fail세팅)
 
-        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString());
+        String token = jwtTokenProvider.createToken(claims.getSubject(), claims.get("role").toString(), Long.parseLong(claims.get("userId").toString()), claims.get("profileUrl").toString(), claims.get("nickName").toString(), claims.get("name").toString(),claims.get("adminRole").toString());
         loginInfo.put("token", token);
         return loginInfo;
     }
@@ -310,6 +333,24 @@ public class UserService {
         return selectedUser.getProfileImage();
     }
 
+    //18.로그인 아이디 주면 이 사람이 건강세부조사 작성했는지 아닌지 여부 리턴
+    public boolean haveDetailHealthInfo(String loginId, UserHaveDetailHealthInfoReqDto dto){
+        boolean yesOrNo =false;
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        User selectedUser;
+        if(loginId.equals(dto.getLoginId())){
+            selectedUser = user;
+        } else{
+            selectedUser = userRepository.findByLoginIdAndDelYN(dto.getLoginId(),DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        }
+
+        if(selectedUser.getUserDetailHealthInfo() !=null){
+            yesOrNo =true;
+        }
+        return yesOrNo;
+    }
+
+
     //    게시물 조회시, 작성자 프로필 조회
     public  Map<Long, UserProfileInfoDto> getProfileInfoMap(List<Long> userIds) {
         List<User> users = userRepository.findAllById(userIds); // JPA 기본 제공
@@ -325,20 +366,8 @@ public class UserService {
                 ));
     }
 
-    public int banUsersAutomatically(){
-        List<User> users = userRepository.findUsersToBan(LocalDateTime.now());
 
-        for (User user : users) {
-            user.setBanYN(BanYN.Y);
-        }
-        return userRepository.saveAll(users).size(); //정지된 유저 수 반환
-    }
 
-    //    유저 차단
-    public void banUserManually(Long userId,LocalDateTime until){
-        User user = userRepository.findByIdAndDelYN(userId,DelYN.N).orElseThrow(() -> new EntityNotFoundException("없는 사용자"));
-        user.BanUntil(until);
-    }
 
     //   sns로그인 oauth만들기
     public User userBySocialId(String loginId){
@@ -395,5 +424,7 @@ public class UserService {
                 .name(user.getName())
                 .build();
     }
+
+
 
 }

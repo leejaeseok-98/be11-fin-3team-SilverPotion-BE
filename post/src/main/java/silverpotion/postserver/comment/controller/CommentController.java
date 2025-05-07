@@ -1,6 +1,6 @@
 package silverpotion.postserver.comment.controller;
 
-import jakarta.ws.rs.Path;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -13,7 +13,6 @@ import silverpotion.postserver.comment.service.CommentService;
 import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.post.dtos.UserListDto;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("silverpotion/comment")
@@ -67,6 +66,5 @@ public class CommentController {
         Page<UserListDto> commentLikeUserList = commentLikeService.getCommentLikeUserList(commentId,pageable);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"댓글 좋아요 유저리스트 완료",commentLikeUserList),HttpStatus.OK);
     }
-
 
 }

@@ -158,4 +158,19 @@ public class GatheringController {
 //        List<String> suggestions = openSearchService.suggestAll(prefix);
 //        return ResponseEntity.ok(new CommonDto(HttpStatus.OK.value(), "자동완성 성공", suggestions));
 //    }
+
+
+    // 페인클라이언트용(유저서비스) api
+    @PostMapping("/fivegatherings")
+    public List<GatheringInfoDtoForUserServiceDto> fiveRecommendedGatherings(@RequestBody List<Long> gatheringIds){
+             return gatheringService.fiveRecommendedGatherings(gatheringIds);
+
+    }
+
+
+
+
+
+
+
 }

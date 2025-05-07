@@ -1,4 +1,3 @@
-#?? ??
 spring:
   redis:
     host: localhost
@@ -90,3 +89,5 @@ coolsms:
   apiKey: NCS8RKPNPBJOMS4Q
   apiSecret: URWJ7PYCYB66BC5WBINDZTCHU1XUILXC
   fromNumber: 01042891784 # 발신번호
+  profiles:
+    active: local

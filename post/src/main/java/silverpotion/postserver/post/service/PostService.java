@@ -278,7 +278,7 @@
             Long userId = userClient.getUserIdByLoginId(loginId);
 
             List<PostVoteResDTO> dtoList = rawList.stream()
-                    .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요!
+                    .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요
                         PostVoteResDTO postVoteResDTO = convertToDto(item, userId);
                         if (item.getPostCategory() == PostCategory.vote) {
                             List<VoteOptions> options = voteOptionsRepository.findByVote_voteId(item.getId());
@@ -299,6 +299,7 @@
             UserProfileInfoDto userProfileInfoDto = null;
             boolean isParticipants = false;
             LocalDateTime closeTime = null;
+            Long writerId = null;
 
             List<String> voteOptions = null;
 
@@ -312,8 +313,7 @@
             if (dto.getPostCategory() == PostCategory.free) {
                 System.out.println("postId : " + dto.getId());
                 post = postRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 게시물입니다."));
-                Long writerId = post.getWriterId();
-                System.out.println("writerId : " + writerId);
+                writerId = post.getWriterId();
                 if (writerId == null){
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
@@ -323,8 +323,7 @@
             } else if (dto.getPostCategory() == PostCategory.notice) {
                 System.out.println("postId : " + dto.getId());
                 post = postRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 게시물입니다."));
-                Long writerId = post.getWriterId();
-                System.out.println("writerId : " + writerId);
+                writerId = post.getWriterId();
                 if (writerId == null){
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
@@ -332,10 +331,8 @@
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.vote) {
-                System.out.println("voteId : "+ dto.getId());
                 vote = voteRepository.findById(dto.getId()).orElseThrow(()-> new EntityNotFoundException("없는 투표게시물입니다"));
-                Long writerId = vote != null ? vote.getWriterId() : null;
-                System.out.println("writerId : "+ writerId);
+                writerId = vote != null ? vote.getWriterId() : null;
                 if (writerId == null){
                     throw new IllegalArgumentException("vote writerId가 null입니다. voteId:" +  vote.getVoteId());
                 }
@@ -356,6 +353,7 @@
                     .id(dto.getId())
                     .title(dto.getTitle())
                     .content(dto.getContent())
+                    .writerId(writerId)
                     .likeCount(likeCount)
                     .commentCount(commentCount)
                     .postCategory(dto.getPostCategory())
@@ -495,7 +493,7 @@
 
             //참가자 수
             Long participantsCount = voteAnswerRepository.countDistinctUserByVoteId(voteId);
-            //투표게시물 수
+            //투표게시물 좋아요 수
             Long voteLikeCount = voteLikeRepository.countByVote(vote);
             //댓글 수
             Long commentCount = voteRepository.countVoteComments(vote.getVoteId());
@@ -531,8 +529,26 @@
             boolean isLiked = voteLikeRepository.existsByVoteAndUserId(vote, userId);
             String isLike = isLiked ? "Y" : "N";
 
+            //투표여부
+            boolean hasVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
 
-            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList);
+
+            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
+        }
+
+        //투표 각 항목별 유저목록조회
+        public Map<Long, List<VoteAnswer>> getVoteUserList(String loginId, Long voteId) {
+            Long userId = userClient.getUserIdByLoginId(loginId);
+            Vote vote = voteRepository.findById(voteId).orElseThrow(() -> new EntityNotFoundException("Vote not found"));
+            //map객체 생성
+            Map<Long, List<VoteAnswer>> voteAnswerMap = new HashMap<>();
+            //투표항목리스트
+            List<VoteOptions> voteOptionsList = voteOptionsRepository.findByVote(vote);
+            for (VoteOptions voteOptions : voteOptionsList) {
+                List<VoteAnswer> answers = voteOptions.getAnswers();
+                voteAnswerMap.put(voteOptions.getId(), answers);
+            }
+            return voteAnswerMap;
         }
 
         //    게시물 상세조회
@@ -588,11 +604,6 @@
 
         public VoteAnswerResDto doVote(String loginId, VoteOptionReqDto dto) {
             Long userId = userClient.getUserIdByLoginId(loginId);
-
-            //먼저 투표한 적 있는지 체크(복수 선택이라면 옵션 하나로 체크해도 됨)
-            System.out.println("dto.getOptionIds()"+dto.getOptionIds());
-            System.out.println("dto.getOptionIds().get(0)"+dto.getOptionIds().get(0));
-
             Long voteId = voteOptionsRepository.findById(dto.getOptionIds().get(0)).orElseThrow(() -> new EntityNotFoundException("vote option not found"))
                     .getVote().getVoteId();
             boolean alreadyVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
@@ -648,5 +659,22 @@
                     totalParticipants,
                     optionDtos
             );
+        }
+
+        // 다시 투표하기
+        public void reVote(String loginId, Long voteId) {
+            //유저 조회
+            Long userId = userClient.getUserIdByLoginId(loginId);
+
+            // 3. 투표 마감 여부 확인
+            Vote vote = voteRepository.findById(voteId)
+                    .orElseThrow(() -> new EntityNotFoundException("투표 게시물이 존재하지 않습니다"));
+            if (vote.getCloseTime() != null && vote.getCloseTime().isBefore(LocalDateTime.now())) {
+                throw new IllegalStateException("이미 마감된 투표입니다.");
+            }
+
+            // 5. 기존 투표 삭제
+            voteAnswerRepository.deleteByUserIdAndVoteOption_Vote_VoteId(userId, voteId);
+
         }
     }

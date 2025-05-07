@@ -1,4 +1,4 @@
-package silverpotion.userserver.user.dto;
+package silverpotion.userserver.admin.dtos;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,5 +11,5 @@ import java.time.LocalDateTime;
 @Data
 public class UserBanRequestDto {
     private Long userId; //차단당한 유저id
-    private LocalDateTime banUntil; //정지
+    private Long banDays; //정지 기간
 }

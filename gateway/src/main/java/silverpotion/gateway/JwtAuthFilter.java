@@ -23,6 +23,8 @@ public class JwtAuthFilter implements GlobalFilter {
     private final AntPathMatcher pathMatcher = new AntPathMatcher();
 
     private static final List<String> ALLOWED_PATHS = List.of(
+            "/health",
+            "/silverpotion/user/healthcheck",
             "/silverpotion/user/create",
             "/silverpotion/user/checkDuplicate",
             "/silverpotion/user/login",
@@ -32,6 +34,7 @@ public class JwtAuthFilter implements GlobalFilter {
             "/silverpotion/user/google/login",
             "/silverpotion/user/kakao/login",
             "/silverpotion/firebase/token",
+            "/silverpotion/health/fromPhone",
             "/connect/**",             // SockJS 엔드포인트 및 하위 경로 허용
             "/chat-service/room/**/read",
             "/chat-service/**/info",                // info 요청 (핸드셰이크용)
@@ -47,6 +50,11 @@ public class JwtAuthFilter implements GlobalFilter {
     public Mono<Void> filter(ServerWebExchange exchange, GatewayFilterChain chain) {
         String path = exchange.getRequest().getURI().getRawPath();
         System.out.println("📍 Request Path = " + path);
+
+        // OPTIONS요청은 인증 없이 바로 통과!
+        if (exchange.getRequest().getMethod().name().equals("OPTIONS")) {
+            return chain.filter(exchange);
+        }
 
         // ✅ 예외 경로 먼저 처리
         boolean isAllowed = ALLOWED_PATHS.stream().anyMatch(allowed -> pathMatcher.match(allowed, path));
@@ -74,6 +82,13 @@ public class JwtAuthFilter implements GlobalFilter {
 
             String loginId = claims.getSubject();
             String role = claims.get("role", String.class);
+            if (path.contains("/admins/")) {
+                if (!"ADMIN".equals(role)) {
+                    System.out.println("❌ 관리자 권한이 아닙니다. 차단된 요청: " + path);
+                    exchange.getResponse().setStatusCode(HttpStatus.FORBIDDEN);
+                    return exchange.getResponse().setComplete();
+                }
+            }
             Long id = claims.get("id", Long.class);
 
             // ✅ 커스텀 헤더 추가

@@ -3,20 +3,25 @@ package silverpotion.userserver.user.domain;
 import jakarta.persistence.*;
 import lombok.*;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import silverpotion.userserver.admin.dtos.AdminUserListDto;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.fireBase.domain.TokenRequest;
 import silverpotion.userserver.healthData.domain.DataType;
 import silverpotion.userserver.healthData.domain.HealthData;
-import silverpotion.userserver.healthData.reopisitory.HealthDataRepository;
+import silverpotion.userserver.healthScore.domain.HealthScore;
 import silverpotion.userserver.payment.domain.CashItem;
 import silverpotion.userserver.user.dto.*;
+import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
+import silverpotion.userserver.recommendation.domain.UserVector;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.Period;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Entity
 @AllArgsConstructor
@@ -102,6 +107,16 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     //활동 지역
     @Column(nullable = false)
     private String region;
+    //유저상세건강정보
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserDetailHealthInfo userDetailHealthInfo;
+    //유저벡터
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private UserVector userVector;
+    //유저 건강데이터와 상세건강정보를 기반으로 헬스점수
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private List<HealthScore> healthScores = new ArrayList<>();
 
 //    정지 만료일 (이 날짜 전까지 정지 상태)
     private LocalDateTime banUntil;
@@ -141,6 +156,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         }
     }
 
+    public void changeRole(Role role){
+        this.role = role;
+    }
+
     //   이미지 등록 메서드
     public void changeMyProfileImag(String imgUrl){
         this.profileImage = imgUrl;
@@ -174,6 +193,20 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
 
        return UserPromptDto.builder().healthData(nowHealthData).prompt(promt).build();
 
+    }
+
+    public AdminUserListDto fromEntity(){
+        return AdminUserListDto.builder()
+                .id(this.id)
+                .email(this.email)
+                .name(this.name)
+                .nickname(this.nickName)
+                .banYn(this.banYN)
+                .birthday(this.birthday)
+                .region(this.region)
+                .role(this.role)
+                .createdDate(this.getCreatedTime())
+                .build();
     }
 
     // 일간 건강프롬프트 생성 메서드
@@ -227,8 +260,28 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
         return UserPromptDto.builder().healthData(monthData).prompt(promt).build();
 
     }
+    // 내 체질량지수 리턴 메서드
+    public Map<String,Object> makingBmi(){
+      int height =  this.getUserDetailHealthInfo().getHeight();
+      int weight =  this.getUserDetailHealthInfo().getWeight();
+      Double heightM = height/100.0; //키를 m로 변환
+      Double bmi = weight/(heightM*heightM);
+      String weightCategory ="";
 
-
+      if(bmi<18.5){
+          weightCategory="저체중";
+      } else if(bmi<=24.9){
+          weightCategory="정상체중";
+      } else if(bmi<=29.9){
+          weightCategory="과체중";
+      } else{
+          weightCategory="비만";
+      }
+        Map<String,Object> bmiInfo = new HashMap<>();
+        bmiInfo.put("bmi",bmi);
+        bmiInfo.put("category",weightCategory);
+        return bmiInfo;
+    }
 
 
 
@@ -309,7 +362,7 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     }
 
 
-    public void BanUntil(LocalDateTime banUntil){
+    public void Ban(LocalDateTime banUntil){
         this.banYN = BanYN.Y;
         this.banUntil = banUntil;
     }
@@ -317,8 +370,10 @@ public class User extends silverpotion.userserver.common.domain.BaseTimeEntity {
     public boolean shouldBeBanned(){
         return banYN == BanYN.Y && LocalDateTime.now().isBefore(banUntil);
     }
-    public void setBanYN(BanYN banYN){
-        this.banYN = banYN;
+
+    public void unban(){
+        this.banYN = BanYN.N;
+        this.banUntil = null;
     }
 
     //    비밀번호 변경

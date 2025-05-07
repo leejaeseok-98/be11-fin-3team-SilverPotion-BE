@@ -18,8 +18,12 @@
     import silverpotion.postserver.common.domain.DelYN;
     import silverpotion.postserver.common.dto.CommonDto;
     import silverpotion.postserver.gathering.domain.Gathering;
+    import silverpotion.postserver.gathering.domain.GatheringPeople;
+    import silverpotion.postserver.gathering.domain.Status;
     import silverpotion.postserver.gathering.repository.GatheringPeopleRepository;
     import silverpotion.postserver.gathering.repository.GatheringRepository;
+    import silverpotion.postserver.notification.dto.NotificationMessageDto;
+    import silverpotion.postserver.notification.service.NotificationProducer;
     import silverpotion.postserver.post.domain.*;
     import silverpotion.postserver.post.dtos.*;
     import silverpotion.postserver.post.feignClient.UserClient;
@@ -54,6 +58,7 @@
         private final VoteLikeRepository voteLikeRepository;
         private final VoteAnswerRepository voteAnswerRepository;
         private final VoteOptionsRepository voteOptionsRepository;
+        private final NotificationProducer notificationProducer;
     //    private final NotificationService notificationService;
 
         @Value("${cloud.aws.s3.bucket}")
@@ -61,7 +66,7 @@
         @Value("${cloud.aws.region.static}")
         private String region;
 
-        public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper, VoteRepository voteRepository, PostQueryRepository postQueryRepository, VoteLikeRepository voteLikeRepository, VoteAnswerRepository voteAnswerRepository, VoteOptionsRepository voteOptionsRepository) {
+        public PostService(PostRepository postRepository, GatheringRepository gatheringRepository, PostFileRepository postFileRepository, S3Client s3Client, UserClient userClient, PostLikeRepository postLikeRepository, CommentRepository commentRepository, CommentLikeRepository commentLikeRepository, GatheringPeopleRepository gatheringPeopleRepository, ObjectMapper objectMapper, VoteRepository voteRepository, PostQueryRepository postQueryRepository, VoteLikeRepository voteLikeRepository, VoteAnswerRepository voteAnswerRepository, VoteOptionsRepository voteOptionsRepository, NotificationProducer notificationProducer) {
             this.postRepository = postRepository;
             this.gatheringRepository = gatheringRepository;
             this.postFileRepository = postFileRepository;
@@ -77,6 +82,7 @@
             this.voteLikeRepository = voteLikeRepository;
             this.voteAnswerRepository = voteAnswerRepository;
             this.voteOptionsRepository = voteOptionsRepository;
+            this.notificationProducer = notificationProducer;
         }
 
         //    1. 게시물 생성시, 카테고리 유형 저장(임시저장)
@@ -124,7 +130,6 @@
             Long userId = userClient.getUserIdByLoginId(loginId);
             Post post = postRepository.findById(postId)
                     .orElseThrow(() -> new IllegalArgumentException("게시물 없음"));
-
             switch (post.getPostCategory()) {
                 case free:
                     FreePostUpdateDto freeDto = (FreePostUpdateDto) dto;
@@ -134,6 +139,9 @@
                 case notice:
                     NoticePostUpdateDto noticeDto = (NoticePostUpdateDto) dto;
                     saveNoticePost(post, userId, noticeDto);
+
+                    // ✅ 공지 알림 발송
+                    sendNoticeToGatheringMembers(post);
                     return noticeDto;
 
                 default:
@@ -141,7 +149,27 @@
             }
 
         }
+        private void sendNoticeToGatheringMembers(Post post) {
+            Long gatheringId = post.getGathering().getId();
 
+            // 1. 모임의 모든 활성화된 멤버 조회
+            List<GatheringPeople> members = gatheringPeopleRepository.findByUserIdAndStatus(gatheringId, Status.ACTIVATE);
+
+            // 2. 각 멤버에게 알림 발송
+            for (GatheringPeople member : members) {
+                String memberLoginId = userClient.getLoginIdByUserId(member.getUserId());
+
+                NotificationMessageDto notification = NotificationMessageDto.builder()
+                        .loginId(memberLoginId)
+                        .title("📢 새로운 공지")
+                        .content("'" + post.getTitle() + "' 공지가 등록/수정되었습니다.")
+                        .type("NOTICE_UPDATED")
+                        .referenceId(post.getId())
+                        .build();
+
+                notificationProducer.sendNotification(notification);
+            }
+        }
     //    투표 저장
         public VotePostUpdateDto saveVote(Long voteId, String loginId, VotePostUpdateDto dto){
             Vote vote = voteRepository.findVoteByVoteId(voteId).orElseThrow(()->new EntityNotFoundException("투표가 없습니다."));
@@ -504,8 +532,10 @@
             //투표여부
             boolean hasVoted = voteAnswerRepository.existsByUserIdAndVoteId(userId, voteId);
 
+            //투표 유저 조회
+            List<VoteAnswer> userAnswer = voteAnswerRepository.findAllByUserIdAndVoteOption_Vote_VoteId(userId, voteId);
 
-            return VoteDetailResDto.fromEntity(vote, voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
+            return VoteDetailResDto.fromEntity(vote,userAnswer,voteLikeCount, commentCount, isLike, participantsCount, userProfileInfoDto,commentList, hasVoted);
         }
 
         //투표 각 항목별 유저목록조회
@@ -521,6 +551,34 @@
                 voteAnswerMap.put(voteOptions.getId(), answers);
             }
             return voteAnswerMap;
+        }
+
+        //투표 여부 조회
+        public VoteCheckResDto checkUserVote(String loginId, Long voteId) {
+            //유저 조회
+            Long userId = userClient.getUserIdByLoginId(loginId);
+
+            List<VoteAnswer> answers = voteAnswerRepository.findAllByUserIdAndVoteOption_Vote_VoteId(userId,voteId);
+            //투표 여부
+            boolean isVoted = !answers.isEmpty();
+
+            //어떤 투표항목을 선택했는지 확인
+            List<VoteCheckResDto.SelectedOption> selectedOptions = answers.stream()
+                    .map(answer -> {
+                        VoteOptions voteOptions = answer.getVoteOption();
+                        int totalVotes = voteOptions.getVote().getVoteOptions().stream()
+                                .mapToInt(o -> o.getAnswers().size()).sum();
+
+                        int count = voteOptions.getAnswers().size();
+                        int ratio = totalVotes == 0 ? 0 : (int) Math.round(((double) count / totalVotes) * 100);
+                        return new VoteCheckResDto.SelectedOption(voteOptions.getId(),count,ratio);
+                    })
+                    .collect(Collectors.toList());
+
+            return VoteCheckResDto.builder()
+                    .isVoted(isVoted)
+                    .voteOptions(selectedOptions)
+                    .build();
         }
 
         //    게시물 상세조회

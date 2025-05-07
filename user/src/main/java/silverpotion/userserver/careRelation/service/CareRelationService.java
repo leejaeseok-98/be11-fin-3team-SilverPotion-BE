@@ -6,10 +6,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import silverpotion.userserver.careRelation.domain.CareRelation;
 import silverpotion.userserver.careRelation.domain.LinkStatus;
-import silverpotion.userserver.careRelation.dtos.CareRelationAcceptOrNotDto;
-import silverpotion.userserver.careRelation.dtos.CareRelationCreateDto;
-import silverpotion.userserver.careRelation.dtos.CareRelationDisconnectDto;
-import silverpotion.userserver.careRelation.dtos.CareRelationListDto;
+import silverpotion.userserver.careRelation.dtos.*;
 import silverpotion.userserver.careRelation.repository.CareRelationRepository;
 import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
@@ -25,11 +22,12 @@ import java.util.NoSuchElementException;
 public class CareRelationService {
     private final CareRelationRepository careRelationRepository;
     private final UserRepository userRepository;
+    private final NotificationProducer notificationProducer;
 
-
-    public CareRelationService(CareRelationRepository careRelationRepository, UserRepository userRepository) {
+    public CareRelationService(CareRelationRepository careRelationRepository, UserRepository userRepository, NotificationProducer notificationProducer) {
         this.careRelationRepository = careRelationRepository;
         this.userRepository = userRepository;
+        this.notificationProducer = notificationProducer;
     }
 
 //    1.관계요청 보내기(이때 로그인 아이디는 보호자가 될 유저)
@@ -41,6 +39,16 @@ public class CareRelationService {
         }
         protector.updateMyHealingPotion(-1); //연결할때 힐링포션 1개소모(단 연결이 이루어지지않으면 돌려받음)
         CareRelation careRelation = careRelationRepository.save(dto.toEntityFromCreateDto(protector,dependent));
+        // 🔔 알림 발송
+        NotificationMessageDto notification = NotificationMessageDto.builder()
+                .loginId(dependent.getLoginId()) // 피보호자에게 발송
+                .title("보호 요청 도착")
+                .content(protector.getNickName() + "님이 보호 관계 요청을 보냈습니다.")
+                .type("CARE_REQUEST")
+                .referenceId(careRelation.getId()) // 상세보기 등 라우팅에 활용 가능
+                .build();
+
+        notificationProducer.sendNotification(notification);
     }
 
 //    1-2.관계요청 보내기(이때 로그인 아이디는 피보호자가 될 유저)
@@ -52,6 +60,16 @@ public class CareRelationService {
         }
         dependent.updateMyHealingPotion(-1);
         CareRelation careRelation = careRelationRepository.save(dto.toEntityFromCreateDto(protector,dependent));
+        // 🔔 알림 발송
+        NotificationMessageDto notification = NotificationMessageDto.builder()
+                .loginId(protector.getLoginId()) // 피보호자에게 발송
+                .title("보호 요청 도착")
+                .content(protector.getNickName() + "님이 보호 관계 요청을 보냈습니다.")
+                .type("CARE_REQUEST")
+                .referenceId(careRelation.getId()) // 상세보기 등 라우팅에 활용 가능
+                .build();
+
+        notificationProducer.sendNotification(notification);
     }
 
 //    2.내게 온 연결 요청 조회(이때 로그인 아이디는 피보호자가 될 유저)

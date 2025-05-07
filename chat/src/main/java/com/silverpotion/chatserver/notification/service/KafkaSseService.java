@@ -7,7 +7,9 @@ import com.silverpotion.chatserver.chat.domain.MessageType;
 import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
 import com.silverpotion.chatserver.chat.repository.ChatParticipantRepository;
 import com.silverpotion.chatserver.notification.controller.SseController;
+import com.silverpotion.chatserver.notification.domain.Notification;
 import com.silverpotion.chatserver.notification.dto.NotificationRequestDto;
+import com.silverpotion.chatserver.notification.repository.NotificationRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -31,6 +33,7 @@ public class KafkaSseService {
     private final SimpMessagingTemplate messagingTemplate;
     private final SimpUserRegistry simpUserRegistry;
     private final SseController sseController;
+    private final NotificationRepository notificationRepository;
 
     public void publishToSseTopic(ChatMessageDto dto) {
         log.info("🔥 발행 전 DTO: {}", dto);
@@ -83,6 +86,19 @@ public class KafkaSseService {
         try {
             NotificationRequestDto dto = objectMapper.readValue(messageJson, NotificationRequestDto.class);
 
+            // 🔸 DB에 저장
+            Notification notification = Notification.builder()
+                    .loginId(dto.getLoginId())
+                    .title(dto.getTitle())
+                    .content(dto.getContent())
+                    .type(dto.getType())
+                    .referenceId(dto.getReferenceId())
+                    .createdAt(LocalDateTime.now())
+                    .isRead(false)
+                    .build();
+            notificationRepository.save(notification);
+
+            // 🔸 SSE 전송
             ChatMessageDto message = ChatMessageDto.builder()
                     .senderId(0L)
                     .senderNickName("알림")

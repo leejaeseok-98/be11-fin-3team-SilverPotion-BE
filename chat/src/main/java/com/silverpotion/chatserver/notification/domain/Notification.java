@@ -9,6 +9,8 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Getter
 @NoArgsConstructor
@@ -25,5 +27,6 @@ public class Notification {
     private String content;
     private String type;
     private Long referenceId;
-    private boolean isRead;
+    private LocalDateTime createdAt;
+    private boolean isRead = false;
 }

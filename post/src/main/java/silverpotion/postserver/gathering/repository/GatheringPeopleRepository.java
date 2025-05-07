@@ -26,4 +26,5 @@ public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople
     boolean existsByGatheringIdAndUserIdAndStatus(Long gatheringId, Long userId, Status status);
     List<GatheringPeople> findAllByGatheringId(Long gatheringId);
     List<GatheringPeople> findByUserIdAndStatus(Long userId, Status status);
+
 }

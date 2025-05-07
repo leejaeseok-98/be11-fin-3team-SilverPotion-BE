@@ -91,6 +91,8 @@ public class MeetingService {
                 .cost(dto.getCost())
                 .maxPeople(dto.getMaxPeople())
                 .imageUrl(imageUrl)
+                .lon(dto.getLon())
+                .lat(dto.getLat())
                 .build();
 
         meetingRepository.save(meeting);

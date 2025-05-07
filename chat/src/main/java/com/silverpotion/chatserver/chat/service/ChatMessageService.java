@@ -8,6 +8,7 @@ import com.silverpotion.chatserver.chat.dto.ChatMessageDto;
 import com.silverpotion.chatserver.chat.dto.UserDto;
 import com.silverpotion.chatserver.chat.repository.ChatMessageRepository;
 import com.silverpotion.chatserver.chat.repository.ChatRoomRepository;
+import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -87,5 +88,11 @@ public class ChatMessageService {
         return userFeign.getUserIdByLoginId(loginId);
     }
 
-
+    @Transactional
+    public void softDeleteMessage(Long messageId) {
+        ChatMessage message = chatMessageRepository.findById(messageId)
+                .orElseThrow(() -> new EntityNotFoundException("메시지를 찾을 수 없습니다."));
+        message.setDeleted(true);
+        chatMessageRepository.save(message);
+    }
 }

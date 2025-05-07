@@ -27,7 +27,6 @@ import silverpotion.postserver.gatheringVector.domain.GatheringVector;
 import silverpotion.postserver.gatheringVector.domain.GatheringVectorUtils;
 import silverpotion.postserver.gatheringVector.dtos.GatheringVectorCreateDto;
 import silverpotion.postserver.gatheringVector.repository.GatheringVectorRepository;
-import silverpotion.postserver.notification.dto.GatheringJoinRequestEventDto;
 import silverpotion.postserver.notification.dto.NotificationMessageDto;
 import silverpotion.postserver.notification.service.NotificationEventPublisher;
 import silverpotion.postserver.notification.service.NotificationProducer;

@@ -93,6 +93,17 @@ public class PostLikeService {
         }
         postLikeRedisTemplate.opsForValue().set(redisKey, likeCount,10, TimeUnit.MINUTES);
 
+        String writerLoginId = userClient.getLoginIdByUserId(post.getWriterId());
+        String likeNickName = userClient.getNicknameByUserId(userId);
+        NotificationMessageDto notification = NotificationMessageDto.builder()
+                .loginId(writerLoginId)
+                .title("좋아요 알림")
+                .content("'" + likeNickName + "'님이 회원님의 게시글에 좋아요를 눌렀습니다.")
+                .type("POST_LIKE")
+                .referenceId(postId)
+                .build();
+
+        notificationProducer.sendNotification(notification);
         return new PostLikeResDto(likeCount,isLike);
     }
 
@@ -131,27 +142,25 @@ public class PostLikeService {
             isLike = true;
             rabbitTemplate.convertAndSend(BACKUP_QUEUE_AL, voteId);
             vote.increaseLikeCount();
-
-            // 좋아요 알림 전송
-            String voteNickName = userClient.getNicknameByUserId(userId);
-            Long writerId = vote.getWriterId(); // 게시물 작성자 ID (필드 이름에 따라 다를 수 있음)
-            if (!userId.equals(writerId)) { // 자기 자신이 좋아요 누른 경우 제외
-                String writerLoginId = userClient.getLoginIdByUserId(writerId);
-
-                NotificationMessageDto notification = NotificationMessageDto.builder()
-                        .loginId(writerLoginId)
-                        .title("좋아요 알림")
-                        .content("'" + voteNickName + "'님이 회원님의 게시글에 좋아요를 눌렀습니다.")
-                        .type("VOTE_LIKED")
-                        .referenceId(voteId)
-                        .build();
-
-                notificationProducer.sendNotification(notification);
-            }
         }
         voteLikeRedisTemplate.opsForValue().set(redisKey, likeCount,10, TimeUnit.MINUTES);
         voteRepository.save(vote);
+        // 좋아요 알림 전송
+        String voteNickName = userClient.getNicknameByUserId(userId);
+        Long writerId = vote.getWriterId(); // 게시물 작성자 ID (필드 이름에 따라 다를 수 있음)
+        if (!userId.equals(writerId)) { // 자기 자신이 좋아요 누른 경우 제외
+            String writerLoginId = userClient.getLoginIdByUserId(writerId);
 
+            NotificationMessageDto notification = NotificationMessageDto.builder()
+                    .loginId(writerLoginId)
+                    .title("좋아요 알림")
+                    .content("'" + voteNickName + "'님이 회원님의 게시글에 좋아요를 눌렀습니다.")
+                    .type("POST_LIKE")
+                    .referenceId(voteId)
+                    .build();
+
+            notificationProducer.sendNotification(notification);
+        }
         return new PostLikeResDto(vote.getLikeCount(),isLike);
     }
 

@@ -78,7 +78,7 @@ public class CommentService {
                 .loginId(writerLoginId)
                 .title("댓글 알림")
                 .content("'" + userProfileInfoDto.getNickname() + "'님이 회원님의 게시글에 댓글을 달았습니다.")
-                .type("VOTE_LIKED")
+                .type("POST_LIKE")
                 .referenceId(post.getId())
                 .build();
 

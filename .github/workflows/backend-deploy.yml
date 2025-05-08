@@ -40,7 +40,7 @@ jobs:
         run: |
           docker build \
           -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-          -f Dockerfile ./gateway
+          -f ./gateway/Dockerfile ./gateway
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: eks kubectl apply gateway
@@ -57,7 +57,7 @@ jobs:
         run: |
           docker build \
           -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-          -f Dockerfile ./user
+          -f ./user/Dockerfile ./user
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: eks kubectl apply user
@@ -74,7 +74,7 @@ jobs:
         run: |
           docker build \
           -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-          -f Dockerfile ./post
+          -f ./post/Dockerfile ./post
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: eks kubectl apply post
@@ -97,7 +97,7 @@ jobs:
         run: |
           docker build \
           -t $REGISTRY/$REPOSITORY:$IMAGE_TAG \
-          -f Dockerfile ./chat
+          -f ./chat/Dockerfile ./chat
           docker push $REGISTRY/$REPOSITORY:$IMAGE_TAG
 
       - name: eks kubectl apply chat

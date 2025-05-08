@@ -46,7 +46,7 @@ jobs:
       - name: eks kubectl apply gateway
         run: |
           kubectl apply -f ./gateway/k8s/k8sgateway.yml -n sp
-          kubectl rollout restart deployment k8sgateway -n sp
+          kubectl rollout restart deployment gateway -n sp
 
       #          유저
       - name: user build and push docker image to ecr
@@ -63,7 +63,7 @@ jobs:
       - name: eks kubectl apply user
         run: |
           kubectl apply -f ./user/k8s/userDepl.yml -n sp
-          kubectl rollout restart deployment userDepl -n sp
+          kubectl rollout restart deployment user -n sp
 
 #          포스트
       - name: post build and push docker image to ecr
@@ -86,7 +86,7 @@ jobs:
           kubectl apply -f ./post/k8s/rabbit.yml  -n sp
           kubectl rollout restart deployment rabbit  -n sp 
           kubectl apply -f ./post/k8s/postDepl.yml  -n sp
-          kubectl rollout restart deployment postDepl  -n sp 
+          kubectl rollout restart deployment post  -n sp 
 
 #          채팅
       - name: chat build and push docker image to ecr
@@ -103,7 +103,7 @@ jobs:
       - name: eks kubectl apply chat
         run: |
           kubectl apply -f ./chat/k8s/chatDepl.yml -n sp
-          kubectl rollout restart deployment chatDepl -n sp  
+          kubectl rollout restart deployment chat -n sp  
           
           
 

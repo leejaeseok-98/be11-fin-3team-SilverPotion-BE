@@ -1,5 +1,8 @@
 #?? ??
 spring:
+  config:
+    activate:
+      on-profile: local
   servlet:
     multipart:
       max-file-size: 10MB # 개별파일 최대 크기

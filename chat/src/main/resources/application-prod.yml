@@ -1,5 +1,10 @@
-
+eureka:
+  client:
+    enabled: false
 spring:
+  config:
+    activate:
+      on-profile: prod
   redis:
     host: ${REDIS_HOST}
     port: 6379

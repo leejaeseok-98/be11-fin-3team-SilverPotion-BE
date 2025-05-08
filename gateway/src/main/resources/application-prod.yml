@@ -1,5 +1,11 @@
+eureka:
+  client:
+    enabled: false
 #배포를 위해 유레카 관련 코드 삭제하고 쿠버네티스 설정이 추가됨. 더불어 uri를 쿠버네티스에 맞게 변경 lb->http로
 spring:
+  config:
+    activate:
+      on-profile: prod
   application:
     name: api-gateway
   cloud:
@@ -12,7 +18,7 @@ spring:
           '[/**]':
             allowedOrigins:
               - http://localhost:3000
-              - https://www.jy1187.shop
+              - https://www.silverpotion.site
             #              - https://d414-220-72-230-176.ngrok-free.app
             allowedMethods: '*'
             allowedHeaders: '*'
@@ -47,11 +53,11 @@ spring:
             - StripPrefix=1
           uri: ws://chat-service
 #      쿠버네티스 설정
-    kubernetes:
-      discovery:
-        enabled: true
-    loadbalancer:
-      mode: service
+#    kubernetes:
+#      discovery:
+#        enabled: true
+#    loadbalancer:
+#      mode: service
 
 
 jwt:

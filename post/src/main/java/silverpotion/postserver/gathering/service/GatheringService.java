@@ -407,9 +407,7 @@ public class GatheringService {
         // 상태 변경
         gatheringPeople.updateStatus(dto.getStatus());
 
-
         gatheringPeopleRepository.save(gatheringPeople);
-        // 저장
         if (gatheringPeople.getStatus() == Status.ACTIVATE) {
             // 가입 승인시 알림 발송
             NotificationMessageDto notification = NotificationMessageDto.builder()

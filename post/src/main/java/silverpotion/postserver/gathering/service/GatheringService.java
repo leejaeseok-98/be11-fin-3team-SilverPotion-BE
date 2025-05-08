@@ -319,6 +319,7 @@ public class GatheringService {
         return gatheringPeopleList.stream().map(gatheringPeople -> {
             // User 정보 조회
             UserProfileInfoDto profileInfo = userClient.getUserProfileInfo(gatheringPeople.getUserId());
+            String loginId = userClient.getLoginIdByUserId(gatheringPeople.getUserId());
 
             return new GatheringPeopleDto(
                     gatheringPeople.getId(),
@@ -328,7 +329,8 @@ public class GatheringService {
                     profileInfo.getProfileImage(),
                     gatheringPeople.getGreetingMessage(),
                     gatheringPeople.getStatus().name(),  // Enum -> String 변환
-                    gatheringPeople.getCreatedTime()
+                    gatheringPeople.getCreatedTime(),
+                    loginId
             );
         }).collect(Collectors.toList());
     }

@@ -35,7 +35,7 @@ jobs:
       - name: gateway build and push docker image to ecr
         env:
           REGISTRY: 418295678070.dkr.ecr.ap-northeast-2.amazonaws.com
-          REPOSITORY: gateway
+          REPOSITORY: silverpotion/gateway
           IMAGE_TAG: latest
         run: |
           docker build \
@@ -52,7 +52,7 @@ jobs:
       - name: user build and push docker image to ecr
         env:
           REGISTRY: 418295678070.dkr.ecr.ap-northeast-2.amazonaws.com
-          REPOSITORY: user
+          REPOSITORY: silverpotion/user
           IMAGE_TAG: latest
         run: |
           docker build \
@@ -69,7 +69,7 @@ jobs:
       - name: post build and push docker image to ecr
         env:
           REGISTRY: 418295678070.dkr.ecr.ap-northeast-2.amazonaws.com
-          REPOSITORY: post
+          REPOSITORY: silverpotion/post
           IMAGE_TAG: latest
         run: |
           docker build \
@@ -92,7 +92,7 @@ jobs:
       - name: chat build and push docker image to ecr
         env:
           REGISTRY: 418295678070.dkr.ecr.ap-northeast-2.amazonaws.com
-          REPOSITORY: chat
+          REPOSITORY: silverpotion/chat
           IMAGE_TAG: latest
         run: |
           docker build \

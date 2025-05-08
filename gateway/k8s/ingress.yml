@@ -9,10 +9,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - "server.jy1187.shop"
-      secretName: server-jy1187-com-tls
+        - "server.silverpotion.site"
+      secretName: server-silverpotion-site-tls
   rules:
-    - host: server.jy1187.shop
+    - host: server.silverpotion.site
       http:
         paths:
           - path: /
@@ -44,15 +44,15 @@ spec:
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: server-jy1187-com-tls
+  name: server-silverpotion-site-tls
   namespace: sp
 spec:
-  secretName: server-jy1187-com-tls
+  secretName: server-silverpotion-site-tls
   duration: 2160h #90day
   renewBefore: 360h #before 15day
   issuerRef:
     name: sp-issuer
     kind: ClusterIssuer
-  commonName: server.jy1187.shop
+  commonName: server.silverpotion.site
   dnsNames:
-    - server.jy1187.shop
+    - server.silverpotion.site

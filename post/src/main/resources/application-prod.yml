@@ -1,5 +1,11 @@
+eureka:
+  client:
+    enabled: false
 #유레카 설정 삭제 후 쿠버네티스 설정 추가
 spring:
+  config:
+    activate:
+      on-profile: prod
   servlet:
     multipart:
       max-file-size: 10MB # 개별파일 최대 크기

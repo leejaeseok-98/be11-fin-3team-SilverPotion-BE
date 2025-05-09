@@ -52,8 +52,8 @@ public class CommentService {
         this.notificationProducer = notificationProducer;
     }
 
-    public Long commentCreate(String loginId, CommentCreateDto commentCreateDto){
-        UserProfileInfoDto userProfileInfoDto = userClient.getUserProfileInfo(loginId);
+    public Long commentCreate(String commentWriterLoginId, CommentCreateDto commentCreateDto){
+        UserProfileInfoDto commentWriterProfileDto = userClient.getUserProfileInfo(commentWriterLoginId);
         Post post = null;
         Vote vote = null;
         if (commentCreateDto.getPostId() != null) {
@@ -65,7 +65,7 @@ public class CommentService {
             throw new IllegalArgumentException("PostId and VoteId cannot be null");
         }
         Comment comment = Comment.builder()
-                .userId(userProfileInfoDto.getUserId())
+                .userId(commentWriterProfileDto.getUserId())
                 .post(post)
                 .vote(vote)
                 .content(commentCreateDto.getContent())
@@ -73,16 +73,17 @@ public class CommentService {
 
         commentRepository.save(comment);
 
+        String postWriterLoginId = userClient.getLoginIdByUserId(post.getWriterId());
         //댓글 알림발송
-        String writerLoginId = userClient.getLoginIdByUserId(post.getWriterId());
-
-        notificationProducer.sendNotification(NotificationMessageDto.builder()
-                .loginId(writerLoginId)
-                .title("댓글 알림")
-                .content("'" + userProfileInfoDto.getNickname() + "'님이 회원님의 게시글에 댓글을 달았습니다.")
-                .type("POST_COMMENT")
-                .referenceId(post.getId())
-                .build());
+        if(!post.getWriterId().equals(commentWriterProfileDto.getUserId())) {
+            notificationProducer.sendNotification(NotificationMessageDto.builder()
+                    .loginId(postWriterLoginId)
+                    .title("댓글 알림")
+                    .content("'" + commentWriterProfileDto.getNickname() + "'님이 회원님의 게시글에 댓글을 달았습니다.")
+                    .type("POST_COMMENT")
+                    .referenceId(post.getId())
+                    .build());
+        }
         // PostId가 null일 수 있으니 반환도 조정 필요
         return (post != null) ? post.getId() : vote.getVoteId();
     }

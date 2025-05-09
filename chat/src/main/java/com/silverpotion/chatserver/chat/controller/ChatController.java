@@ -18,7 +18,7 @@ import java.util.List;
 
 @RestController
 @RequestMapping("/chat")
-@CrossOrigin(origins = "http://localhost:3000") // ✅ 꼭 추가
+@CrossOrigin(origins = {"http://localhost:3000", "https://www.silverpotion.site"}) // ✅ 꼭 추가
 public class ChatController {
     private final ChatRoomService chatRoomService;
     private final UserFeign userFeign;

@@ -22,7 +22,7 @@ public class StompWebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/connect")
-                .setAllowedOrigins("www.silverpotion.site")
+                .setAllowedOrigins("https://www.silverpotion.site")
                 .addInterceptors(interceptor)
                 .setHandshakeHandler(new CustomHandshakeHandler())
                 .withSockJS();

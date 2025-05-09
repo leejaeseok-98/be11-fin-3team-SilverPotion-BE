@@ -21,6 +21,7 @@ import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 import silverpotion.postserver.post.repository.PostRepository;
 import silverpotion.postserver.post.repository.VoteRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -73,16 +74,15 @@ public class CommentService {
         commentRepository.save(comment);
 
         //댓글 알림발송
-        String writerLoginId = userClient.getNicknameByUserId(post.getWriterId());
-        NotificationMessageDto notification = NotificationMessageDto.builder()
+        String writerLoginId = userClient.getLoginIdByUserId(post.getWriterId());
+
+        notificationProducer.sendNotification(NotificationMessageDto.builder()
                 .loginId(writerLoginId)
                 .title("댓글 알림")
                 .content("'" + userProfileInfoDto.getNickname() + "'님이 회원님의 게시글에 댓글을 달았습니다.")
                 .type("POST_COMMENT")
                 .referenceId(post.getId())
-                .build();
-
-        notificationProducer.sendNotification(notification);
+                .build());
         // PostId가 null일 수 있으니 반환도 조정 필요
         return (post != null) ? post.getId() : vote.getVoteId();
     }

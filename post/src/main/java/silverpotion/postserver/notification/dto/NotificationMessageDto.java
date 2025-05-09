@@ -17,4 +17,5 @@ public class NotificationMessageDto {
     private String content;
     private String type;        // 예: JOIN_REQUEST, COMMENT 등
     private Long referenceId;   // 관련 ID (ex. 게시글 ID, 모임 ID 등)
+    private LocalDateTime createdAt;
 }

@@ -20,6 +20,7 @@ import silverpotion.postserver.post.repository.PostRepository;
 import silverpotion.postserver.post.repository.VoteLikeRepository;
 import silverpotion.postserver.post.repository.VoteRepository;
 
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -95,15 +96,14 @@ public class PostLikeService {
 
         String writerLoginId = userClient.getLoginIdByUserId(post.getWriterId());
         String likeNickName = userClient.getNicknameByUserId(userId);
-        NotificationMessageDto notification = NotificationMessageDto.builder()
+
+        notificationProducer.sendNotification(NotificationMessageDto.builder()
                 .loginId(writerLoginId)
                 .title("좋아요 알림")
                 .content("'" + likeNickName + "'님이 회원님의 게시글에 좋아요를 눌렀습니다.")
                 .type("POST_LIKE")
                 .referenceId(postId)
-                .build();
-
-        notificationProducer.sendNotification(notification);
+                .build());
         return new PostLikeResDto(likeCount,isLike);
     }
 
@@ -151,15 +151,13 @@ public class PostLikeService {
         if (!userId.equals(writerId)) { // 자기 자신이 좋아요 누른 경우 제외
             String writerLoginId = userClient.getLoginIdByUserId(writerId);
 
-            NotificationMessageDto notification = NotificationMessageDto.builder()
+            notificationProducer.sendNotification(NotificationMessageDto.builder()
                     .loginId(writerLoginId)
                     .title("좋아요 알림")
                     .content("'" + voteNickName + "'님이 회원님의 게시글에 좋아요를 눌렀습니다.")
                     .type("POST_LIKE")
                     .referenceId(voteId)
-                    .build();
-
-            notificationProducer.sendNotification(notification);
+                    .build());
         }
         return new PostLikeResDto(vote.getLikeCount(),isLike);
     }

@@ -42,7 +42,7 @@ public class CareRelationService {
         NotificationMessageDto notification = NotificationMessageDto.builder()
                 .loginId(dependent.getLoginId()) // 피보호자에게 발송
                 .title("보호 요청 도착")
-                .content(protector.getNickName() + "님이 보호 관계 요청을 보냈습니다.")
+                .content(protector.getName() + "님이 보호 관계 요청을 보냈습니다.")
                 .type("CARE_REQUEST")
                 .referenceId(careRelation.getId()) // 상세보기 등 라우팅에 활용 가능
                 .build();
@@ -63,7 +63,7 @@ public class CareRelationService {
         NotificationMessageDto notification = NotificationMessageDto.builder()
                 .loginId(protector.getLoginId()) // 피보호자에게 발송
                 .title("보호 요청 도착")
-                .content(protector.getNickName() + "님이 보호 관계 요청을 보냈습니다.")
+                .content(protector.getName() + "님이 보호 관계 요청을 보냈습니다.")
                 .type("CARE_REQUEST")
                 .referenceId(careRelation.getId()) // 상세보기 등 라우팅에 활용 가능
                 .build();
@@ -135,6 +135,29 @@ public class CareRelationService {
         return x; //연결이 끊긴 보호자의 이름을 리턴
     }
 
+//    프론트에 맞춰 추기
+//    관계 요청 수락
+    public void acceptLink(Long id,String loginId){
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        //프론트에서 관계ID받아서 해당 관계객체 가지고 옴
+        CareRelation careRelation = careRelationRepository.findByIdAndLinkStatus(id,LinkStatus.PENDING).orElseThrow(()->new EntityNotFoundException("없는 관계입니다"));
+        //해당 관계의 상태를 PENDING에서 CONNECTED로 변경
+        careRelation.changeMyStatus("yes");
+    }
+
+    public void rejectLink(Long id, String loginId){
+       //user는 관계요청을 보낸사람으로 피보호자인지 보호자인지는 모름
+        User user = userRepository.findByLoginIdAndDelYN(loginId,DelYN.N).orElseThrow(()->new EntityNotFoundException("없는 회원입니다"));
+        CareRelation careRelation = careRelationRepository.findByIdAndLinkStatus(id,LinkStatus.PENDING).orElseThrow(()->new EntityNotFoundException("없는 관계입니다"));
+        careRelation.changeMyStatus("no");
+        //관계 요청 보낸사람 거절당했으므로 힐링포션 1개 다시 증가시켜줘야함
+        user.updateMyHealingPotion(+1);
+
+        }
+    }
 
 
-}
+
+
+
+

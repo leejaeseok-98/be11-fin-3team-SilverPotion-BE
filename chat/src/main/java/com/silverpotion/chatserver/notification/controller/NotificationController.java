@@ -6,6 +6,7 @@ import com.silverpotion.chatserver.notification.domain.Notification;
 import com.silverpotion.chatserver.notification.dto.NotificationCreateDto;
 import com.silverpotion.chatserver.notification.dto.NotificationMessageDto;
 import com.silverpotion.chatserver.notification.repository.NotificationRepository;
+import com.silverpotion.chatserver.notification.service.KafkaSseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,7 @@ public class NotificationController {
 
     private final SseController sseController;
     private final NotificationRepository notificationRepository;
+    private final KafkaSseService kafkaSseService;
 
     @PostMapping("/send")
     public ResponseEntity<Void> send(@RequestBody NotificationCreateDto dto) {
@@ -37,6 +39,10 @@ public class NotificationController {
     }
     @GetMapping("/list")
     public List<Notification> getMyNotifications(@RequestHeader("X-User-LoginId") String loginId) {
-        return notificationRepository.findByLoginIdOrderByCreatedAtDesc(loginId);
+        return notificationRepository.findByLoginIdAndIsReadFalseOrderByCreatedAtDesc(loginId);
+    }
+    @PostMapping("/{id}/read")
+    public void markNotificationAsRead(@PathVariable("id") Long id) {
+        kafkaSseService.markAsRead(id);
     }
 }

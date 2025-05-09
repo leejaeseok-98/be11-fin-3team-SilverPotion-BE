@@ -11,6 +11,7 @@ import com.silverpotion.chatserver.notification.domain.Notification;
 import com.silverpotion.chatserver.notification.dto.NotificationCreateDto;
 import com.silverpotion.chatserver.notification.dto.NotificationMessageDto;
 import com.silverpotion.chatserver.notification.repository.NotificationRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -120,5 +121,8 @@ public class KafkaSseService {
             log.error("❌ 알림 처리 실패", e);
         }
     }
-
+    @Transactional
+    public void markAsRead(Long notificationId) {
+        notificationRepository.markAsReadById(notificationId);
+    }
 }

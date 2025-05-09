@@ -284,22 +284,17 @@
 ---
 
 ## 📑 CI/CD 계획서 (시스템 통합)
-| 항목 | 내용 |
-|:------------------|:-------------------------------|
-| 자동화 도구 | GitHub Actions, Docker |
-| 배포 환경 | AWS EC2 / ECS |
-| 테스트 방식 | 단위/통합 자동 테스트 포함 |
+<div align="center">
+  <img src= https://github.com/beyond-sw-camp/be11-fin-3team-SilverPotion-BE/blob/main/img/cicd.png >
+</div>
 
-👉 [📎 문서 보기](./docs/CICD_계획서.pdf)
 
 ---
 
 ## 🚀 배포 및 운영
 
-- 운영 URL : [https://yourproject.com](https://yourproject.com)
-- 배포 환경 : AWS / Vercel / 기타
-- 컨테이너 이미지 : `yourproject:latest`
-
+- 운영 URL : [https://www.silverpotion.site](https://www.silverpotion.site)
+- 배포 환경 : AWS 
 ---
 
 ## 👨‍👩‍👧‍👦 팀원 정보

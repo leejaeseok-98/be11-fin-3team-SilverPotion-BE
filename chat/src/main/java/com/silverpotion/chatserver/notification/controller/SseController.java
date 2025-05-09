@@ -26,7 +26,7 @@ public class SseController {
 
     @CrossOrigin(origins = "http://localhost:3000", allowCredentials = "true")
     @GetMapping("/subscribe")
-    public SseEmitter subscribe(@RequestParam String loginId) {
+    public SseEmitter subscribe(@RequestParam String loginId) {// RequestParam 으로 loginId 받아오는거 위험함 나중에 헤더로 받아오는거 생각해야함
         System.out.println("subscribe loginUser: " + loginId);
         if (emitterMap.containsKey(loginId)) {
             SseEmitter oldEmitter = emitterMap.get(loginId);

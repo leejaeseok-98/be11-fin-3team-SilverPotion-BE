@@ -140,8 +140,6 @@
                     NoticePostUpdateDto noticeDto = (NoticePostUpdateDto) dto;
                     saveNoticePost(post, userId, noticeDto);
 
-                    // ✅ 공지 알림 발송
-                    sendNoticeToGatheringMembers(post);
                     return noticeDto;
 
                 default:
@@ -149,27 +147,7 @@
             }
 
         }
-        private void sendNoticeToGatheringMembers(Post post) {
-            Long gatheringId = post.getGathering().getId();
 
-            // 1. 모임의 모든 활성화된 멤버 조회
-            List<GatheringPeople> members = gatheringPeopleRepository.findByUserIdAndStatus(gatheringId, Status.ACTIVATE);
-
-            // 2. 각 멤버에게 알림 발송
-            for (GatheringPeople member : members) {
-                String memberLoginId = userClient.getLoginIdByUserId(member.getUserId());
-
-                NotificationMessageDto notification = NotificationMessageDto.builder()
-                        .loginId(memberLoginId)
-                        .title("📢 새로운 공지")
-                        .content("'" + post.getTitle() + "' 공지가 등록/수정되었습니다.")
-                        .type("NOTICE_UPDATED")
-                        .referenceId(post.getId())
-                        .build();
-
-                notificationProducer.sendNotification(notification);
-            }
-        }
     //    투표 저장
         public VotePostUpdateDto saveVote(Long voteId, String loginId, VotePostUpdateDto dto){
             Vote vote = voteRepository.findVoteByVoteId(voteId).orElseThrow(()->new EntityNotFoundException("투표가 없습니다."));
@@ -204,8 +182,28 @@
                     postFileRepository.save(new PostFile(post, fileUrl));
                 }
             }
+            // ✅ 공지 알림 발송
+            sendNoticeToGatheringMembers(post);
         }
+        private void sendNoticeToGatheringMembers(Post post) {
+            Long gatheringId = post.getGathering().getId();
 
+            // 1. 모임의 모든 활성화된 멤버 조회
+            List<GatheringPeople> members = gatheringPeopleRepository.findByGatheringId(gatheringId);
+
+            // 2. 각 멤버에게 알림 발송
+            for (GatheringPeople member : members) {
+                String memberLoginId = userClient.getLoginIdByUserId(member.getUserId());
+
+                notificationProducer.sendNotification(NotificationMessageDto.builder()
+                        .loginId(memberLoginId)
+                        .title("📢 새로운 공지")
+                        .content("'" + post.getTitle() + "' 공지가 등록되었습니다.")
+                        .type("NOTICE_UPDATED")
+                        .referenceId(post.getId())
+                        .build());
+            }
+        }
         // 4. 투표 게시물 저장
         private void saveVotePost(Vote vote, Long userId, VotePostUpdateDto dto) {
             List<VotePostUpdateDto.VoteOptionDto> optionsDtos = dto.getVoteOptions(); //dto에서 옵션 문자열 리스트 추출

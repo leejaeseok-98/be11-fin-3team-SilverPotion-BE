@@ -24,7 +24,7 @@ public class SseController {
     private final ChatParticipantRepository chatParticipantRepository;
     private final UserFeign userFeign;
 
-    @CrossOrigin(origins = "www.silverpotion.site", allowCredentials = "true")
+    @CrossOrigin(origins = "https://www.silverpotion.site", allowCredentials = "true")
     @GetMapping("/subscribe")
     public SseEmitter subscribe(@RequestParam String loginId) {// RequestParam 으로 loginId 받아오는거 위험함 나중에 헤더로 받아오는거 생각해야함
         System.out.println("subscribe loginUser: " + loginId);

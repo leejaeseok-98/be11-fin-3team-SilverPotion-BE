@@ -20,6 +20,7 @@ import silverpotion.userserver.user.domain.DelYN;
 import silverpotion.userserver.user.domain.User;
 import silverpotion.userserver.user.dto.UserPromptDto;
 import silverpotion.userserver.user.repository.UserRepository;
+import silverpotion.userserver.userDetailHealthInfo.domain.UserDetailHealthInfo;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -149,7 +150,8 @@ public class HealthReportService {
         Map<String, Object> requestBody = Map.of(
                 "model", "gpt-4o",
                 "messages", new Object[]{
-                        Map.of("role", "system", "content","너는 내 나이와 성별을 고려해서 이번 주 건강데이터에 대한 설명을 해줘야 해. 전반적인 요약 , 걸음수, 심박수, 소모칼로리, 수면에 대해 답을 하고" +
+                        Map.of("role", "system", "content","너는 내 나이와 성별을 고려해서 이번 주 건강데이터에 대한 설명을 해줘야 해." +
+                                "전반적인 요약 , 걸음수, 심박수, 소모칼로리, 수면에 대해 답을 하고" +
                                 "답은  다음 형식의 json 문자열로 응답해줘. 각 카테고리는 반드시 포함되어야 하고 그 외에는 아무 말도 하지마. 앞에 json이라고 붙이지도 말고 딱 json문자열로만 답해 " + "{\n" +
                                 "  \"걸음\": \"이번 주 평균 걸음 수는 8000보입니다. 적당한 활동량입니다.\",\n" +
                                 "  \"심박수\": \"평균 심박수는 79bpm으로 안정적인 상태입니다.\",\n" +
@@ -157,7 +159,8 @@ public class HealthReportService {
                                 "  \"수면\": \"평균 수면 시간은 6시간으로 부족합니다. 최소 7시간 이상 수면을 취해보세요.\",\n" +
                                 "  \"전반적인 요약\": \"건강 지표는 전반적으로 양호하지만 수면 개선과 운동량 증가가 필요합니다.\"\n" +
                                 "}\n"+
-                                "각 카테고리마다 분량은 4~500자 정도이고 나의 데이터를 나와 비슷한 연령대와 성별을 가진 사람들과 비교해서 상태를 말해주고 또 구체적으로 어떤 행동이나 운동, 섭취해야할 영양소나 음식 등을 망라해서 해야할 것 들을 추천해줘 , 저번주 건강데이터는 이러니까 이번주는 어떻게 해야하는 지 종합적인 답을해줘."),
+                                "각 카테고리마다 분량은 4~500자 정도이고 나의 데이터를 나와 비슷한 연령대와 성별을 가진 사람들과 비교해서 상태를 말해주고 또 구체적으로 어떤 행동이나 운동, 섭취해야할 영양소나 음식 등을 망라해서 해야할 것 들을 추천해줘 , 저번주 건강데이터는 이러니까 이번주는 어떻게 해야하는 지 종합적인 답을해줘." +
+                                "만약 내 프롬프트에 질병과 평소 흡연,음주,운동습관도 있다면 그것까지도 고려해서 대답을 해줘"),
                         Map.of("role", "user", "content", promtInfo.getPrompt())
                 },
                 "temperature", 0.7 //temperature은 답변의 창의성 정도
@@ -210,7 +213,8 @@ public class HealthReportService {
                         "  \"수면\": \"평균 수면 시간은 6시간으로 부족합니다. 최소 7시간 이상 수면을 취해보세요.\",\n" +
                         "  \"전반적인 요약\": \"건강 지표는 전반적으로 양호하지만 수면 개선과 운동량 증가가 필요합니다.\"\n" +
                         "}\n"+
-                        "각 카테고리마다 분량은 4~500자 정도이고 나의 데이터를 나와 비슷한 연령대와 성별을 가진 사람들과 비교해서 상태를 말해주고 또 구체적으로 어떤 행동이나 운동, 섭취해야할 영양소나 음식 등을 망라해서 해야할 것 들을 추천해줘 , 저번달 건강데이터에 기반해 이번달은 어떻게 해야하는 지 관련해서 종합적인 답을 해줘."),
+                        "각 카테고리마다 분량은 4~500자 정도이고 나의 데이터를 나와 비슷한 연령대와 성별을 가진 사람들과 비교해서 상태를 말해주고 또 구체적으로 어떤 행동이나 운동, 섭취해야할 영양소나 음식 등을 망라해서 해야할 것 들을 추천해줘 , 저번달 건강데이터에 기반해 이번달은 어떻게 해야하는 지 관련해서 종합적인 답을 해줘." +
+                                "만약 내 프롬프트에 질병과 평소 흡연,음주,운동습관도 있다면 그것까지도 고려해서 대답을 해줘"),
                         Map.of("role", "user", "content", promtInfo.getPrompt())
                 },
                 "temperature", 0.7 //temperature은 답변의 창의성 정도
@@ -352,14 +356,27 @@ public class HealthReportService {
         HealthData weekData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(
                 user.getId(), today, DataType.WEEKAVG
         ).orElseThrow(() -> new EntityNotFoundException("주간 헬스데이터가 없습니다."));
+      //사용자가 건강프로필을 작성한 유저라면
+        UserDetailHealthInfo info = user.getUserDetailHealthInfo();
+       String prompt ="";
+        if(info!= null){
+             prompt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+", 질병 : " + info.getDisease() + ", 흡연습관 : " + info.getSmokingHabit()+
+                    ", 음주습관 : " + info.getAlcoholHabit()+",운동습관 : " + info.getExerciseHabit()+
+                    ", 저번 주 평균 걸음 횟수 " + weekData.getStep() + "저번 주 평균 심박수 :" + weekData.getHeartbeat()
+                    +", 저번 주 평균 걸은 거리 : " + weekData.getDistance() + "저번 주 평균 소모 칼로리 : " + weekData.getCalory()
+                    +", 저번 주  평균 총 수면시간(분) : " + weekData.getTotalSleepMinutes() + "저번 주 평균 깊은 수면시간(분) : " +weekData.getDeepSleepMinutes()
+                    +", 저번 주 평균 렘 수면시간(분) : " + weekData.getRemSleepMinutes() + "저번주 평균 얉은 수면시간(분) : " + weekData.getLightSleepMinutes();
+        } else{
+            prompt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+
+                    ", 저번 주 평균 걸음 횟수 " + weekData.getStep() + "저번 주 평균 심박수 :" + weekData.getHeartbeat()
+                    +", 저번 주 평균 걸은 거리 : " + weekData.getDistance() + "저번 주 평균 소모 칼로리 : " + weekData.getCalory()
+                    +", 저번 주  평균 총 수면시간(분) : " + weekData.getTotalSleepMinutes() + "저번 주 평균 깊은 수면시간(분) : " +weekData.getDeepSleepMinutes()
+                    +", 저번 주 평균 렘 수면시간(분) : " + weekData.getRemSleepMinutes() + "저번주 평균 얉은 수면시간(분) : " + weekData.getLightSleepMinutes();
+        }
 
-        String promt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+
-                ", 저번 주 평균 걸음 횟수 " + weekData.getStep() + "저번 주 평균 심박수 :" + weekData.getHeartbeat()
-                +", 저번 주 평균 걸은 거리 : " + weekData.getDistance() + "저번 주 평균 소모 칼로리 : " + weekData.getCalory()
-                +", 저번 주  평균 총 수면시간(분) : " + weekData.getTotalSleepMinutes() + "저번 주 평균 깊은 수면시간(분) : " +weekData.getDeepSleepMinutes()
-                +", 저번 주 평균 렘 수면시간(분) : " + weekData.getRemSleepMinutes() + "저번주 평균 얉은 수면시간(분) : " + weekData.getLightSleepMinutes();
 
-        return UserPromptDto.builder().healthData(weekData).prompt(promt).build();
+
+        return UserPromptDto.builder().healthData(weekData).prompt(prompt).build();
     }
 
     public UserPromptDto createMonthPrompt(User user) {
@@ -367,14 +384,27 @@ public class HealthReportService {
         HealthData MonthData = healthDataRepository.findByUserIdAndCreatedDateAndDataType(
                 user.getId(), today, DataType.MONTHAVG
         ).orElseThrow(() -> new EntityNotFoundException("월간 헬스데이터가 없습니다."));
+        UserDetailHealthInfo info = user.getUserDetailHealthInfo();
+        String prompt ="";
+        if(info!=null){
+            prompt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+", 질병 : " + info.getDisease() + ", 흡연습관 : " + info.getSmokingHabit()+
+                    ", 음주습관 : " + info.getAlcoholHabit()+",운동습관 : " + info.getExerciseHabit()+
+                    ", 저번 달 평균 걸음 횟수 " + MonthData.getStep() + "저번 달 평균 심박수 :" + MonthData.getHeartbeat()
+                    +", 저번 달 평균 걸은 거리 : " + MonthData.getDistance() + "저번 달 평균 소모 칼로리 : " + MonthData.getCalory()
+                    +", 저번 달  평균 총 수면시간(분) : " + MonthData.getTotalSleepMinutes() + "저번 달 평균 깊은 수면시간(분) : " +MonthData.getDeepSleepMinutes()
+                    +", 저번 달 평균 렘 수면시간(분) : " + MonthData.getRemSleepMinutes() + "저번 달 평균 얉은 수면시간(분) : " + MonthData.getLightSleepMinutes();
 
-        String promt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+
-                ", 저번 달 평균 걸음 횟수 " + MonthData.getStep() + "저번 달 평균 심박수 :" + MonthData.getHeartbeat()
-                +", 저번 달 평균 걸은 거리 : " + MonthData.getDistance() + "저번 달 평균 소모 칼로리 : " + MonthData.getCalory()
-                +", 저번 달  평균 총 수면시간(분) : " + MonthData.getTotalSleepMinutes() + "저번 달 평균 깊은 수면시간(분) : " +MonthData.getDeepSleepMinutes()
-                +", 저번 달 평균 렘 수면시간(분) : " + MonthData.getRemSleepMinutes() + "저번 달 평균 얉은 수면시간(분) : " + MonthData.getLightSleepMinutes();
+        } else{
+            prompt ="나이 : " + user.myAge() +", 성별 : " + user.mySex()+
+                    ", 저번 달 평균 걸음 횟수 " + MonthData.getStep() + "저번 달 평균 심박수 :" + MonthData.getHeartbeat()
+                    +", 저번 달 평균 걸은 거리 : " + MonthData.getDistance() + "저번 달 평균 소모 칼로리 : " + MonthData.getCalory()
+                    +", 저번 달  평균 총 수면시간(분) : " + MonthData.getTotalSleepMinutes() + "저번 달 평균 깊은 수면시간(분) : " +MonthData.getDeepSleepMinutes()
+                    +", 저번 달 평균 렘 수면시간(분) : " + MonthData.getRemSleepMinutes() + "저번 달 평균 얉은 수면시간(분) : " + MonthData.getLightSleepMinutes();
+        }
 
-        return UserPromptDto.builder().healthData(MonthData).prompt(promt).build();
+
+
+        return UserPromptDto.builder().healthData(MonthData).prompt(prompt).build();
     }
 
 

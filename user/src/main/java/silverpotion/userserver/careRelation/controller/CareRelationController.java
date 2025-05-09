@@ -73,6 +73,21 @@ public class CareRelationController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"relation is disconnected",dependentName),HttpStatus.OK);
     }
 
+//    프론트에 맞춰 추가
+//    관계 요청 수락
+    @PostMapping("/accept/{referenceId}")
+    public ResponseEntity<?> acceptLink(@PathVariable("referenceId")Long id, @RequestHeader("X-User-LoginId")String loginId){
+        careRelationService.acceptLink(id,loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success","connected"),HttpStatus.OK);
+    }
+
+    //    관계 요청 거절
+    @PostMapping("/reject/{referenceId}")
+    public ResponseEntity<?> rejectLink(@PathVariable("referenceId")Long id, @RequestHeader("X-User-LoginId")String loginId){
+        careRelationService.rejectLink(id,loginId);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"reject","rejected"),HttpStatus.OK);
+    }
+
 
 
 

@@ -279,7 +279,144 @@
 
 ## 📑 배포 후 통합 테스트 결과서 (시스템 통합)
 - 통합 테스트 항목 및 결과 요약
-  👉 [📎 문서 보기](./docs/배포후_통합_테스트_결과서.pdf)
+## 📑 배포 후 통합 테스트 결과서 (시스템 통합)
+- 통합 테스트 항목 및 결과 요약
+
+#### - 로그인 및 회원가입-
+<details>
+  <summary> 메인페이지</summary>
+  <img src="https://github.com/user-attachments/assets/fea35d41-6871-48ba-a5e1-db53834cc43">
+</details>
+<details>
+  <summary> 로그인</summary>
+  <img src="https://github.com/user-attachments/assets/c84276a3-9cf5-418a-9035-a4cc29f978f7">
+</details>
+<details>
+  <summary> 회원가입</summary>
+  <img src="https://github.com/user-attachments/assets/b87ae5bd-9da7-4964-80a7-7139e1f5911d">
+</details>
+
+#### - 건강데이터-
+<details>
+<summary> 본인 건강데이터 조회</summary>
+  <img src="https://github.com/user-attachments/assets/00ec16bf-0e35-49ea-9ae7-f2e583ea0f4c">
+</details>
+<details>
+<summary> 건강리포트 작성 및 건강지수 조회</summary>
+  <img src="https://github.com/user-attachments/assets/79f2b519-0acc-44b8-b962-ef9e802a780d
+">
+</details>
+<details>
+<summary> 소모임 추천</summary>
+  <img src="https://github.com/user-attachments/assets/e98f525e-dc6d-41d9-9932-7edb57f77048
+">
+</details>
+
+#### - 모임-
+<details>
+<summary>소모임 생성</summary>
+  <img src="https://github.com/user-attachments/assets/a2f80d17-514c-47e7-bfc5-520dddc41767">
+</details>
+<details>
+<summary>활동 지역 설정</summary>
+  <img src="https://github.com/user-attachments/assets/b2ee1af4-5515-47df-b8c5-d28421f6d0e">
+</details>
+
+<details>  
+<summary>모임 가입</summary>
+  <img src="https://github.com/user-attachments/assets/6c23f63b-5074-4fa0-9482-a1d7da32a9e7">
+</details>
+
+<details>
+<summary>정모 생성 및 취소</summary>
+  <img src="https://github.com/user-attachments/assets/d6413c55-4614-4613-94e9-3ea8777eb951">
+</details>
+<details>
+<summary>정모 수정</summary>
+  <img src="https://github.com/user-attachments/assets/ae25719f-5eed-4c20-b7b4-e5b6f597f968">
+</details>
+<details>
+<summary>주변 정모</summary>
+  <img src="https://github.com/user-attachments/assets/1f637db5-7451-42fd-9176-549633726ee4">
+</details>
+
+<details>
+<summary>추천 정모</summary>
+  <img src="https://github.com/user-attachments/assets/de11554f-4b8f-4daf-b351-755ba89ce167">
+</details>
+
+<details>
+<summary>정모 신고</summary>
+  <img src="https://github.com/user-attachments/assets/00605c90-987a-432e-99df-bb6fcf40690">
+</details>
+
+<details>
+<summary>모임 검색</summary>
+  <img src="https://github.com/user-attachments/assets/ebf91df5-ce7c-4f54-b6b6-9f334ce5d46">
+</details>
+
+<details>
+<summary>모임 및 게시판 조회</summary>
+  <img src="https://github.com/user-attachments/assets/04858dde-ed1a-4338-956b-bdc95ad06982">
+</details>
+<details>
+<summary>정모 생성 및 취소</summary>
+  <img src="https://github.com/user-attachments/assets/d6413c55-4614-4613-94e9-3ea8777eb951">
+</details>
+<details>
+<summary>날짜별 정</summary>
+  <img src="https://github.com/user-attachments/assets/d7de3ece-fa4c-45c7-b10a-c86809e7cc94">
+</details>
+<details>
+<summary>자유글 생성</summary>
+  <img src="https://github.com/user-attachments/assets/1e877229-cd42-4218-97e7-3ac545dc3414">
+</details>
+<details>
+<summary>투표글 생성</summary>
+  <img src="https://github.com/user-attachments/assets/30ec584e-9035-46b4-ac88-d06e857449c6">
+</details>
+
+<details>
+<summary>댓글 CRUD</summary>
+  <img src="https://github.com/user-attachments/assets/4f4053d6-3673-4cd9-a0a3-fff49239686b">
+</details>
+<details>
+<summary>대댓글 CRUD</summary>
+  <img src="https://github.com/user-attachments/assets/754e8a0b-c6b2-4799-a336-89d9869094c0">
+</details>
+
+
+#### - 채팅-
+<details>
+<summary>채팅</summary>
+  <img src="https://github.com/user-attachments/assets/88f8c827-64be-4730-8e2b-11729f3629a4">
+</details>
+
+#### - 마이캘린더-
+<details>
+<summary>캘린더 디자인</summary>
+  <img src="https://github.com/user-attachments/assets/4d930bfb-5936-4578-8053-52df1ecb8fe0">
+</details>
+<details>
+<summary>캘린더CRUD</summary>
+  <img src="https://github.com/user-attachments/assets/80fe8083-2f93-4c56-9fb9-8ba055b5c9f5">
+</details>
+<details>
+<summary>캘린더 정모 자동 등록</summary>
+  <img src="https://github.com/user-attachments/assets/72d71352-fbf4-485c-8623-f57eb05aeed4">
+</details>
+
+
+#### - 관리자페이지-
+<details>
+<summary>관리자유저목록</summary>
+  <img src="https://github.com/user-attachments/assets/3f0e3d43-73b9-4013-97af-dd88735f09d0">
+</details>
+<details>
+<summary>관리자유저정지</summary>
+  <img src="https://github.com/user-attachments/assets/f377cea9-4580-4326-9dbb-8e14fc6734b8">
+</details>
+
 
 ---
 

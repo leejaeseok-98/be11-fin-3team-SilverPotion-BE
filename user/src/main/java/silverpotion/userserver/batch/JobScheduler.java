@@ -33,14 +33,14 @@ public class JobScheduler {
         this.redissonClient = redissonClient;
     }
 
-    // 1. 서버 시작 시 최초 1회 실행
-    @PostConstruct
-    public void runOnceOnStartup() {
-        System.out.println("서버 시작 시 일회성 배치 실행 시작");
-        runDailyHealthReportJob(); // 동일 메서드 호출
-        runWeeklyHealthDataJob();
-        runMonthlyHealthDataJob();
-    }
+//    // 1. 서버 시작 시 최초 1회 실행
+//    @PostConstruct
+//    public void runOnceOnStartup() {
+//        System.out.println("서버 시작 시 일회성 배치 실행 시작");
+//        runDailyHealthReportJob(); // 동일 메서드 호출
+//        runWeeklyHealthDataJob();
+//        runMonthlyHealthDataJob();
+//    }
 
 
 

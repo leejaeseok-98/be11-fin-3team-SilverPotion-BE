@@ -20,7 +20,12 @@ spring:
               - http://localhost:3000
               - https://www.silverpotion.site
             #              - https://d414-220-72-230-176.ngrok-free.app
-            allowedMethods: '*'
+            allowedMethods:
+              - GET
+              - POST
+              - PUT
+              - DELETE
+              - OPTIONS
             allowedHeaders: '*'
             allowedCredentials: true
       routes:

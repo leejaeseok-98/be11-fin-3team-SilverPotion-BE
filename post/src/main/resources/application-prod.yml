@@ -65,10 +65,10 @@ cloud:
     s3:
       bucket: silverpotion
 
-#opensearch:
-#  host: ${OPENSEARCH_HOST}
-#  port: 443
-#  scheme: https
-#  username: silverpotion
-#  password: ${OPENSEARCH_PW}
+opensearch:
+  host: ${OPENSEARCH_HOST}
+  port: 443
+  scheme: https
+  username: silverpotion
+  password: ${OPENSEARCH_PW}
 

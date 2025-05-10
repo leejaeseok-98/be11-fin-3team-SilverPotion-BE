@@ -16,7 +16,9 @@ import silverpotion.postserver.meeting.domain.MeetingParticipant;
 import silverpotion.postserver.meeting.dto.*;
 import silverpotion.postserver.meeting.repository.MeetingParticipantRepository;
 import silverpotion.postserver.meeting.repository.MeetingRepository;
-//import silverpotion.postserver.opensearch.OpenSearchService;
+import silverpotion.postserver.opensearch.MeetingSearchRequest;
+import silverpotion.postserver.opensearch.MeetingSearchResultDto;
+import silverpotion.postserver.opensearch.OpenSearchService;
 import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
@@ -36,17 +38,17 @@ public class MeetingService {
     private final ImageService imageService;
     private final MeetingParticipantRepository meetingParticipantRepository;
     private final CalendarService calendarService;
-//    private final OpenSearchService openSearchService;
+    private final OpenSearchService openSearchService;
 
     public MeetingService(MeetingRepository meetingRepository, GatheringRepository gatheringRepository, UserClient userClient, ImageService imageService, MeetingParticipantRepository meetingParticipantRepository, CalendarService calendarService
-//                          , OpenSearchService openSearchService
+                          , OpenSearchService openSearchService
     ) {
         this.meetingRepository = meetingRepository;
         this.gatheringRepository = gatheringRepository;
         this.userClient = userClient;
         this.imageService = imageService;
         this.meetingParticipantRepository = meetingParticipantRepository;
-//        this.openSearchService = openSearchService;
+        this.openSearchService = openSearchService;
         this.calendarService = calendarService;
     }
 
@@ -114,7 +116,7 @@ public class MeetingService {
         calendarService.registerMeetingEvent(meeting, loginId);
 
         // OpenSearch index 저장
-//        openSearchService.indexMeeting(meeting);
+        openSearchService.indexMeeting(meeting);
     }
 
     // 정모 수정
@@ -166,7 +168,7 @@ public class MeetingService {
         meetingRepository.save(meeting);
 
         // OpenSearch index 저장
-//        openSearchService.indexMeeting(meeting);
+        openSearchService.indexMeeting(meeting);
     }
 
     // 모임별 정모 조회
@@ -338,8 +340,8 @@ public class MeetingService {
         // 저장
         meetingRepository.save(meeting);
 
-        // OpenSearch 연동한다면 이 부분에서 삭제 처리 가능
-//        openSearchService.indexMeeting(meeting);
+        // OpenSearch
+        openSearchService.indexMeeting(meeting);
     }
 
     public List<MeetingInfoDto> findNearbyMeetings(double lat, double lon, double radius) {
@@ -446,9 +448,9 @@ public class MeetingService {
                 .collect(Collectors.toList());
     }
 
-//    // opensearch
-//    public List<MeetingSearchResultDto> searchMeetings(MeetingSearchRequest request) {
-//        return openSearchService.searchMeetings(request);
-//    }
+    // opensearch
+    public List<MeetingSearchResultDto> searchMeetings(MeetingSearchRequest request) {
+        return openSearchService.searchMeetings(request);
+    }
 
 }

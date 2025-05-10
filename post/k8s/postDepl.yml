@@ -44,16 +44,16 @@ spec:
                 secretKeyRef:
                   name: sp-app-secrets
                   key: AWS_SECRET
-#            - name: OPENSEARCH_HOST
-#              valueFrom:
-#                secretKeyRef:
-#                  name: sp-app-secrets
-#                  key: OPENSEARCH_HOST
-#            - name: OPENSEARCH_PW
-#              valueFrom:
-#                secretKeyRef:
-#                  name: sp-app-secrets
-#                  key: OPENSEARCH_PW
+            - name: OPENSEARCH_HOST
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: OPENSEARCH_HOST
+            - name: OPENSEARCH_PW
+              valueFrom:
+                secretKeyRef:
+                  name: sp-app-secrets
+                  key: OPENSEARCH_PW
           resources:
             limits:
               cpu: "1"

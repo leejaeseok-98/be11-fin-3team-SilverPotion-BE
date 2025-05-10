@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.web.bind.annotation.RequestBody;
 import silverpotion.postserver.common.domain.DelYN;
+import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.PostCategory;
 import silverpotion.postserver.post.domain.PostStatus;
@@ -25,7 +26,7 @@ public interface VoteRepository extends JpaRepository<Vote,Long> {
     Long countVoteComments(@Param("voteId") Long voteId);
 
     //    게시물 페이징 조회
-    Page<Vote> findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(List<Long> writerIds, PostCategory postCategory, DelYN delYN, PostStatus postStatus, Pageable pageable);
+    Page<Vote> findByWriterIdInAndPostCategoryAndDelYnAndPostStatusAndGathering(List<Long> writerIds, PostCategory postCategory, DelYN delYN, PostStatus postStatus, Pageable pageable, Gathering gathering);
 
 
 }

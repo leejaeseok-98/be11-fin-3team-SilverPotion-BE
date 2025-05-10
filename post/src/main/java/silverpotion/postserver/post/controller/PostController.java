@@ -60,6 +60,7 @@ public class PostController {
     }
 
     //  공지사항 게시물 작성시, 제목/이미지/내용 저장(최종 저장)
+    @CrossOrigin(origins = {"http://localhost:3000", "https://www.silverpotion.site"})
     @PutMapping("/update/notice/{postId}") // 임시저장 때, postId가 나와서 쉽게 조회 후 저장
     public ResponseEntity<?> noticeSave(@PathVariable Long postId, @RequestHeader("X-User-LoginId") String loginId
             , @ModelAttribute NoticePostUpdateDto noticePostUpdateDto) {
@@ -105,8 +106,9 @@ public class PostController {
     @GetMapping("/free/list/{gatheringId}")
     public ResponseEntity<?> getFreeList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size,
-                                         @RequestHeader("X-User-LoginId") String loginId){
-        Page<PostListResDto> freeList = postService.getFreeList(page,size,loginId);
+                                         @RequestHeader("X-User-LoginId") String loginId,
+                                         @PathVariable Long gatheringId){
+        Page<PostListResDto> freeList = postService.getFreeList(page,size,loginId,gatheringId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"자유글 리스트 불러오기 완료",freeList),HttpStatus.OK);
     }
 
@@ -114,8 +116,9 @@ public class PostController {
     @GetMapping("/notice/list/{gatheringId}")
     public ResponseEntity<?> getNoticeList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                          @RequestParam(name = "size", defaultValue = "5") Integer size,
-                                         @RequestHeader("X-User-LoginId") String loginId){
-        Page<PostListResDto> noticeList = postService.getNoticeList(page,size,loginId);
+                                         @RequestHeader("X-User-LoginId") String loginId,
+                                           @PathVariable Long gatheringId){
+        Page<PostListResDto> noticeList = postService.getNoticeList(page,size,loginId,gatheringId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"공지글 리스트 불러오기 완료",noticeList),HttpStatus.OK);
     }
 
@@ -123,8 +126,9 @@ public class PostController {
     @GetMapping("/vote/list/{gatheringId}")
     public ResponseEntity<?> getVoteList(@RequestParam(name = "page", defaultValue = "0") Integer page,
                                            @RequestParam(name = "size", defaultValue = "5") Integer size,
-                                           @RequestHeader("X-User-LoginId") String loginId){
-        Page<VoteResListDto> voteList = postService.getVoteList(page,size,loginId);
+                                           @RequestHeader("X-User-LoginId") String loginId,
+                                         @PathVariable Long gatheringId){
+        Page<VoteResListDto> voteList = postService.getVoteList(page,size,loginId,gatheringId);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표글 리스트 불러오기 완료",voteList),HttpStatus.OK);
     }
 

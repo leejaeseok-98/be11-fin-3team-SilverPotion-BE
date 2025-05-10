@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import silverpotion.postserver.common.domain.DelYN;
+import silverpotion.postserver.gathering.domain.Gathering;
 import silverpotion.postserver.post.domain.Post;
 import silverpotion.postserver.post.domain.PostCategory;
 import silverpotion.postserver.post.domain.PostStatus;
@@ -26,6 +27,6 @@ public interface PostRepository extends JpaRepository<Post,Long> {
     Long countPostComments(@Param("postId") Long postId);
 
 //    게시물 페이징 조회
-    Page<Post> findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(List<Long> writerIds,PostCategory postCategory, DelYN delYN, PostStatus postStatus, Pageable pageable);
+    Page<Post> findByWriterIdInAndPostCategoryAndDelYnAndPostStatusAndGathering(List<Long> writerIds, PostCategory postCategory, DelYN delYN, PostStatus postStatus, Pageable pageable, Gathering gathering);
 
 }

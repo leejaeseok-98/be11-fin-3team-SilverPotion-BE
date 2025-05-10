@@ -182,8 +182,8 @@
                     postFileRepository.save(new PostFile(post, fileUrl));
                 }
             }
-//            // ✅ 공지 알림 발송
-//            sendNoticeToGatheringMembers(post);
+            // ✅ 공지 알림 발송
+            sendNoticeToGatheringMembers(post);
         }
         private void sendNoticeToGatheringMembers(Post post) {
             Long gatheringId = post.getGathering().getId();
@@ -368,15 +368,16 @@
         }
 
     //    자유글 조회
-        public Page<PostListResDto> getFreeList(int page, int size, String loginId) {
+        public Page<PostListResDto> getFreeList(int page, int size, String loginId,Long gatheringId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
             List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
             System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
-            accessibleUserIds.addAll(gatheringUserIds);
-            accessibleUserIds.add(userId);
             System.out.println("accessibleUserIds : " + accessibleUserIds);
+
+            //모임 객체 조회
+            Gathering gathering = gatheringRepository.findById(gatheringId).orElseThrow(()-> new EntityNotFoundException("모임이 없습니다."));
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
 
@@ -391,8 +392,8 @@
             Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
 
     //        해당 유저들의 자유글만 조회(페이징)
-            Page<Post> freeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(gatheringUserIds,PostCategory.free,
-                    DelYN.N,PostStatus.fin,pageable);
+            Page<Post> freeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatusAndGathering(gatheringUserIds,PostCategory.free,
+                    DelYN.N,PostStatus.fin,pageable,gathering);
             return freeList.map(post ->
                 {
                     Long likeCount = postRepository.countPostLikes(post.getId());
@@ -406,14 +407,16 @@
         }
 
         // 공지글 조회
-        public Page<PostListResDto> getNoticeList(int page, int size, String loginId) {
+        public Page<PostListResDto> getNoticeList(int page, int size, String loginId,Long gatheringId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
             List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
             System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
-            accessibleUserIds.add(userId);
             System.out.println("accessibleUserIds : " + accessibleUserIds);
+
+            //모임 객체 조회
+            Gathering gathering = gatheringRepository.findById(gatheringId).orElseThrow(()-> new EntityNotFoundException("모임이 없습니다."));
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
 
@@ -428,8 +431,8 @@
             Map<Long,UserProfileInfoDto> profileList = objectMapper.convertValue(result, new TypeReference<Map<Long,UserProfileInfoDto>>() {});
 
     //        해당 유저들의 공지글만 조회(페이징)
-            Page<Post> noticeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds,PostCategory.notice,
-                    DelYN.N,PostStatus.fin,pageable);
+            Page<Post> noticeList = postRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatusAndGathering(gatheringUserIds,PostCategory.notice,
+                    DelYN.N,PostStatus.fin,pageable,gathering);
             return noticeList.map(post ->
             {
                 Long likeCount = postRepository.countPostLikes(post.getId());
@@ -443,7 +446,7 @@
         }
 
     //    투표조회
-        public Page<VoteResListDto> getVoteList(int page, int size, String loginId) {
+        public Page<VoteResListDto> getVoteList(int page, int size, String loginId,Long gatheringId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
 
             List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
@@ -452,6 +455,9 @@
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
             accessibleUserIds.add(userId);
             System.out.println("accessibleUserIds : " + accessibleUserIds);
+
+            //모임 객체 조회
+            Gathering gathering = gatheringRepository.findById(gatheringId).orElseThrow(()-> new EntityNotFoundException("모임이 없습니다."));
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
 
@@ -467,8 +473,8 @@
             });
 
             //        해당 유저들의 공지글만 조회(페이징)
-            Page<Vote> voteList = voteRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatus(accessibleUserIds, PostCategory.vote,
-                    DelYN.N, PostStatus.fin, pageable);
+            Page<Vote> voteList = voteRepository.findByWriterIdInAndPostCategoryAndDelYnAndPostStatusAndGathering(gatheringUserIds,PostCategory.vote,
+                    DelYN.N,PostStatus.fin,pageable,gathering);
             return voteList.map(vote ->
             {
 

@@ -52,7 +52,7 @@ public class CommentService {
         this.notificationProducer = notificationProducer;
     }
 
-    public Long commentCreate(String commentWriterLoginId, CommentCreateDto commentCreateDto){
+    public void commentCreate(String commentWriterLoginId, CommentCreateDto commentCreateDto){
         UserProfileInfoDto commentWriterProfileDto = userClient.getUserProfileInfo(commentWriterLoginId);
         Post post = null;
         Vote vote = null;
@@ -73,19 +73,18 @@ public class CommentService {
 
         commentRepository.save(comment);
 
-        String postWriterLoginId = userClient.getLoginIdByUserId(post.getWriterId());
+        Long writerId = (post != null) ? post.getWriterId() : vote.getWriterId();
+        String postWriterLoginId = userClient.getLoginIdByUserId(writerId);
         //댓글 알림발송
-        if(!post.getWriterId().equals(commentWriterProfileDto.getUserId())) {
+        if(!writerId.equals(commentWriterProfileDto.getUserId())) {
             notificationProducer.sendNotification(NotificationMessageDto.builder()
                     .loginId(postWriterLoginId)
                     .title("댓글 알림")
                     .content("'" + commentWriterProfileDto.getNickname() + "'님이 회원님의 게시글에 댓글을 달았습니다.")
                     .type("POST_COMMENT")
-                    .referenceId(post.getId())
+                    .referenceId((post != null) ? post.getId() : vote.getVoteId())
                     .build());
         }
-        // PostId가 null일 수 있으니 반환도 조정 필요
-        return (post != null) ? post.getId() : vote.getVoteId();
     }
 
     public Long commentUpdate(String loginId, CommentUpdateDto commentUpdateDto) {

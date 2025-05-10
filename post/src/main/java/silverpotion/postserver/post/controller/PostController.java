@@ -60,6 +60,7 @@ public class PostController {
     }
 
     //  공지사항 게시물 작성시, 제목/이미지/내용 저장(최종 저장)
+    @CrossOrigin(origins = {"http://localhost:3000", "https://www.silverpotion.site"})
     @PutMapping("/update/notice/{postId}") // 임시저장 때, postId가 나와서 쉽게 조회 후 저장
     public ResponseEntity<?> noticeSave(@PathVariable Long postId, @RequestHeader("X-User-LoginId") String loginId
             , @ModelAttribute NoticePostUpdateDto noticePostUpdateDto) {

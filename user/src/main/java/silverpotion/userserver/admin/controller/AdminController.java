@@ -100,5 +100,4 @@ public class AdminController {
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "process is uploaded successfully",reportProcessResDto),HttpStatus.OK);
     }
 
-
 }

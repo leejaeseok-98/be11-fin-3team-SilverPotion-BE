@@ -48,8 +48,8 @@ public class ReportService {
         }
 
         // 중복 신고 방지 (reportedUser가 있을 경우에만 체크)
-        boolean isDuplicate = reportRepository.existsByReporterAndReportedIdAndReportBigCategoryAndReferenceId(
-                user, reportedUser, reportCreateResDto.getReportBigCategory(), reportCreateResDto.getReferenceId());
+        boolean isDuplicate = reportRepository.existsByReporterAndReportedIdAndReportBigCategoryAndReportSmallCategoryAndReferenceId(
+                user, reportedUser, reportCreateResDto.getReportBigCategory(),reportCreateResDto.getReportSmallCategory(),reportCreateResDto.getReferenceId());
 
         if (isDuplicate) {
             throw new EntityNotFoundException("Duplicate Report");

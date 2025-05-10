@@ -2,6 +2,9 @@ eureka:
   client:
     enabled: false
 #배포를 위해 유레카 관련 코드 삭제하고 쿠버네티스 설정이 추가됨. 더불어 uri를 쿠버네티스에 맞게 변경 lb->http로
+server:
+  http2:
+    enabled: false
 spring:
   config:
     activate:
@@ -10,6 +13,11 @@ spring:
     name: api-gateway
   cloud:
     gateway:
+      httpclient:
+        response-timeout: 10m
+        pool:
+          type: elastic
+        wiretap: true
       default-filters:
         - DedupeResponseHeader=Access-Control-Allow-Origin Access-Control-Allow-Credentials
       #      CORS공통처리

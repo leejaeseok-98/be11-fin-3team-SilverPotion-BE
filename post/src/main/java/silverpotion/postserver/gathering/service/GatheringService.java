@@ -1,11 +1,12 @@
 package silverpotion.postserver.gathering.service;
 
 import feign.FeignException;
+import jakarta.annotation.PostConstruct;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-//import org.opensearch.client.RestHighLevelClient;
-//import org.opensearch.client.RestHighLevelClient;
+import org.opensearch.client.RestHighLevelClient;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import silverpotion.postserver.common.domain.DelYN;
@@ -30,6 +31,10 @@ import silverpotion.postserver.gatheringVector.repository.GatheringVectorReposit
 import silverpotion.postserver.notification.dto.NotificationMessageDto;
 import silverpotion.postserver.notification.service.NotificationEventPublisher;
 import silverpotion.postserver.notification.service.NotificationProducer;
+import silverpotion.postserver.opensearch.GatheringSearchRequest;
+import silverpotion.postserver.opensearch.GatheringSearchResultDto;
+import silverpotion.postserver.opensearch.OpenSearchIndexUtil;
+import silverpotion.postserver.opensearch.OpenSearchService;
 import silverpotion.postserver.post.feignClient.UserClient;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
@@ -54,14 +59,14 @@ public class GatheringService {
     private final NotificationEventPublisher notificationEventPublisher;
     private final NotificationProducer notificationProducer;
     private final GatheringVectorRepository gatheringVectorRepository;
-//    private final OpenSearchService openSearchService;
-//    @Autowired
-//    private RestHighLevelClient client;
+    private final OpenSearchService openSearchService;
+    @Autowired
+    private RestHighLevelClient client;
 
 
     public GatheringService(GatheringRepository gatheringRepository, GatheringCategoryRepository gatheringCategoryRepository, UserClient userClient, GatheringCategoryDetailRepository gatheringCategoryDetailRepository, GatheringDetailRepository gatheringDetailRepository, GatheringPeopleRepository gatheringPeopleRepository, ImageService imageService,
-//            , OpenSearchService openSearchService
-                            ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer, GatheringVectorRepository gatheringVectorRepository) {
+            OpenSearchService openSearchService
+                            , ChatFeignClient chatFeignClient, NotificationEventPublisher notificationEventPublisher, NotificationProducer notificationProducer, GatheringVectorRepository gatheringVectorRepository) {
         this.gatheringRepository = gatheringRepository;
         this.gatheringCategoryRepository = gatheringCategoryRepository;
         this.userClient = userClient;
@@ -69,25 +74,25 @@ public class GatheringService {
         this.gatheringDetailRepository = gatheringDetailRepository;
         this.gatheringPeopleRepository = gatheringPeopleRepository;
         this.imageService = imageService;
-//        this.openSearchService = openSearchService;
+        this.openSearchService = openSearchService;
         this.chatFeignClient = chatFeignClient;
         this.notificationEventPublisher = notificationEventPublisher;
         this.notificationProducer = notificationProducer;
         this.gatheringVectorRepository = gatheringVectorRepository;
     }
 
-//    @PostConstruct
-//    public void init() {
-//        try {
-//            OpenSearchIndexUtil util = new OpenSearchIndexUtil(client);
-//            util.createGatheringIndexIfNotExists();
-//            util.createMeetingIndexIfNotExists();
-//            System.out.println("✅ OpenSearch 인덱스 확인 완료 (gathering, meeting)");
-//        } catch (Exception e) {
-//            System.err.println("❌ OpenSearch 인덱스 생성 중 오류 발생: " + e.getMessage());
-//            e.printStackTrace();
-//        }
-//    }
+    @PostConstruct
+    public void init() {
+        try {
+            OpenSearchIndexUtil util = new OpenSearchIndexUtil(client);
+            util.createGatheringIndexIfNotExists();
+            util.createMeetingIndexIfNotExists();
+            System.out.println("✅ OpenSearch 인덱스 확인 완료 (gathering, meeting)");
+        } catch (Exception e) {
+            System.err.println("❌ OpenSearch 인덱스 생성 중 오류 발생: " + e.getMessage());
+            e.printStackTrace();
+        }
+    }
 
 
     // 모임 생성
@@ -151,6 +156,8 @@ public class GatheringService {
         gatheringVectorRepository.save(gatheringVector);
 
 
+//         OpenSearch Index 저장
+        openSearchService.indexGathering(gathering);
 
         return gathering.getId();
     }
@@ -183,8 +190,8 @@ public class GatheringService {
 
         gatheringRepository.save(gathering);
 
-        // OpenSearch Index 저장
-//        openSearchService.indexGathering(gathering);
+//         OpenSearch Index 저장
+        openSearchService.indexGathering(gathering);
     }
 
     // 내 모임 조회
@@ -530,13 +537,13 @@ public class GatheringService {
             notificationProducer.sendNotification(notification);
         }
         // OpenSearch Index 저장
-//        openSearchService.indexGathering(gathering);
+        openSearchService.indexGathering(gathering);
     }
 
-//    // opensearch
-//    public List<GatheringSearchResultDto> searchGatherings(GatheringSearchRequest request) {
-//        return openSearchService.searchGatherings(request);
-//    }
+    // opensearch
+    public List<GatheringSearchResultDto> searchGatherings(GatheringSearchRequest request) {
+        return openSearchService.searchGatherings(request);
+    }
 
 
 

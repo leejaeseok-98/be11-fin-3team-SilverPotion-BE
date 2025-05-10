@@ -182,8 +182,8 @@
                     postFileRepository.save(new PostFile(post, fileUrl));
                 }
             }
-            // ✅ 공지 알림 발송
-            sendNoticeToGatheringMembers(post);
+//            // ✅ 공지 알림 발송
+//            sendNoticeToGatheringMembers(post);
         }
         private void sendNoticeToGatheringMembers(Post post) {
             Long gatheringId = post.getGathering().getId();

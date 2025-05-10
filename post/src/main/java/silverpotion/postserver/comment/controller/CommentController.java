@@ -27,8 +27,8 @@ public class CommentController {
 //  댓글 생성
     @PostMapping("/create")
     public ResponseEntity<?> commentCreate(@RequestHeader("X-User-LoginId") String loginId, @RequestBody CommentCreateDto commentCreate){
-        Long postId = commentService.commentCreate(loginId,commentCreate);
-        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "댓글 작성 완료",postId),HttpStatus.CREATED);
+        commentService.commentCreate(loginId,commentCreate);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "댓글 작성 완료",null),HttpStatus.CREATED);
     }
 
 //  댓글 수정

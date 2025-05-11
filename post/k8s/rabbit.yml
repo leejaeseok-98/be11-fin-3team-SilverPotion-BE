@@ -28,7 +28,7 @@ metadata:
   namespace: sp
 spec:
   selector:
-    app: rabbitmq
+    app: rabbit
   ports:
     - name: amqp
       port: 5672

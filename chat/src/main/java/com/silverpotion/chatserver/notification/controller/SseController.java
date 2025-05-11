@@ -56,7 +56,8 @@ public class SseController {
 
         for (ChatParticipant participant : offlineUsers) {
 
-            String loginId = userFeign.getLoginIdByUserId(participant.getUserId());
+            String loginId = participant.getLoginId();
+            System.out.println("sseController unsubscribe loginId: " + loginId);
             SseEmitter emitter = emitterMap.get(loginId);
 
             if (emitter != null) {

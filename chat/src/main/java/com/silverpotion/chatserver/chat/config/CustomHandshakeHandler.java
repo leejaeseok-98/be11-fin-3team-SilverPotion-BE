@@ -16,6 +16,7 @@ public class CustomHandshakeHandler extends DefaultHandshakeHandler {
         if (request instanceof ServletServerHttpRequest servletRequest) {
             String loginId = servletRequest.getServletRequest().getParameter("loginId");
             if (loginId != null) {
+                System.out.println("CustomHandshakeHandler loginId : "+loginId);
                 return () -> loginId; // 익명 Principal 리턴
             }
         }

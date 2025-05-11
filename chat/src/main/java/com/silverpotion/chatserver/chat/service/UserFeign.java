@@ -7,19 +7,19 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
-@FeignClient(name = "user-service",configuration = FeignConfig.class)
+@FeignClient(name = "user-service", path = "silverpotion/user",configuration = FeignConfig.class)
 public interface UserFeign {
 
-    @GetMapping("silverpotion/user/userId")
+    @GetMapping("/userId")
     Long getUserIdByLoginId(@RequestParam("loginId") String loginId);
 
-    @GetMapping("silverpotion/user/id")
+    @GetMapping("/id")
     UserDto getUserById(@RequestParam("id") Long id);
 
-    @GetMapping("silverpotion/user/{userId}/nickname")
+    @GetMapping("/{userId}/nickname")
     String getNicknameByUserId(@PathVariable("userId") Long userId);
 
-    @GetMapping("silverpotion/user/loginId")
+    @GetMapping("/loginId")
     String getLoginIdByUserId(@RequestParam("id") Long id);
 
 }

@@ -2,6 +2,7 @@ package com.silverpotion.chatserver.common.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
+import feign.RequestInterceptor;
 import feign.codec.Decoder;
 import feign.codec.Encoder;
 import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
@@ -35,5 +36,9 @@ public class FeignConfig {
         ObjectMapper objectMapper = new ObjectMapper();
         objectMapper.registerModule(new JavaTimeModule());
         return objectMapper;
+    }
+    @Bean
+    public RequestInterceptor requestInterceptor() {
+        return template -> template.header("Internal-Request", "true");
     }
 }

@@ -36,6 +36,7 @@ spring:
     kubernetes:
       discovery:
         enabled: true
+        all-namespaces: true
     loadbalancer:
       mode: service
 

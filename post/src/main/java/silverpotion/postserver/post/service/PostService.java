@@ -512,18 +512,20 @@
                         Long parentLikeCount = commentRepository.countCommentLikes(parent.getId());
                         boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
                         String isParentLike = isParentLiked ? "Y" : "N";
+                        UserProfileInfoDto parentUserprofile = userClient.getUserProfileInfo(parent.getUserId());
 
                         //                    대댓글 리스트 구성
                         List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
                             Long childLikeCount = commentRepository.countCommentLikes(child.getId());
                             boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
                             String isChildLike = isChildLiked ? "Y" : "N";
+                            UserProfileInfoDto childUserprofile = userClient.getUserProfileInfo(child.getUserId());
 
-                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, userProfileInfoDto);
+                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, childUserprofile);
                         }).collect(Collectors.toList());
 
                         //              부모 댓글 DTO생성 후 대댓글 추가
-                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, userProfileInfoDto);
+                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, parentUserprofile);
                         parentDto.setReplies(childDtos);
                         return parentDto;
                     })
@@ -610,18 +612,20 @@
                         Long parentLikeCount = commentRepository.countCommentLikes(parent.getId());
                         boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
                         String isParentLike = isParentLiked ? "Y" : "N";
+                        UserProfileInfoDto parentUserprofile = userClient.getUserProfileInfo(parent.getUserId());
 
                         //                    대댓글 리스트 구성
                         List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
                             Long childLikeCount = commentRepository.countCommentLikes(child.getId());
                             boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
                             String isChildLike = isChildLiked ? "Y" : "N";
+                            UserProfileInfoDto childUserprofile = userClient.getUserProfileInfo(child.getUserId());
 
-                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, writerProfile);
+                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, childUserprofile);
                         }).collect(Collectors.toList());
 
                         //              부모 댓글 DTO생성 후 대댓글 추가
-                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, writerProfile);
+                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, parentUserprofile);
                         parentDto.setReplies(childDtos);
                         return parentDto;
                     })

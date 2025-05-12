@@ -14,6 +14,7 @@ import com.silverpotion.chatserver.notification.repository.NotificationRepositor
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -37,8 +38,6 @@ public class KafkaSseService {
     private final SimpUserRegistry simpUserRegistry;
     private final SseController sseController;
     private final NotificationRepository notificationRepository;
-    private final String groupId = "chat-consumer-" + UUID.randomUUID();
-
     public void publishToSseTopic(ChatMessageDto dto) {
         log.info("🔥 발행 전 DTO: {}", dto);
         try {
@@ -49,12 +48,9 @@ public class KafkaSseService {
             e.printStackTrace();
         }
     }
-
-    String uuidStr = UUID.randomUUID().toString();
-
     @KafkaListener(
             topics = "chat-topic",
-            groupId = "#{__listener.groupId}",
+            groupId = "#{@kafkaGroupId}",
             concurrency = "1" // ✅ 명시적으로 한 쓰레드만 사용하게 설정
     )
     public void consumeChatMessage(String messageJson) {

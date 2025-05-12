@@ -715,4 +715,40 @@
             voteAnswerRepository.deleteByUserIdAndVoteOption_Vote_VoteId(userId, voteId);
 
         }
+
+//        일반 게시물 좋아요 유저 목록
+        public Page<UserListDto> getPostUserList(Long postId, Pageable pageable) {
+            //해당 게시물 좋아요 누른 userId 목록 조회
+            Page<Long> userIds = postLikeRepository.findUserIdsByPostId(postId, pageable);
+            List<Long> userIdsList = userIds.getContent();
+
+            // 유저 상세 정보 조회
+            CommonDto profileInfo = userClient.getUserInfos(userIdsList);
+            Object result = profileInfo.getResult();
+            if (result == null) {
+                System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+                result = List.of(); // 빈 리스트 처리
+            }
+            List<UserListDto> userListDtos = objectMapper.convertValue(result,new TypeReference<List<UserListDto>>() {});
+            // 페이징 정보 유지하면서 반환
+            return new PageImpl<>(userListDtos, pageable, userIds.getTotalElements());
+        }
+
+        //투표 게시물 좋아요 유저 목록
+        public Page<UserListDto> getVoteLikeUserList(Long voteId, Pageable pageable) {
+            //해당 게시물 좋아요 누른 userId 목록 조회
+            Page<Long> userIds = voteLikeRepository.findUserIdsByPostId(voteId, pageable);
+            List<Long> userIdsList = userIds.getContent();
+
+            // 유저 상세 정보 조회
+            CommonDto profileInfo = userClient.getUserInfos(userIdsList);
+            Object result = profileInfo.getResult();
+            if (result == null) {
+                System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+                result = List.of(); // 빈 리스트 처리
+            }
+            List<UserListDto> userListDtos = objectMapper.convertValue(result,new TypeReference<List<UserListDto>>() {});
+            // 페이징 정보 유지하면서 반환
+            return new PageImpl<>(userListDtos, pageable, userIds.getTotalElements());
+        }
     }

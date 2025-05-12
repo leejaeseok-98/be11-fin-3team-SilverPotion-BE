@@ -1,5 +1,7 @@
 package silverpotion.postserver.post.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -25,4 +27,8 @@ public interface VoteLikeRepository extends JpaRepository<VoteLike, Long> {
 
     //    특정유저가 특정게시물에 좋아요 눌렀는지 여부
     Optional<VoteLike> findByVoteAndUserId(Vote vote, Long userId);
+
+    //    특정 게시물 좋아요 유저 목록
+    @Query("SELECT vl.userId FROM VoteLike vl WHERE vl.vote.voteId = :voteId")
+    Page<Long> findUserIdsByPostId(@Param("voteId") Long voteId, Pageable pageable);
 }

@@ -314,4 +314,11 @@ public class    UserController {
         UserDto userDto = userService.getUserById(id);
         return ResponseEntity.ok(userDto);
     }
+
+    //게시물 좋아요 유저 목록
+    @PostMapping("/internal/users/info")
+    public ResponseEntity<?> getProfileList(@RequestBody List<Long> userIds){
+        List<UserListDto> getList = userService.getPostLikeList(userIds);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",getList),HttpStatus.OK);
+    }
 }

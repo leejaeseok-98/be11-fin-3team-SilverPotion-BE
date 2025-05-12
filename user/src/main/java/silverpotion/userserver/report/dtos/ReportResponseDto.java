@@ -27,13 +27,13 @@ public class ReportResponseDto {
     private LocalDateTime reportedTime; // 신고된 시간
 
 
-    public static ReportResponseDto fromReport(Report report){
+    public static ReportResponseDto fromReport(Report report,String reportedNickname){
         System.out.println(report.getReportBigCategory());
         System.out.println(report.getReportSmallCategory());
         return ReportResponseDto.builder()
                 .reportId(report.getId())
                 .reporterNickname(report.getReporter().getNickName())
-                .reportedNickname(report.getReportedId().getNickName())
+                .reportedNickname(reportedNickname)
                 .reportBigCategory(report.getReportBigCategory())
                 .reportSmallCategory(report.getReportSmallCategory())
                 .referenceId(report.getReferenceId())

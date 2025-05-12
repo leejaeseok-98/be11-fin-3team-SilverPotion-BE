@@ -109,7 +109,12 @@ public class ReportService {
         };
 //        페이징과 검색을 함께 적용하여 조회
         Page<Report> reportPage = reportRepository.findAll(spec,pageable);
-        return reportPage.map(ReportResponseDto::fromReport);
+        return reportPage.map(report -> {
+            String reportedNickname = report.getReportedId() != null
+                    ? report.getReportedId().getNickName()
+                    : null;
+            return ReportResponseDto.fromReport(report, reportedNickname);
+        });
     }
 
 //    특정 신고 상세 조회

@@ -24,6 +24,8 @@ spring:
   application:
     name: chat-service
   kafka:
+    admin:
+      auto-create: true
     bootstrap-servers: kafka-service:9092
     consumer:
       group-id: sse-group

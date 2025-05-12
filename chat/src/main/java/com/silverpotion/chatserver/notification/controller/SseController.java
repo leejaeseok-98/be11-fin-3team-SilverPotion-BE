@@ -7,6 +7,7 @@ import com.silverpotion.chatserver.chat.service.UserFeign;
 import com.silverpotion.chatserver.common.annotation.LoginUser;
 import com.silverpotion.chatserver.notification.dto.NotificationMessageDto;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
@@ -21,6 +22,7 @@ import java.util.concurrent.TimeUnit;
 @RestController
 @RequestMapping("/sse")
 @RequiredArgsConstructor
+@Slf4j
 public class SseController {
 
     private final Map<String, SseEmitter> emitterMap = new ConcurrentHashMap<>();
@@ -37,7 +39,7 @@ public class SseController {
             emitterMap.remove(loginId);
         }
 
-        SseEmitter emitter = new SseEmitter(2 * 60 * 1000L); // 2분 타임아웃
+        SseEmitter emitter = new SseEmitter( 60 * 1000L * 30); // 30분 타임아웃
         emitterMap.put(loginId, emitter);
 
         try {
@@ -105,14 +107,17 @@ public class SseController {
 
         if (emitter != null) {
             try {
-                emitter.send(SseEmitter.event().name("notification").data(message));
+                emitter.send(SseEmitter.event()
+                        .name("notification")
+                        .data(message));
             } catch (IOException e) {
-                emitterMap.remove(loginId);
+                log.warn("❌ SSE 전송 실패 - 연결 종료됨 (loginId: {}): {}", loginId, e.getMessage());
+                emitter.completeWithError(e);  // 안전하게 종료
+                emitterMap.remove(loginId);    // emitter 제거
             }
         } else {
-            // 💡 현재는 SSE에 연결 안 된 경우 무시
-            // 필요 시, DB나 Redis에 저장하여 미수신 알림으로 처리 가능
-            System.out.println("❌ SSE 미연결 상태 - loginId: " + loginId + ", 알림 저장 또는 무시");
+            log.info("ℹ️ 로그인되지 않아 SSE 알림 보류 (loginId: {})", loginId);
+            // 필요 시 DB나 큐에 저장해두기
         }
     }
 }

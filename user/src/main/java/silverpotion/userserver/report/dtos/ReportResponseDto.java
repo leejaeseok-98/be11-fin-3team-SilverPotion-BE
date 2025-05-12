@@ -17,8 +17,8 @@ import java.time.LocalDateTime;
 @Builder
 public class ReportResponseDto {
     private Long reportId; //신고 ID
-    private Long reporterId; //신고한  사용자 id
-    private Long reportedId; //신고당한 사용자 id
+    private String reporterNickname; //신고한  사용자 id
+    private String reportedNickname; //신고당한 사용자 id
     private ReportBigCategory reportBigCategory; //신고 대유형(채팅, 게시물 등)
     private ReportSmallCategory reportSmallCategory; //신고 소유형(욕설, 따돌림 등)
     private Long referenceId; //참조 id
@@ -32,8 +32,8 @@ public class ReportResponseDto {
         System.out.println(report.getReportSmallCategory());
         return ReportResponseDto.builder()
                 .reportId(report.getId())
-                .reporterId(report.getReporter().getId())
-                .reportedId(report.getReportedId().getId())
+                .reporterNickname(report.getReporter().getNickName())
+                .reportedNickname(report.getReportedId().getNickName())
                 .reportBigCategory(report.getReportBigCategory())
                 .reportSmallCategory(report.getReportSmallCategory())
                 .referenceId(report.getReferenceId())

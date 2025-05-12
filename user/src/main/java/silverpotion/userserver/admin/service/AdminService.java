@@ -90,7 +90,7 @@ public class AdminService {
                 return predicates.isEmpty() ? criteriaBuilder.conjunction() : criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             }
         };
-        return userRepository.findAll(spec,pageable).map(user-> user.fromEntity());
+        return userRepository.findAll(spec,pageable).map(AdminUserListDto::from);
     }
 
 //    유저상세조회

@@ -101,7 +101,26 @@ public class SseController {
             }
         }
     }
+//    오버로딩용 sendToClientOrQueue 2개 받는 dto 다름 알림용 채팅용
+    public void sendToClientOrQueue(String loginId, ChatMessageDto chatMessage) {
+        SseEmitter emitter = emitterMap.get(loginId);
 
+        if (emitter != null) {
+            try {
+                emitter.send(SseEmitter.event()
+                        .name("chat-message") // 채팅 메시지 이벤트 이름
+                        .data(chatMessage));
+                log.info("✅ SSE 채팅 메시지 전송 완료 (loginId: {})", loginId);
+            } catch (IOException e) {
+                log.warn("❌ SSE 채팅 메시지 전송 실패 (loginId: {}): {}", loginId, e.getMessage());
+                emitter.completeWithError(e);
+                emitterMap.remove(loginId);
+            }
+        } else {
+            log.info("ℹ️ SSE 미연결 상태 (loginId: {}), 채팅 메시지 보류", loginId);
+            // TODO: 메시지 큐 또는 DB에 저장 후 재전송 고려
+        }
+    }
     public void sendToClientOrQueue(String loginId, NotificationMessageDto message) {
         SseEmitter emitter = emitterMap.get(loginId);
 

@@ -1,6 +1,8 @@
 package silverpotion.postserver.post.controller;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -187,6 +189,20 @@ public class PostController {
     public ResponseEntity<?> voteOption(@RequestHeader("X-User-LoginId") String loginId,@RequestBody VoteOptionReqDto dto){
         VoteAnswerResDto voteAnswerResDto = postService.doVote(loginId,dto);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(), "특정항목에 투표 완료",voteAnswerResDto),HttpStatus.OK);
+    }
+
+//    일반 게시물 좋아요 유저 목록
+    @GetMapping("{postId}/like/list")
+    public ResponseEntity<?> postLikeList(@PathVariable Long postId, @PageableDefault(size = 10) Pageable pageable){
+        Page<UserListDto> postList = postService.getPostUserList(postId,pageable);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"일반 게시물 좋아요 유저 목록 완료",postList),HttpStatus.OK);
+    }
+
+//    투표 게시물 좋아요 유저 목록
+    @GetMapping("/vote/{voteId}/like/list")
+    public ResponseEntity<?> voteLikeList(@PathVariable Long voteId, @PageableDefault(size = 10) Pageable pageable){
+        Page<UserListDto> voteList = postService.getVoteLikeUserList(voteId,pageable);
+        return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"투표 게시물 좋아요 유저 목록 완료",voteList),HttpStatus.OK);
     }
 
 }

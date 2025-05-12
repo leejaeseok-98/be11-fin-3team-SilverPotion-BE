@@ -425,6 +425,11 @@ public class UserService {
                 .build();
     }
 
-
+    // 게시물 좋아요 유저 목록 조회
+    public List<UserListDto> getPostLikeList(List<Long> userIds) {
+        //게시물 좋아요 유저 목록
+        List<User> users = userRepository.findAllById(userIds);
+        return users.stream().map(UserListDto::fromEntity).collect(Collectors.toList());
+    };
 
 }

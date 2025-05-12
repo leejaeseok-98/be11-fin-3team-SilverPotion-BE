@@ -37,8 +37,8 @@ spring:
       discovery:
         enabled: true
         all-namespaces: true
-    loadbalancer:
-      mode: service
+      client:
+        namespace: default
 
 server:
   port: 8080

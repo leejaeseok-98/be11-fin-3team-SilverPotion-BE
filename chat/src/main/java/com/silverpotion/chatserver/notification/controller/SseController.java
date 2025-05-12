@@ -14,6 +14,9 @@ import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/sse")
@@ -42,6 +45,34 @@ public class SseController {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        // ✅ Ping 이벤트를 주기적으로 보내기 위한 스레드 실행
+        ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+        scheduler.scheduleAtFixedRate(() -> {
+            try {
+                emitter.send(SseEmitter.event().name("ping").data("keep-alive"));
+            } catch (Exception e) {
+                emitter.completeWithError(e);
+            }
+        }, 0, 30, TimeUnit.SECONDS);
+
+        // ✅ 연결 종료 시 스케줄러 종료 및 정리
+        emitter.onTimeout(() -> {
+            emitter.complete();
+            emitterMap.remove(loginId);
+            scheduler.shutdown();
+        });
+
+        emitter.onCompletion(() -> {
+            emitterMap.remove(loginId);
+            scheduler.shutdown();
+        });
+
+        emitter.onError((e) -> {
+            emitter.completeWithError(e);
+            emitterMap.remove(loginId);
+            scheduler.shutdown();
+        });
+
 
         return emitter;
     }

@@ -59,7 +59,7 @@ public class ChatMessageService {
 
         // 4. Kafka 발행
         try {
-            String senderNickName = userFeign.getNicknameByUserId(dto.getSenderId());
+            String senderNickName = dto.getSenderNickName();
             ChatMessageDto messageDto = ChatMessageDto.fromEntity(message,senderNickName);
             String json = objectMapper.writeValueAsString(messageDto);
             System.out.println("📤 Kafka 발행 JSON = " + json);

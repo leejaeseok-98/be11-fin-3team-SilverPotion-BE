@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,6 +37,7 @@ public class KafkaSseService {
     private final SimpUserRegistry simpUserRegistry;
     private final SseController sseController;
     private final NotificationRepository notificationRepository;
+    private final String groupId = "chat-consumer-" + UUID.randomUUID();
 
     public void publishToSseTopic(ChatMessageDto dto) {
         log.info("🔥 발행 전 DTO: {}", dto);
@@ -48,9 +50,11 @@ public class KafkaSseService {
         }
     }
 
+    String uuidStr = UUID.randomUUID().toString();
+
     @KafkaListener(
             topics = "chat-topic",
-            groupId = "chat-websocket-group",
+            groupId = "#{__listener.groupId}",
             concurrency = "1" // ✅ 명시적으로 한 쓰레드만 사용하게 설정
     )
     public void consumeChatMessage(String messageJson) {

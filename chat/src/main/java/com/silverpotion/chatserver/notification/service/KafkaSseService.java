@@ -50,7 +50,8 @@ public class KafkaSseService {
     }
     @KafkaListener(
             topics = "chat-topic",
-            groupId = "#{@kafkaGroupId}",
+            groupId = "chat-websocket-group",
+//            groupId = "#{@kafkaGroupId}",
             concurrency = "1" // ✅ 명시적으로 한 쓰레드만 사용하게 설정
     )
     public void consumeChatMessage(String messageJson) {

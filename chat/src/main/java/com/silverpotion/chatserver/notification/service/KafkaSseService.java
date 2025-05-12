@@ -50,7 +50,7 @@ public class KafkaSseService {
     }
     @KafkaListener(
             topics = "chat-topic",
-            groupId = "chat-websocket-group",
+            groupId = "#{T(java.util.UUID).randomUUID().toString()}",
 //            groupId = "#{@kafkaGroupId}",
             concurrency = "1" // ✅ 명시적으로 한 쓰레드만 사용하게 설정
     )

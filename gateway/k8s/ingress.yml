@@ -11,6 +11,10 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-request-buffering: "off"
     nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
+#    웹소켓 연결유지시 같은 pod에 접속하도록 session affinity 적용
+#    nginx.ingress.kubernetes.io/affinity: "cookie"
+#    nginx.ingress.kubernetes.io/session-cookie-name: "route"
+#    nginx.ingress.kubernetes.io/session-cookie-hash: "sha1"
 spec:
   tls:
     - hosts:

@@ -411,7 +411,7 @@ public class GatheringService {
             NotificationMessageDto notification = NotificationMessageDto.builder()
                     .loginId(gatheringPeopleLoginId) // 또는 userClient로 얻은 loginId
                     .title("가입 승인 완료")
-                    .content("' 모임의 가입 요청이 수락되었습니다.")
+                    .content("'"+gathering.getGatheringName() +"' 모임의 가입 요청이 수락되었습니다.")
                     .type("JOINED")
                     .referenceId(gathering.getId())
                     .build();

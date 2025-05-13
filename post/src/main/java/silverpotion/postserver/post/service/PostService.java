@@ -316,6 +316,7 @@
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
+                System.out.println("userProfileInfoDto : " + userProfileInfoDto.getProfileImage());
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.notice) {
@@ -399,6 +400,7 @@
                     Long likeCount = postRepository.countPostLikes(post.getId());
                     Long commentCount = postRepository.countPostComments(post.getId());
                     UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+                    System.out.println("writerprofile:" + writerInfo.getProfileImage() );
                     boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                     String isLike = isLiked ? "Y" : "N";
 

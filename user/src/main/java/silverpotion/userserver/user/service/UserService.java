@@ -225,6 +225,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         String nickname = user.getNickName();
         String profileImage = user.getProfileImage();
+        System.out.println("profileImage(user):"+profileImage);
         String street = user.getAddress();
         return UserProfileInfoDto.userProfileInfoDto(userId,nickname,profileImage,street);
     }
@@ -360,8 +361,8 @@ public class UserService {
                         user -> UserProfileInfoDto.userProfileInfoDto(
                                 user.getId(),
                                 user.getNickName(),
-                                user.getZipcode(),
-                                user.getProfileImage()
+                                user.getProfileImage(),
+                                user.getAddress()
                         )
                 ));
     }

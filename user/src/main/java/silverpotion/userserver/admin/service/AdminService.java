@@ -84,13 +84,13 @@ public class AdminService {
                     predicates.add(criteriaBuilder.like(root.get("email"), "%" + dto.getEmail() + "%"));
 
                 } if (dto.getNickname() != null) {
-                    predicates.add(criteriaBuilder.like(root.get("nickname"), "%" + dto.getNickname() + "%"));
+                    predicates.add(criteriaBuilder.like(root.get("nickName"), "%" + dto.getNickname() + "%"));
 
                 }
                 return predicates.isEmpty() ? criteriaBuilder.conjunction() : criteriaBuilder.and(predicates.toArray(new Predicate[0]));
             }
         };
-        return userRepository.findAll(spec,pageable).map(user-> user.fromEntity());
+        return userRepository.findAll(spec,pageable).map(AdminUserListDto::from);
     }
 
 //    유저상세조회

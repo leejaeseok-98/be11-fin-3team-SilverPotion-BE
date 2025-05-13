@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import silverpotion.userserver.admin.utils.MaskingUtils;
 import silverpotion.userserver.user.domain.*;
 
 import java.time.LocalDateTime;
@@ -35,18 +36,18 @@ public class UserDetailDto {
     public static UserDetailDto detailList(User user,int dependentCount,int protectorCount){
         return UserDetailDto.builder()
                 .id(user.getId())
-                .name(user.getName())
+                .name(MaskingUtils.maskName(user.getName()))
                 .socialType(user.getSocialType())
-                .email(user.getEmail())
-                .phoneNumber(user.getPhoneNumber())
+                .email(MaskingUtils.maskEmail(user.getEmail()))
+                .phoneNumber(MaskingUtils.maskPhoneNumber(user.getPhoneNumber()))
                 .region(user.getRegion())
                 .role(user.getRole())
                 .delYN(user.getDelYN())
                 .banYN(user.getBanYN())
                 .banUntil(user.getBanUntil())
-                .birthday(user.getBirthday())
+                .birthday(MaskingUtils.maskBirthday(user.getBirthday()))
                 .sex(user.getSex())
-                .loginId(user.getLoginId())
+                .loginId(MaskingUtils.maskLoginId(user.getLoginId()))
                 .nickName(user.getNickName())
                 .healingPotion(user.getHealingPotion())
                 .dependentCount(dependentCount)

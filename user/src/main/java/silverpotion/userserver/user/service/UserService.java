@@ -231,6 +231,7 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new EntityNotFoundException("없는 유저입니다."));
         String nickname = user.getNickName();
         String profileImage = user.getProfileImage();
+        System.out.println("profileImage(user):"+profileImage);
         String street = user.getAddress();
         return UserProfileInfoDto.userProfileInfoDto(userId, nickname, profileImage, street);
     }
@@ -367,8 +368,8 @@ public class UserService {
                         user -> UserProfileInfoDto.userProfileInfoDto(
                                 user.getId(),
                                 user.getNickName(),
-                                user.getZipcode(),
-                                user.getProfileImage()
+                                user.getProfileImage(),
+                                user.getAddress()
                         )
                 ));
     }
@@ -438,6 +439,16 @@ public class UserService {
         fireBaseService.sendVideoCallNotification(user.getFireBaseToken(), user.getName());
         System.out.println("파이어베이스 화상채팅 알림 호출");
 
+    }
+
+
+    // 게시물 좋아요 유저 목록 조회
+    public List<UserListDto> getPostLikeList(List<Long> userIds) {
+        //게시물 좋아요 유저 목록
+        List<User> users = userRepository.findAllById(userIds);
+        return users.stream().map(UserListDto::fromEntity).collect(Collectors.toList());
+    };
+
 
     }
-}
+

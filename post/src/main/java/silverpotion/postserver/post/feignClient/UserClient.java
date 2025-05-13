@@ -4,6 +4,7 @@ import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.web.bind.annotation.*;
 import silverpotion.postserver.common.dto.CommonDto;
 import silverpotion.postserver.common.service.FeignConfig;
+import silverpotion.postserver.post.dtos.UserListDto;
 import silverpotion.postserver.post.dtos.UserProfileInfoDto;
 
 import java.util.List;
@@ -37,4 +38,8 @@ public interface UserClient {
     // userId로 loginId 조회
     @GetMapping("/loginId")
     String getLoginIdByUserId(@RequestParam("id") Long id);
+
+    //userIds로 profileinfos 조회
+    @PostMapping("/internal/users/info")
+    CommonDto getUserInfos(@RequestBody List<Long> userIds);
 }

@@ -316,6 +316,7 @@
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
+                System.out.println("userProfileInfoDto : " + userProfileInfoDto.getProfileImage());
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.notice) {
@@ -337,7 +338,7 @@
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
                 isParticipants = voteAnswerRepository.existsByUserIdAndVoteId(userId, vote.getVoteId());
                 closeTime = vote.getCloseTime();
-                likeCount = postLikeRepository.countPostLikes(dto.getId());
+                likeCount = voteLikeRepository.countByVoteId(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else {
                 throw new IllegalArgumentException("잘못된 게시물형식입니다");
@@ -399,6 +400,7 @@
                     Long likeCount = postRepository.countPostLikes(post.getId());
                     Long commentCount = postRepository.countPostComments(post.getId());
                     UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+                    System.out.println("writerprofile:" + writerInfo.getProfileImage() );
                     boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                     String isLike = isLiked ? "Y" : "N";
 
@@ -512,18 +514,20 @@
                         Long parentLikeCount = commentRepository.countCommentLikes(parent.getId());
                         boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
                         String isParentLike = isParentLiked ? "Y" : "N";
+                        UserProfileInfoDto parentUserprofile = userClient.getUserProfileInfo(parent.getUserId());
 
                         //                    대댓글 리스트 구성
                         List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
                             Long childLikeCount = commentRepository.countCommentLikes(child.getId());
                             boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
                             String isChildLike = isChildLiked ? "Y" : "N";
+                            UserProfileInfoDto childUserprofile = userClient.getUserProfileInfo(child.getUserId());
 
-                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, userProfileInfoDto);
+                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, childUserprofile);
                         }).collect(Collectors.toList());
 
                         //              부모 댓글 DTO생성 후 대댓글 추가
-                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, userProfileInfoDto);
+                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, parentUserprofile);
                         parentDto.setReplies(childDtos);
                         return parentDto;
                     })
@@ -610,18 +614,20 @@
                         Long parentLikeCount = commentRepository.countCommentLikes(parent.getId());
                         boolean isParentLiked = commentLikeRepository.existsByCommentIdAndUserId(parent.getId(), userId);
                         String isParentLike = isParentLiked ? "Y" : "N";
+                        UserProfileInfoDto parentUserprofile = userClient.getUserProfileInfo(parent.getUserId());
 
                         //                    대댓글 리스트 구성
                         List<CommentListResDto> childDtos = parent.getChild().stream().map(child -> {
                             Long childLikeCount = commentRepository.countCommentLikes(child.getId());
                             boolean isChildLiked = commentLikeRepository.existsByCommentIdAndUserId(child.getId(), userId);
                             String isChildLike = isChildLiked ? "Y" : "N";
+                            UserProfileInfoDto childUserprofile = userClient.getUserProfileInfo(child.getUserId());
 
-                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, writerProfile);
+                            return CommentListResDto.fromEntity(child, childLikeCount, isChildLike, childUserprofile);
                         }).collect(Collectors.toList());
 
                         //              부모 댓글 DTO생성 후 대댓글 추가
-                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, writerProfile);
+                        CommentListResDto parentDto = CommentListResDto.fromEntity(parent, parentLikeCount, isParentLike, parentUserprofile);
                         parentDto.setReplies(childDtos);
                         return parentDto;
                     })
@@ -710,5 +716,41 @@
             // 5. 기존 투표 삭제
             voteAnswerRepository.deleteByUserIdAndVoteOption_Vote_VoteId(userId, voteId);
 
+        }
+
+//        일반 게시물 좋아요 유저 목록
+        public Page<UserListDto> getPostUserList(Long postId, Pageable pageable) {
+            //해당 게시물 좋아요 누른 userId 목록 조회
+            Page<Long> userIds = postLikeRepository.findUserIdsByPostId(postId, pageable);
+            List<Long> userIdsList = userIds.getContent();
+
+            // 유저 상세 정보 조회
+            CommonDto profileInfo = userClient.getUserInfos(userIdsList);
+            Object result = profileInfo.getResult();
+            if (result == null) {
+                System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+                result = List.of(); // 빈 리스트 처리
+            }
+            List<UserListDto> userListDtos = objectMapper.convertValue(result,new TypeReference<List<UserListDto>>() {});
+            // 페이징 정보 유지하면서 반환
+            return new PageImpl<>(userListDtos, pageable, userIds.getTotalElements());
+        }
+
+        //투표 게시물 좋아요 유저 목록
+        public Page<UserListDto> getVoteLikeUserList(Long voteId, Pageable pageable) {
+            //해당 게시물 좋아요 누른 userId 목록 조회
+            Page<Long> userIds = voteLikeRepository.findUserIdsByPostId(voteId, pageable);
+            List<Long> userIdsList = userIds.getContent();
+
+            // 유저 상세 정보 조회
+            CommonDto profileInfo = userClient.getUserInfos(userIdsList);
+            Object result = profileInfo.getResult();
+            if (result == null) {
+                System.out.println("profileInfoDtoMap.getResult()가 null입니다.");
+                result = List.of(); // 빈 리스트 처리
+            }
+            List<UserListDto> userListDtos = objectMapper.convertValue(result,new TypeReference<List<UserListDto>>() {});
+            // 페이징 정보 유지하면서 반환
+            return new PageImpl<>(userListDtos, pageable, userIds.getTotalElements());
         }
     }

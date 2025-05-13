@@ -1,5 +1,7 @@
 package silverpotion.userserver.common.auth;
 
+import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.Jwts;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -15,6 +17,14 @@ import java.util.Collection;
 import java.util.List;
 
 public class JwtHeaderAuthenticationFilter extends OncePerRequestFilter {
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getRequestURI();
+        System.out.println("Request URI : " + path);
+        // sms 전송/검증은 토큰 없이 허용
+        return path.startsWith("/silverpotion/sms");
+    }
+
     @Override
     protected void doFilterInternal(HttpServletRequest request,
                                     HttpServletResponse response,

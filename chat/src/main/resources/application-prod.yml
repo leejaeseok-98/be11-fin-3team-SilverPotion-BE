@@ -36,8 +36,9 @@ spring:
     kubernetes:
       discovery:
         enabled: true
-    loadbalancer:
-      mode: service
+        all-namespaces: true
+      client:
+        namespace: default
 
 server:
   port: 8080

@@ -14,6 +14,7 @@ import com.silverpotion.chatserver.notification.repository.NotificationRepositor
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.annotation.Bean;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -36,7 +38,6 @@ public class KafkaSseService {
     private final SimpUserRegistry simpUserRegistry;
     private final SseController sseController;
     private final NotificationRepository notificationRepository;
-
     public void publishToSseTopic(ChatMessageDto dto) {
         log.info("🔥 발행 전 DTO: {}", dto);
         try {
@@ -47,33 +48,32 @@ public class KafkaSseService {
             e.printStackTrace();
         }
     }
-
     @KafkaListener(
             topics = "chat-topic",
-            groupId = "chat-websocket-group",
+            groupId = "#{T(java.util.UUID).randomUUID().toString()}",
+//            groupId = "#{@kafkaGroupId}",
             concurrency = "1" // ✅ 명시적으로 한 쓰레드만 사용하게 설정
     )
     public void consumeChatMessage(String messageJson) {
         log.warn("🔥 WebSocket Kafka Consumer 실행됨 @{}", System.identityHashCode(this));
         try {
-            // 메시지가 Kafka에서 수신되는지 확인하는 로그 추가
             log.info("📡 수신된 메시지: {}", messageJson);
-
             ChatMessageDto message = objectMapper.readValue(messageJson, ChatMessageDto.class);
 
             List<String> loginIds = chatParticipantRepository.findLoginIdsByRoomId(message.getRoomId());
             log.info("🧩 연결된 유저 목록: {}", simpUserRegistry.getUsers().stream().map(SimpUser::getName).toList());
             log.info("📡 전송할 메시지 내용: {}", message);
 
-            // 개인 WebSocket 세션으로 쏘는 방식으로 수정
             for (String loginId : loginIds) {
-                log.info("🧩 대상 loginId = {}", loginId);
                 boolean hasUser = simpUserRegistry.getUser(loginId) != null;
-                log.info("🧩 SimpUserRegistry에 해당 유저 존재? = {}", hasUser);
+                log.info("🧩 대상 loginId = {}, SimpUserRegistry 등록 여부 = {}", loginId, hasUser);
 
                 if (hasUser) {
                     messagingTemplate.convertAndSendToUser(loginId, "/chat", message);
                     log.info("📡 WebSocket 전송 → /user/{}/chat", loginId);
+                } else {
+                    sseController.sendToClientOrQueue(loginId, message);
+                    log.info("📬 WebSocket 없음 → SSE 전송 시도(loginId: {})", loginId);
                 }
             }
         } catch (Exception e) {

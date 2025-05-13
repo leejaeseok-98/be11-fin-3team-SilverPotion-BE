@@ -36,4 +36,10 @@ public interface CommentRepository extends JpaRepository<Comment,Long> {
     @Query("select c.vote from Comment c where c.id = :parentId")
     Vote findVoteByParentId(@Param("parentId") Long parentId);
 
+//    일반 게시물 댓글 작성자 프로필 조회
+    List<Long> findUserIdByPost(Post post);
+
+//    투표 게시물 댓글 작성자 프로필 조회
+    List<Long> findUserIdByVote(Vote vote);
+
 }

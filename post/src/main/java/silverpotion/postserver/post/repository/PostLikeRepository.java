@@ -26,4 +26,8 @@ public interface PostLikeRepository extends JpaRepository<PostLike,Long> {
 //    특정유저가 특정게시물에 좋아요 눌렀는지 여부
     Optional<PostLike> findByPostAndUserId(Post post, Long userId);
 
+//    특정 게시물 좋아요 유저 목록
+    @Query("SELECT pl.userId FROM PostLike pl WHERE pl.post.id = :postId")
+    Page<Long> findUserIdsByPostId(@Param("postId") Long postId, Pageable pageable);
+
 }

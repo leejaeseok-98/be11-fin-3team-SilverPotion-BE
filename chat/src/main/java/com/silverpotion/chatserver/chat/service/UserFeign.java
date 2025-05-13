@@ -23,6 +23,6 @@ public interface UserFeign {
     @GetMapping("/loginId")
     String getLoginIdByUserId(@RequestParam("id") Long id);
 
-    @PostMapping("silverpotion/user/videoCall/{loginId}")
+    @PostMapping("/videoCall/{loginId}")
     void sendVedioCallNotification(@PathVariable("loginId") String loginId);
 }

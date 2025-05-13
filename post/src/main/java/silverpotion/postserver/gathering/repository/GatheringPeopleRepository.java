@@ -12,11 +12,9 @@ import java.util.Optional;
 
 @Repository
 public interface GatheringPeopleRepository extends JpaRepository<GatheringPeople,Long> {
-    @Query("SELECT DISTINCT gp2.userId " +
-            "FROM GatheringPeople gp1 " +
-            "JOIN GatheringPeople gp2 ON gp1.gathering.id = gp2.gathering.id " +
-            "WHERE gp1.userId = :userId")
-    List<Long> findMemberIdsInSameGatherings(@Param("userId") Long userId);
+    //해당모임 유저id 조회
+    @Query("SELECT gp.userId FROM GatheringPeople gp WHERE gp.gathering.id = :gatheringId")
+    List<Long> findUserIdsByGatheringId(@Param("gatheringId") Long gatheringId);
     List<GatheringPeople> findByUserId(Long userId);
     @Query("SELECT COUNT(gp) FROM GatheringPeople gp WHERE gp.gathering.id = :gatheringId AND gp.status = 'ACTIVATE'")
     Long countByGatheringIdAndStatusActivate(@Param("gatheringId") Long gatheringId);

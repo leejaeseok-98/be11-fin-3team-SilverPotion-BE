@@ -42,7 +42,8 @@ public class JwtAuthFilter implements GlobalFilter {
             "/chat-service/**/xhr*",                // fallback transport 경로들
             "/chat-service/**/eventsource",         // fallback transport
             "/chat-service/**/htmlfile" ,            // 일부 브라우저 fallback
-            "/sse/**"
+            "/sse/**",
+            "/silverpotion/sms/**"
 
     );
 

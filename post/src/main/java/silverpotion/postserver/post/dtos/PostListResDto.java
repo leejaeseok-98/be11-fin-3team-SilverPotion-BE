@@ -30,8 +30,9 @@ public class PostListResDto {
     private String isUpdate;
     private PostCategory postCategory;
     private List<String> imageUrls;
+    private boolean isGatheringMember;
 
-    public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,UserProfileInfoDto writerInfo){
+    public static PostListResDto fromEntity(Post post, Long likeCount, Long commentCount, String isLike,UserProfileInfoDto writerInfo,boolean isGatheringMember){
         return PostListResDto.builder()
                 .userId(post.getWriterId())
                 .nickname(writerInfo.getNickname())
@@ -46,6 +47,7 @@ public class PostListResDto {
                 .isLike(isLike)
                 .imageUrls(post.getFileUrls().stream().toList())
                 .postCategory(post.getPostCategory())
+                .isGatheringMember(isGatheringMember)
                 .build();
     }
 

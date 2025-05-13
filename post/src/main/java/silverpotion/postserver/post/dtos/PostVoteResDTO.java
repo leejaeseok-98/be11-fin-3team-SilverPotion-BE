@@ -31,6 +31,7 @@ public class PostVoteResDTO {
     private PostCategory postCategory;
     private Long likeCount;
     private Long commentCount;
+    private boolean isGatheringMember;
 
     private Integer viewCount;       // POST 전용
     private Boolean multipleChoice;  // VOTE 전용

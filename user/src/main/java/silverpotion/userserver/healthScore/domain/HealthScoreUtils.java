@@ -63,13 +63,13 @@ public class HealthScoreUtils {
         }
 
         if(exerciseHabit.equals("거의 매일")){
-            es =50;
-        } else if(exerciseHabit.equals("주 3회 이상")){
-            es =40;
-        } else if(exerciseHabit.equals("주 1-2회")){
             es =30;
+        } else if(exerciseHabit.equals("주 3회 이상")){
+            es =25;
+        } else if(exerciseHabit.equals("주 1-2회")){
+            es =15;
         } else if(exerciseHabit.equals("월 1-2회")){
-            es =20;
+            es =5;
         } else{
             es =0;
         }

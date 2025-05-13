@@ -314,4 +314,11 @@ public class    UserController {
         UserDto userDto = userService.getUserById(id);
         return ResponseEntity.ok(userDto);
     }
+
+    //화상채팅 알람용(여기서 로그인아이디는 전화 걸 사람을 받는거)
+    @PostMapping("/videoCall/{loginId}")
+    public  ResponseEntity<?> sendVedioCallNotification(@PathVariable String loginId){
+         userService.sendVedioCallNotification(loginId);
+         return ResponseEntity.ok().build();
+    }
 }

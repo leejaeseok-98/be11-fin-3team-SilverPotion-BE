@@ -56,8 +56,11 @@ public class SseController {
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 emitter.send(SseEmitter.event().name("ping").data("keep-alive"));
-            } catch (Exception e) {
+            }catch (Exception e) {
+                log.warn("❌ ping 전송 실패: {} - {}", loginId, e.getMessage());
                 emitter.completeWithError(e);
+                emitterMap.remove(loginId);
+                scheduler.shutdown();
             }
         }, 0, 30, TimeUnit.SECONDS);
 

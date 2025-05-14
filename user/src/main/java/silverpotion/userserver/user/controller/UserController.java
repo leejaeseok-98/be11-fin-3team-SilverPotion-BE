@@ -315,10 +315,19 @@ public class    UserController {
         return ResponseEntity.ok(userDto);
     }
 
+
+    //화상채팅 알람용(여기서 로그인아이디는 전화 걸 사람을 받는거)
+    @PostMapping("/videoCall/{loginId}")
+    public  ResponseEntity<?> sendVedioCallNotification(@PathVariable String loginId) {
+        userService.sendVedioCallNotification(loginId);
+        return ResponseEntity.ok().build();
+    }
+
     //게시물 좋아요 유저 목록
     @PostMapping("/internal/users/info")
     public ResponseEntity<?> getProfileList(@RequestBody List<Long> userIds){
         List<UserListDto> getList = userService.getPostLikeList(userIds);
         return new ResponseEntity<>(new CommonDto(HttpStatus.OK.value(),"success",getList),HttpStatus.OK);
+
     }
 }

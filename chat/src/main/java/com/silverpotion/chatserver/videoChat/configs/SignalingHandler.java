@@ -1,6 +1,7 @@
 package com.silverpotion.chatserver.videoChat.configs;
 
 import com.fasterxml.jackson.databind.util.JSONPObject;
+import com.silverpotion.chatserver.chat.service.UserFeign;
 import org.json.JSONObject;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.RequestHeader;
@@ -21,6 +22,12 @@ import java.util.concurrent.ConcurrentHashMap;
 public class SignalingHandler extends TextWebSocketHandler {
 
     private final Map<String,WebSocketSession> userSessions = new ConcurrentHashMap<>();
+    private final UserFeign userFeign;
+
+    public SignalingHandler(UserFeign userFeign) {
+        this.userFeign = userFeign;
+    }
+
     //로그인 아이디와 세션을 맵 구조로 저장하기  위함
     //ConcurrentHashMap<>()은 은 멀티스레드 작동을 위한 Map
 
@@ -49,8 +56,16 @@ public class SignalingHandler extends TextWebSocketHandler {
 
         JSONObject json = new JSONObject(message.getPayload());
         String toLoginId = json.getString("to"); //화상통화 받을 사람 아이디,우리가 프론트에서 sdp 전송할때 to:아이디 추가해놓아야함
+        String type = json.optString("type"); //알람 보내기 위함, optString은 getString과 같긴한데 예외를 던지지않고 기본값을 반환함 기본값은 빈문자열
 
         WebSocketSession receiverSession = userSessions.get(toLoginId); //상대방 세션
+
+        //알람 추가(즉 sdp offer메세지 보내면서 알람도 같이 보내겠다는 것)
+//        if ("offer".equals(type)) {
+//            userFeign.sendVedioCallNotification(toLoginId);
+//        }
+     // 여기까지 알람 추가
+
         if(receiverSession != null && receiverSession.isOpen()){ // 상대방 세션이 연결되어있으면
             receiverSession.sendMessage(message); //메세지(sdp세션,iceCandidates)전달
         }

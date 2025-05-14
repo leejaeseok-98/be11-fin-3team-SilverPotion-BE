@@ -274,10 +274,15 @@
             List<PostVoteUnionDto> rawList = postQueryRepository.findAllPostAndVote(gatheringId,size, offset);
             long totalCount = postQueryRepository.countPostAndVote();
             Long userId = userClient.getUserIdByLoginId(loginId);
+            GatheringPeople gatheringPeople = gatheringPeopleRepository.findByGatheringIdAndUserId(gatheringId,userId)
+                    .orElse(null);
+            final boolean existMember = (gatheringPeople != null) &&
+                    gatheringPeopleRepository.existsByGatheringIdAndUserIdAndStatus(
+                            gatheringId, userId, gatheringPeople.getStatus());
 
             List<PostVoteResDTO> dtoList = rawList.stream()
                     .map(item -> { // 이름을 dto 대신 item으로 하면 더 헷갈리지 않아요
-                        PostVoteResDTO postVoteResDTO = convertToDto(item, userId);
+                        PostVoteResDTO postVoteResDTO = convertToDto(item, userId, existMember);
                         if (item.getPostCategory() == PostCategory.vote) {
                             List<VoteOptions> options = voteOptionsRepository.findByVote_voteId(item.getId());
                             postVoteResDTO.setVoteOptions(options);
@@ -290,7 +295,7 @@
             return new PageImpl<>(dtoList, pageable, totalCount);
         }
 
-        private PostVoteResDTO convertToDto(PostVoteUnionDto dto,Long userId) {
+        private PostVoteResDTO convertToDto(PostVoteUnionDto dto,Long userId,boolean existMember) {
 
             Vote vote = null;
             Post post = null;
@@ -316,6 +321,7 @@
                     throw new IllegalArgumentException("post writerId가 null입니다. postId:" +  post.getId());
                 }
                 userProfileInfoDto = userClient.getUserProfileInfo(writerId);
+                System.out.println("userProfileInfoDto : " + userProfileInfoDto.getProfileImage());
                 likeCount = postLikeRepository.countPostLikes(dto.getId());
                 commentCount = commentRepository.countPostComments(dto.getId());
             } else if (dto.getPostCategory() == PostCategory.notice) {
@@ -364,13 +370,14 @@
                     .imageUrls(imageUrls)
                     .closeTime(closeTime)
                     .participating(isParticipants)
+                    .isGatheringMember(existMember)
                     .build();
         }
 
     //    자유글 조회
         public Page<PostListResDto> getFreeList(int page, int size, String loginId,Long gatheringId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
-            List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
+            List<Long> gatheringUserIds = gatheringPeopleRepository.findUserIdsByGatheringId(gatheringId); // 같은 모임 id리스트
             System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
@@ -378,6 +385,11 @@
 
             //모임 객체 조회
             Gathering gathering = gatheringRepository.findById(gatheringId).orElseThrow(()-> new EntityNotFoundException("모임이 없습니다."));
+            GatheringPeople gatheringPeople = gatheringPeopleRepository.findByGatheringIdAndUserId(gatheringId,userId)
+                    .orElse(null);
+            final boolean existMember = (gatheringPeople != null) &&
+                    gatheringPeopleRepository.existsByGatheringIdAndUserIdAndStatus(
+                            gatheringId, userId, gatheringPeople.getStatus());
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
 
@@ -399,17 +411,18 @@
                     Long likeCount = postRepository.countPostLikes(post.getId());
                     Long commentCount = postRepository.countPostComments(post.getId());
                     UserProfileInfoDto writerInfo = profileList.get(post.getWriterId());
+                    System.out.println("writerprofile:" + writerInfo.getProfileImage() );
                     boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                     String isLike = isLiked ? "Y" : "N";
 
-                    return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo);
+                    return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo,existMember);
                 });
         }
 
         // 공지글 조회
         public Page<PostListResDto> getNoticeList(int page, int size, String loginId,Long gatheringId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
-            List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
+            List<Long> gatheringUserIds = gatheringPeopleRepository.findUserIdsByGatheringId(gatheringId); // 같은 모임 id리스트
             System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트
@@ -417,6 +430,12 @@
 
             //모임 객체 조회
             Gathering gathering = gatheringRepository.findById(gatheringId).orElseThrow(()-> new EntityNotFoundException("모임이 없습니다."));
+
+            GatheringPeople gatheringPeople = gatheringPeopleRepository.findByGatheringIdAndUserId(gatheringId,userId)
+                    .orElse(null);
+            final boolean existMember = (gatheringPeople != null) &&
+                    gatheringPeopleRepository.existsByGatheringIdAndUserIdAndStatus(
+                            gatheringId, userId, gatheringPeople.getStatus());
 
             Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdTime"));
 
@@ -441,7 +460,7 @@
                 boolean isLiked = postLikeRepository.existsByPostIdAndUserId(post.getId(), userId);
                 String isLike = isLiked ? "Y" : "N";
 
-                return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo);
+                return PostListResDto.fromEntity(post,likeCount,commentCount,isLike,writerInfo,existMember);
             });
         }
 
@@ -449,7 +468,7 @@
         public Page<VoteResListDto> getVoteList(int page, int size, String loginId,Long gatheringId) {
             Long userId = userClient.getUserIdByLoginId(loginId);
 
-            List<Long> gatheringUserIds = gatheringPeopleRepository.findMemberIdsInSameGatherings(userId); // 같은 모임 id리스트
+            List<Long> gatheringUserIds = gatheringPeopleRepository.findUserIdsByGatheringId(gatheringId); // 같은 모임 id리스트
             System.out.println("gatheringIds"+gatheringUserIds);
 
             List<Long> accessibleUserIds = new ArrayList<>(gatheringUserIds);//본인 포함 모임 id리스트

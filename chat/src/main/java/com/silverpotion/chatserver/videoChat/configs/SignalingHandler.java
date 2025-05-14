@@ -61,9 +61,9 @@ public class SignalingHandler extends TextWebSocketHandler {
         WebSocketSession receiverSession = userSessions.get(toLoginId); //상대방 세션
 
         //알람 추가(즉 sdp offer메세지 보내면서 알람도 같이 보내겠다는 것)
-        if ("offer".equals(type)) {
-            userFeign.sendVedioCallNotification(toLoginId);
-        }
+//        if ("offer".equals(type)) {
+//            userFeign.sendVedioCallNotification(toLoginId);
+//        }
      // 여기까지 알람 추가
 
         if(receiverSession != null && receiverSession.isOpen()){ // 상대방 세션이 연결되어있으면

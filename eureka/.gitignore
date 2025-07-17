@@ -6,6 +6,9 @@ build/
 !**/src/test/**/build/
 #로그 파일 무시
 *.log
+
+application-local.yml
+application-prod.yml
 ### STS ###
 .apt_generated
 .classpath

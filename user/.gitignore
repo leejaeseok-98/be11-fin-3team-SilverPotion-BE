@@ -6,6 +6,9 @@ build/
 !**/src/test/**/build/
 logs
 
+application-local.yml
+application-prod.yml
+
 ### STS ###
 .apt_generated
 .classpath
